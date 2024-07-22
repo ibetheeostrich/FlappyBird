@@ -1,0 +1,45 @@
+Simple Wing
+#Mach
+ 0.0    
+#IYsym   IZsym   Zsym
+ 0       0       0.0
+#Sref    Cref    Bref
+SREF     2.0     15.0
+#Xref    Yref    Zref
+0.50     0.0     0.0
+#
+#
+#====================================================================
+SURFACE 
+SecondaryTertiary
+#
+#Nchordwise  Cspace   Nspanwise   Sspace
+8            1.0       
+#
+YDUPLICATE
+0.0
+#
+ANGLE
+0.0
+#-------------------------------------------------------------
+SECTION
+# Shoulder Joint Position
+# Chord is the wing root chord
+#
+#Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+0.      0.     0.      1       0.0   15         0
+#-------------------------------------------------------------
+SECTION
+# Wrist Joint Root Position
+# Chord is defined by third phalanx
+#
+#Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+W0X     W0Y    W0Z     0.5     AINCW 15         0
+#-------------------------------------------------------------
+SECTION
+# Wing Tip Position
+# Chord is zero to emulate bird of prey wings
+#
+#Xle    Yle    Zle     Chord   Ainc  Nspanwise  Sspace
+WTX     WTY    WTZ     0.1     AINCT 0          0
+#====================================================================
