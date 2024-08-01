@@ -46,6 +46,7 @@ def W_0(alpha_eff, U_ref):
     '''
 
     y_dot = h_dot()
+    # y_dot = lambda t: 0.0*t
 
     return lambda theta, t: - U_ref * math.sin(alpha_eff) + y_dot(t) * math.cos(alpha_eff)
 
@@ -88,7 +89,7 @@ def Gamma_b(A_0, A_1, U_ref, c):
 
 def h_dot():
     amp = 1
-    p = 0.001
+    p = 2
     return lambda t: amp*math.sin(p*t)
 
 def xi_2_theta(xi,c):
