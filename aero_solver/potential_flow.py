@@ -1,6 +1,6 @@
 import math
 import scipy
-import scipy.integrate
+import scipy.integrate as inte
 
 '''
 _N is used to denote an array of N size of a given structure, eg. Gamma_N is an array containing the vorticity strengths of N vortex blobs
@@ -59,20 +59,25 @@ def W_theta(W_xi, c):
 
     return lambda theta, eta, t: W_xi(trans(theta), eta, t)
 
-# def A_0(func,llim,ulim, eta, t):
-#     '''
-#     - first fourier coefficient for vorticity distribution at a given time step
-#     '''
-#     return 2 / math.pi * scipy.integrate.quad(func, llim, ulim, args=(eta, t))
+def V_ind_b(gamma, xi_n, eta_n, c, eta_xi):
+    '''
+    - takes in vorticity distribution gamma
+    - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
+    '''
 
-# def A_n(func,llim,ulim, eta, t, n):
-#     '''
-#     - first fourier coefficient for vorticity distribution at a given time step
-#     '''
+    integrand_u = lambda xi: gamma(xi) * (eta_n - eta_xi(xi)) / ((xi_n - xi)**2 + (eta_n - eta_xi(xi))**2)
 
-#     integrand = lambda theta, eta, t: func(theta, eta, t) * math.cos(n*theta)
+    def_int_u, extra = inte.quad(integrand_u, 0, c)
 
-#     return - 1 / math.pi * scipy.integrate.quad(integrand, llim, ulim, args=(eta, t))
+    u_ind = 0.5 / math.pi * def_int_u
+
+    integrand_v = lambda xi: gamma(xi) * (xi_n - xi) / ((xi_n - xi)**2 + (eta_n - eta_xi(xi))**2)
+
+    def_int_v, extra = inte.quad(integrand_v, 0, c)
+
+    v_ind = 0.5 / math.pi * def_int_v 
+
+    return u_ind, v_ind
 
 def Gamma_b(A_0, A_1, U_ref, c):
     '''
@@ -82,8 +87,8 @@ def Gamma_b(A_0, A_1, U_ref, c):
     return math.pi * c * U_ref * (A_0 + A_1 * 0.5)
 
 def h_dot():
-    amp = 0
-    p = 0
+    amp = 1
+    p = 0.001
     return lambda t: amp*math.sin(p*t)
 
 def xi_2_theta(xi,c):
