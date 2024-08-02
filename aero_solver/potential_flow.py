@@ -6,6 +6,34 @@ import scipy.integrate as inte
 _N is used to denote an array of N size of a given structure, eg. Gamma_N is an array containing the vorticity strengths of N vortex blobs
 '''
 
+def trans_x2xi(x,t, U_ref):
+
+    return x + t * U_ref
+
+def trans_xi2x(xi,t,U_ref):
+
+    return xi - t * U_ref
+
+def trans_y2eta(y,t):
+
+    amp = 1
+    p = 2
+    
+    return y - amp*math.cos(p*t)
+
+def trans_eta2y(eta, t):
+
+    amp = 1
+    p =2 
+
+    return eta + amp*math.cos(p*t)
+
+
+def h_dot():
+    amp = 1
+    p = 2
+    return lambda t: p * amp * math.sin(p*t)
+
 def eta(xi):
 
     return 0.0
@@ -27,6 +55,38 @@ def v_ind(Gamma_n, eta_n, xi_n, v_core, c):
     trans = lambda theta: 0.5 * c * (1 - math.cos(theta))
 
     return lambda theta: 0.5 * Gamma_n / math.pi * (trans(theta) - xi_n) / math.sqrt(((trans(theta) - xi_n)**2 + (eta(trans(theta))- eta_n)**2)**2 + v_core**4)
+
+def V_ind_b(gamma, xi_n, eta_n, c, eta_xi):
+    '''
+    - takes in vorticity distribution gamma
+    - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
+    '''
+
+    integrand_u = lambda xi: gamma(xi) * (eta_n - eta_xi(xi)) / ((xi_n - xi)**2 + (eta_n - eta_xi(xi))**2)
+
+    def_int_u, extra = inte.quad(integrand_u, 0, c)
+
+    u_ind = 0.5 / math.pi * def_int_u
+
+    integrand_v = lambda xi: gamma(xi) * (xi_n - xi) / ((xi_n - xi)**2 + (eta_n - eta_xi(xi))**2)
+
+    def_int_v, extra = inte.quad(integrand_v, 0, c)
+
+    v_ind = 0.5 / math.pi * def_int_v 
+
+    return u_ind, v_ind
+
+def V_ind_ub(xi, eta, xi_n, eta_n, gamma, v_core):
+
+    '''
+    - calculates the induced velocity at a point by another vortex blob
+    '''
+
+    u_ind_ub = 0.5 * gamma / math.pi * (eta - eta_n) / math.sqrt(((xi - xi_n)**2 + (eta - eta_n)**2)**2 + v_core**4)
+
+    v_ind_ub = 0.5 * gamma / math.pi * (xi - xi_n) / math.sqrt(((xi - xi_n)**2 + (eta - eta_n)**2)**2 + v_core**4)
+
+    return u_ind_ub, v_ind_ub
 
 def dndeta(Gamma_n, eta_n, xi_n, v_core, alpha_eff, c):
     '''
@@ -60,25 +120,7 @@ def W_theta(W_xi, c):
 
     return lambda theta, eta, t: W_xi(trans(theta), eta, t)
 
-def V_ind_b(gamma, xi_n, eta_n, c, eta_xi):
-    '''
-    - takes in vorticity distribution gamma
-    - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
-    '''
 
-    integrand_u = lambda xi: gamma(xi) * (eta_n - eta_xi(xi)) / ((xi_n - xi)**2 + (eta_n - eta_xi(xi))**2)
-
-    def_int_u, extra = inte.quad(integrand_u, 0, c)
-
-    u_ind = 0.5 / math.pi * def_int_u
-
-    integrand_v = lambda xi: gamma(xi) * (xi_n - xi) / ((xi_n - xi)**2 + (eta_n - eta_xi(xi))**2)
-
-    def_int_v, extra = inte.quad(integrand_v, 0, c)
-
-    v_ind = 0.5 / math.pi * def_int_v 
-
-    return u_ind, v_ind
 
 def Gamma_b(A_0, A_1, U_ref, c):
     '''
@@ -86,11 +128,6 @@ def Gamma_b(A_0, A_1, U_ref, c):
     '''
 
     return math.pi * c * U_ref * (A_0 + A_1 * 0.5)
-
-def h_dot():
-    amp = 1
-    p = 2
-    return lambda t: amp*math.sin(p*t)
 
 def xi_2_theta(xi,c):
     '''
