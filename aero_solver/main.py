@@ -1,4 +1,4 @@
-import potential_flow as pot
+import aero_solver.pot_aux as pot
 import numpy as np
 
 # define solver parameters

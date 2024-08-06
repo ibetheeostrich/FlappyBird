@@ -17,14 +17,14 @@ def trans_xi2x(xi,t,U_ref):
 def trans_y2eta(y,t):
 
     amp = 1
-    p = 2
+    p = 0.5
     
     return y - amp*math.cos(p*t)
 
 def trans_eta2y(eta, t):
 
     amp = 1
-    p =2 
+    p = 0.5 
 
     return eta + amp*math.cos(p*t)
 

@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.integrate as inte
-import potential_flow as pot
+import pot_aux as pot
 import copy
 
 
@@ -24,7 +24,7 @@ U_ref = 10.0
 alpha_eff = np.deg2rad(0)
 c = 1
 t_step = 0.01
-t_end = 100*t_step
+t_end = 2*t_step
 t_d = np.arange(0,t_end,t_step)
 
 # Testing Functions
@@ -105,7 +105,7 @@ for t in t_d:
     if t > 0:
         Gamma_err = 10000
 
-        while abs(Gamma_err) > 0.000001:
+        while abs(Gamma_err) > 0.001:
 
             # Computing Fourier coefficients
             for i in range(len(A)):
@@ -171,20 +171,13 @@ for t in t_d:
             # print(Gamma_err)
 
 
-#     cl = np.pi * (2 * A[0]+ A[1])
-#     print(cl)
+    cl = np.pi * (2 * A[0]+ A[1])
+    print(cl)
 
 
 
 # print(sum(Gamma_N))
 
-    # print(A[0])
-    # print(A[1])
-    # print(A[2])
-    # print(A[3])
 
-    # cl = np.pi * (2 * A[0]+ A[1])
-    # # print(Gamma_b)
-    # print(cl)
 
 
