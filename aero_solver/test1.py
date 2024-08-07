@@ -16,7 +16,7 @@ def main():
     alpha_eff = np.deg2rad(0)
     c = 4
     t_step = 0.05
-    t_end = 200  * t_step
+    t_end = 50 * t_step
     t_d = np.arange(0,t_end,t_step)
     cl = np.array([])
 
@@ -50,7 +50,7 @@ def main():
 
             # adding vortex positions and new vortex vorticity
             xi_N[0]     = c + t*U_ref
-            eta_N[0]    = - math.cos(t) - 1
+            eta_N[0]    = 0.88*t_step
             x_N[0]      = c
             y_N[0]      = 0.0
             Gamma_N[0]  = 0.0
@@ -149,7 +149,7 @@ def main():
                     u_ind[n] += u_ind_p
                     v_ind[n] += v_ind_p
 
-                    if m == N:
+                    if m == n:
                         u_ind[n] += 0.0
                         v_ind[n] += 0.0
 
@@ -163,8 +163,8 @@ def main():
 
             # print(u_ind, v_ind)
 
-            xi_N     = xi_N  + U_ref * t_step           + u_ind*t_step
-            eta_N    = eta_N - 10*math.sin(1*t)* t_step  + v_ind*t_step
+            xi_N     = xi_N  + u_ind*t_step #- U_ref * t_step           
+            eta_N    = eta_N + v_ind*t_step - 0.88 * t_step #- 10*math.sin(1*t)* t_step  
 
             # print(u_ind)
 
@@ -179,11 +179,11 @@ def main():
 
         cl = np.append(cl, - np.pi * (2 * A[0]+ A[1]))
         # print(cl, sum(Gamma_N),N)
-        print(cl[-1], np.rad2deg(math.atan2(10*math.sin(1*t),U_ref)), A[0],N)
+        print(cl[-1], A[0],N)
         
 
-    plt.plot(pota.trans_xi2x(xi_N, t_d, U_ref),pota.trans_eta2y(eta_N, t_d), 'ro')
-    plt.plot([0 - U_ref*t, c - U_ref*t],[-10*np.cos(t), -10*np.cos(t)], 'k')
+    plt.plot(xi_N, 'ro')
+    plt.plot([0, c],[0, 0], 'k')
     plt.axis("equal")
     plt.show()
 

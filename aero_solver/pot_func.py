@@ -1,12 +1,14 @@
 import math
 import scipy.integrate as inte
+import numpy as np
 
 PI = math.pi
-PI_inv = 10 / math.pi
+PI_inv = 1 / math.pi
 
 
 def hdot(t):
-    return 4*math.sin(1*t)
+    # return 4*math.sin(1*t)
+    return 0.88
 
 def dphideta(xi_n, eta_n , Gamma_n, v_core, alpha_eff):
 
@@ -15,9 +17,9 @@ def dphideta(xi_n, eta_n , Gamma_n, v_core, alpha_eff):
     eta = lambda xi: 0.0
 
     func = lambda xi:  const * (
-        ((eta(xi) - eta_n) * math.cos(alpha_eff) + (xi - xi_n) * math.sin(alpha_eff))  
+        ((eta(xi) - eta_n) * math.sin(alpha_eff) + (xi - xi_n) * math.cos(alpha_eff))  
         / 
-        (((eta(xi) - eta_n)**2 + (xi - xi_n)**2)**2 + v_core**4)
+        np.sqrt(((eta(xi) - eta_n)**2 + (xi - xi_n)**2)**2 + v_core**4)
                          )
 
 
