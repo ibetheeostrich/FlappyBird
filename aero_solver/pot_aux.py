@@ -1,5 +1,6 @@
 import math
 import scipy
+import numpy as np
 import scipy.integrate as inte
 
 '''
@@ -16,23 +17,23 @@ def trans_xi2x(xi,t,U_ref):
 
 def trans_y2eta(y,t):
 
-    amp = 1
-    p = 0.5
+    amp = -10
+    p = 1
     
-    return y - amp*math.cos(p*t)
+    return y - amp * np.cos(p*t)
 
 def trans_eta2y(eta, t):
 
-    amp = 1
-    p = 0.5 
+    amp = -10
+    p = 1
 
-    return eta + amp*math.cos(p*t)
+    return eta + amp*np.cos(p*t)
 
 
 def h_dot():
     amp = 1
-    p = 2
-    return lambda t: p * amp * math.sin(p*t)
+    p = 0.5
+    return lambda t: p * amp * np.sin(p*t)
 
 def eta(xi):
 

@@ -11,6 +11,15 @@ import matplotlib.pyplot as plt
 
 def main():
 
+    # Initialise problem
+    U_ref = 5
+    alpha_eff = np.deg2rad(0)
+    c = 4
+    t_step = 0.05
+    t_end = 200  * t_step
+    t_d = np.arange(0,t_end,t_step)
+    cl = np.array([])
+
     # Initialise vortex blob parameters
     N = 0
     Gamma_N = np.array([0.0])
@@ -18,7 +27,7 @@ def main():
     eta_N   = np.array([0.0])
     x_N     = np.array([0.0])
     y_N     = np.array([0.0])
-    v_core = 0.001
+    v_core  = 0.5 * c
 
     # Glauert's Transformation
 
@@ -28,58 +37,26 @@ def main():
     eta_xi = lambda xi: 0.0
 
     # Initialise Fourier coefficient matrix
-    A = np.zeros(4)
-
-    # Initialise problem
-    U_ref = 10.0
-    alpha_eff = np.deg2rad(0)
-    c = 1
-    t_step = 0.01
-    t_end = 50*t_step
-    t_d = np.arange(0,t_end,t_step)
+    A = np.zeros(6)
 
 
     # Time loop
 
     for t in t_d:
 
+        # print(eta_N)
+
         if t == t_step: # first shed vortex
 
             # adding vortex positions and new vortex vorticity
-            xi_N[0]     = pota.trans_x2xi(c, U_ref, t)
-            eta_N[0]    = pota.trans_y2eta(0, t)
+            xi_N[0]     = c + t*U_ref
+            eta_N[0]    = - math.cos(t) - 1
             x_N[0]      = c
             y_N[0]      = 0.0
             Gamma_N[0]  = 0.0
 
             N += 1
 
-        if t > t_step:
-
-            u_ind = np.zeros(N)
-            v_ind = np.zeros(N)          
-
-            for n in range(N):
-
-                trans = lambda xi: np.arccos(1 - 2*xi/c)
-                gamma = lambda xi: A[0] * (1 + np.cos(trans(xi))) / np.sin(trans(xi)) + A[1] * np.sin(trans(xi)) + A[2] * np.sin(2*trans(xi)) + A[3] * np.sin(trans(xi))
-
-                u_ind_p, v_ind_p = pota.V_ind_b(gamma, xi_N[0], eta_N[0], c, eta_xi)
-
-                u_ind[n] = u_ind_p
-                v_ind[n] = v_ind_p
-
-            xi_N     = xi_N  + u_ind*t_step
-            eta_N    = eta_N + v_ind*t_step
-
-            xi_N    = np.append(xi_N,(xi_N[0] - c)*0.33 + c)
-            eta_N   = np.append(eta_N,(eta_N[0] - 0.0)*0.33 + 0)
-
-            x_N = np.append(x_N, pota.trans_xi2x(xi_N[-1],t,U_ref))
-            y_N = np.append(y_N, pota.trans_eta2y(eta_N[-1],t))
-            Gamma_N = np.append(Gamma_N, 0.0)
-
-            N += 1
 
         
         # Solving for Vorticity
@@ -159,15 +136,61 @@ def main():
             # print(Gamma_err, Gamma_b, sum(Gamma_N))
             Gamma_N[-1] -= 0.5*Gamma_err
 
-            
+        if t > 0:
 
-        cl = np.pi * (2 * A[0]+ A[1])
-        print(cl, sum(Gamma_N),N)
+            u_ind = np.zeros(N)
+            v_ind = np.zeros(N)          
 
-    plt.plot(xi_N,eta_N, 'o')
+            for n in range(N):
+                for m in range(N):
+
+                    u_ind_p, v_ind_p = pot.V_ind_ub(xi_N[n], eta_N[n], xi_N[m], eta_N[m],  Gamma_N[m], v_core)
+
+                    u_ind[n] += u_ind_p
+                    v_ind[n] += v_ind_p
+
+                    if m == N:
+                        u_ind[n] += 0.0
+                        v_ind[n] += 0.0
+
+                trans = lambda xi: np.arccos(1 - 2*xi/c)
+                gamma = lambda xi: A[0] * (1 + np.cos(trans(xi))) / np.sin(trans(xi)) + A[1] * np.sin(trans(xi)) + A[2] * np.sin(2*trans(xi)) + A[3] * np.sin(3*trans(xi))
+
+                u_ind_p, v_ind_p = pot.V_ind_b(gamma, xi_N[n], eta_N[n], c)
+
+                u_ind[n] = u_ind_p
+                v_ind[n] = v_ind_p
+
+            # print(u_ind, v_ind)
+
+            xi_N     = xi_N  + U_ref * t_step           + u_ind*t_step
+            eta_N    = eta_N - 10*math.sin(1*t)* t_step  + v_ind*t_step
+
+            # print(u_ind)
+
+            xi_N    = np.append(xi_N,(xi_N[-1] - c)*0.33 + c)
+            eta_N   = np.append(eta_N,(eta_N[-1] - 0.0)*0.33 + 0)
+
+
+            Gamma_N = np.append(Gamma_N, 0.0)
+
+            N += 1
+
+
+        cl = np.append(cl, - np.pi * (2 * A[0]+ A[1]))
+        # print(cl, sum(Gamma_N),N)
+        print(cl[-1], np.rad2deg(math.atan2(10*math.sin(1*t),U_ref)), A[0],N)
+        
+
+    plt.plot(pota.trans_xi2x(xi_N, t_d, U_ref),pota.trans_eta2y(eta_N, t_d), 'ro')
+    plt.plot([0 - U_ref*t, c - U_ref*t],[-10*np.cos(t), -10*np.cos(t)], 'k')
+    plt.axis("equal")
     plt.show()
 
-    print("")
+    plt.plot(t_d,cl)
+    plt.show()
+
+    print(t_step*U_ref/c)
 
 
 if __name__ == "__main__":
