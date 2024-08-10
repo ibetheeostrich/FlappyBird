@@ -1,14 +1,32 @@
 import math
 import scipy.integrate as inte
 import numpy as np
+import numpy as np
 
 PI = math.pi
+PI_inv = 1 / math.pi
 PI_inv = 1 / math.pi
 
 
 def hdot(t):
-    # return 4*math.sin(1*t)
-    return 0.88
+    return 1*2*math.sin(1*t)
+
+def h(t):
+    return 2 -2*np.cos(1*t)
+
+# def hdot(t):
+#     return 1.0
+
+# def h(t):
+#     return t
+
+
+def xin2body(x,t, U_ref):
+    return x + U_ref*t
+
+def yin2body(y,t):
+    return y - h(t)
+
 
 def dphideta(xi_n, eta_n , Gamma_n, v_core, alpha_eff):
 
@@ -17,9 +35,9 @@ def dphideta(xi_n, eta_n , Gamma_n, v_core, alpha_eff):
     eta = lambda xi: 0.0
 
     func = lambda xi:  const * (
-        ((eta(xi) - eta_n) * math.sin(alpha_eff) + (xi - xi_n) * math.cos(alpha_eff))  
+        (-eta_n * math.cos(alpha_eff) + (xi - xi_n) * math.sin(alpha_eff))  
         / 
-        np.sqrt(((eta(xi) - eta_n)**2 + (xi - xi_n)**2)**2 + v_core**4)
+        ((eta_n**2 + (xi - xi_n)**2)**2 + v_core**4)
                          )
 
 
@@ -44,7 +62,7 @@ def V_ind_b(gamma, xi_n, eta_n, c):
 
     def_int_u, extra = inte.quad(integrand_u, 0, c)
 
-    u_ind = 0.5 * PI_inv * def_int_u
+    u_ind = - 0.5 * PI_inv * def_int_u
 
     integrand_v = lambda xi: gamma(xi) * (xi_n - xi) / ((xi_n - xi)**2 + (eta_n - 0.0)**2)
 
@@ -60,9 +78,9 @@ def V_ind_ub(xi, eta, xi_n, eta_n, gamma, v_core):
     - calculates the induced velocity at a point by another vortex blob
     '''
 
-    u_ind_ub = - 0.5 * gamma * PI_inv * (eta - eta_n) / math.sqrt(((xi - xi_n)**2 + (eta - eta_n)**2)**2 + v_core**4)
+    u_ind_ub = 0.5 * gamma * PI_inv * (eta - eta_n) / math.sqrt(((xi - xi_n)**2 + (eta - eta_n)**2)**2 + v_core**4)
 
-    v_ind_ub =  0.5 * gamma * PI_inv * (xi - xi_n) / math.sqrt(((xi - xi_n)**2 + (eta - eta_n)**2)**2 + v_core**4)
+    v_ind_ub = - 0.5 * gamma * PI_inv * (xi - xi_n) / math.sqrt(((xi - xi_n)**2 + (eta - eta_n)**2)**2 + v_core**4)
 
     return u_ind_ub, v_ind_ub
 
