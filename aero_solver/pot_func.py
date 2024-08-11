@@ -5,7 +5,6 @@ import numpy as np
 
 PI = math.pi
 PI_inv = 1 / math.pi
-PI_inv = 1 / math.pi
 
 
 def hdot(t):
@@ -27,6 +26,8 @@ def xin2body(x,t, U_ref):
 def yin2body(y,t):
     return y - h(t)
 
+def g_trans(theta, c):
+    return 0.5 * c * (1 - np.cos(theta))
 
 def dphideta(xi_n, eta_n , Gamma_n, v_core, alpha_eff):
 
@@ -39,9 +40,18 @@ def dphideta(xi_n, eta_n , Gamma_n, v_core, alpha_eff):
         / 
         ((eta_n**2 + (xi - xi_n)**2)**2 + v_core**4)
                          )
-
-
     return func
+
+def dphideta_fast(int_bounds, xi_n, eta_n , Gamma_n, v_core, alpha_eff):
+
+    const = 0.5 * Gamma_n * PI_inv
+
+    ans = const * (
+        (-eta_n * np.cos(alpha_eff) + (int_bounds - xi_n) * np.sin(alpha_eff))  
+        / 
+        ((eta_n**2 + (int_bounds - xi_n)**2)**2 + v_core**4)
+                         )
+    return ans
 
 def W_0(U_ref, alpha_eff, t):
 
@@ -51,6 +61,10 @@ def W_0(U_ref, alpha_eff, t):
     eta = lambda xi: 0.0
 
     return lambda xi: - U_ref*math.sin(alpha_eff) + (hdot(t)) * math.cos(alpha_eff)
+
+def W_0_fast_1(U_ref, alpha_eff, t):
+
+    return - U_ref*math.sin(alpha_eff) + (hdot(t)) * math.cos(alpha_eff)
 
 def V_ind_b(gamma, xi_n, eta_n, c):
     '''

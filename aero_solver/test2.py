@@ -93,7 +93,7 @@ def main():
                         # A[i], extra = inte.quad(W_0, 0.0, np.pi)
                         A[i] = pot.W_0_fast_1(U_ref, alpha_eff, t) * np.pi
 
-                        if N < 170:
+                        if N < 1000:
 
                             for n in range(N):                            
 
