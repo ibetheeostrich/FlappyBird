@@ -26,6 +26,13 @@ def xin2body(x,t, U_ref):
 def yin2body(y,t):
     return y - h(t)
 
+def bodyin2x(x,t, U_ref):
+    return x - U_ref*t
+
+def bodyin2y(y,t):
+    return y + h(t)
+
+
 def g_trans(theta, c):
     return 0.5 * c * (1 - np.cos(theta))
 

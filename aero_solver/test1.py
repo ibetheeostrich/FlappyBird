@@ -37,7 +37,7 @@ def main():
     alpha_eff = np.deg2rad(0)   
     c = 2.0
     t_step = 0.05
-    t_end = 1000 * t_step
+    t_end = 200 * t_step
     t_d = np.arange(0,t_end,t_step)
     cl = np.array([])
 
@@ -58,7 +58,7 @@ def main():
     eta_xi = lambda xi: 0.0
 
     # Initialise Fourier coefficient matrix and calculation variabls
-    A = np.zeros(6)
+    A = np.zeros(2)
     int_bounds = np.linspace(0, np.pi, num=500)
 
 
@@ -93,33 +93,33 @@ def main():
                         # A[i], extra = inte.quad(W_0, 0.0, np.pi)
                         A[i] = pot.W_0_fast_1(U_ref, alpha_eff, t) * np.pi
 
-                        if N < 170:
+                        # if N < 1700:
 
-                            for n in range(N):                            
+                        for n in range(N):                            
 
-                                Gamma_n = Gamma_N[n]
-                                eta_n   = eta_N[n]
-                                xi_n    = xi_N[n]
-                                dphideta = pot.dphideta(xi_n, eta_n, Gamma_n, v_core, alpha_eff)
+                            Gamma_n = Gamma_N[n]
+                            eta_n   = eta_N[n]
+                            xi_n    = xi_N[n]
+                            dphideta = pot.dphideta(xi_n, eta_n, Gamma_n, v_core, alpha_eff)
 
-                                integrand_n = lambda theta: dphideta(g_trans(theta))
+                            integrand_n = lambda theta: dphideta(g_trans(theta))
 
-                                A_int, extra = inte.quad(integrand_n, 0.0, np.pi)
+                            A_int, extra = inte.quad(integrand_n, 0.0, np.pi)
 
-                                # integrand_n = pot.dphideta_fast(int_bounds, xi_n, eta_n , Gamma_n, v_core, alpha_eff)
+                            # integrand_n = pot.dphideta_fast(int_bounds, xi_n, eta_n , Gamma_n, v_core, alpha_eff)
 
-                                # A_int = inte.sun=(integrand_n, int_bounds)
+                            # A_int = inte.sun=(integrand_n, int_bounds)
 
-                                # A[i] += A_int
+                            # A[i] += A_int
                 
-                        else:
-                            inter = np.transpose(np.array([Gamma_N, eta_N, xi_N]))
+                        # else:
+                        #     inter = np.transpose(np.array([Gamma_N, eta_N, xi_N]))
 
-                            pool = Pool()
-                            tempcoeff = pool.map(int_dphideta,inter)
+                        #     pool = Pool()
+                        #     tempcoeff = pool.map(int_dphideta,inter)
 
 
-                            A[i] += sum(tempcoeff)
+                        #     A[i] += sum(tempcoeff)
 
                         A[i] *= - 1.0 / np.pi / U_ref
 
@@ -187,7 +187,7 @@ def main():
 #              MAYBE NEED?????????               
 #################################################################################################################################################################################################                
                 # trans = lambda xi: np.arccos(1 - 2*xi/c)
-                # gamma = lambda xi: A[0] * (1 + np.cos(trans(xi))) / np.sin(trans(xi)) + A[1] * np.sin(trans(xi)) + A[2] * np.sin(2*trans(xi)) + A[3] * np.sin(3*trans(xi))
+                # gamma = lambda xi: A[0] * (1 + np.cos(trans(xi))) / np.sin(trans(xi)) + A[1] * np.sin(trans(xi)) #+ A[2] * np.sin(2*trans(xi)) + A[3] * np.sin(3*trans(xi))
 
                 # u_ind_p, v_ind_p = pot.V_ind_b(gamma, xi_N[n], eta_N[n], c)
 
