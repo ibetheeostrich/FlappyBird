@@ -38,27 +38,16 @@ def g_trans(theta, c):
 
 def dphideta(xi_n, eta_n , Gamma_n, v_core, alpha_eff):
 
-    const = - 0.5 * Gamma_n * PI_inv
+    const = 0.5 * Gamma_n * PI_inv
 
     eta = lambda xi: 0.0
 
     func = lambda xi:  const * (
         (-eta_n * math.sin(alpha_eff) - (xi - xi_n) * math.cos(alpha_eff))  
         / 
-        ((eta_n**2 + (xi - xi_n)**2)**2 + v_core**4)
+        np.sqrt((eta_n**2 + (xi - xi_n)**2)**2 + v_core**4)
                          )
-    return -func
-
-def dphideta_fast(int_bounds, xi_n, eta_n , Gamma_n, v_core, alpha_eff):
-
-    const = 0.5 * Gamma_n * PI_inv
-
-    ans = const * (
-        (-eta_n * np.cos(alpha_eff) + (int_bounds - xi_n) * np.sin(alpha_eff))  
-        / 
-        ((eta_n**2 + (int_bounds - xi_n)**2)**2 + v_core**4)
-                         )
-    return ans
+    return func
 
 def W_0(U_ref, alpha_eff, t):
 
@@ -79,17 +68,17 @@ def V_ind_b(gamma, xi_n, eta_n, c):
     - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
     '''
 
-    integrand_u = lambda xi: gamma(xi) * (eta_n - 0.0) / ((xi_n - xi)**2 + (eta_n - 0.0)**2)
+    integrand_u = lambda xi: gamma(xi) * (eta_n - 0.0) / np.sqrt((xi_n - xi)**2 + (eta_n - 0.0)**2)
 
     def_int_u, extra = inte.quad(integrand_u, 0, c)
 
     u_ind = 0.5 * PI_inv * def_int_u
 
-    integrand_v = lambda xi: gamma(xi) * (xi_n - xi) / ((xi_n - xi)**2 + (eta_n - 0.0)**2)
+    integrand_v = lambda xi: gamma(xi) * (xi_n - xi) / np.sqrt((xi_n - xi)**2 + (eta_n - 0.0)**2)
 
     def_int_v, extra = inte.quad(integrand_v, 0, c)
 
-    v_ind = -0.5 * PI_inv * def_int_v 
+    v_ind = 0.5 * PI_inv * def_int_v 
 
     return u_ind, v_ind
 
