@@ -8,16 +8,55 @@ PI_inv = 1 / math.pi
 
 
 def hdot(t):
-    return 2*2*math.sin(2*t)
+    if t < 0.5:
+        return 0
+    elif t < 2.5:
+        return 0.5*np.pi*np.sin(0.5*np.pi*(t-0.5))
+    elif t < 3.5:
+        return - np.pi*2*np.sin(np.pi*(t-2.5))
+    elif t < 5.5:
+        return 0.5*np.pi*np.sin(0.5*np.pi*(t-3.5))
+    
+    elif t < 6:
+        return 0
+    elif t < 8:
+        return 0.5*np.pi*np.sin(0.5*np.pi*(t-6))
+    elif t < 9:
+        return - np.pi*2*np.sin(np.pi*(t-8))
+    elif t < 11:
+        return 0.5*np.pi*np.sin(0.5*np.pi*(t-9))
 
 def h(t):
-    return 2 - 2*np.cos(2*t)
+    if t < 0.5:
+        return 0
+    elif t < 2.5:
+        return 1 - np.cos(0.5*np.pi*(t-0.5))
+    elif t < 3.5:
+        return 2*np.cos(np.pi*(t-2.5))
+    elif t < 5.5:
+        return - 1 - np.cos(0.5*np.pi*(t-3.5))
+    
+    elif t < 6:
+        return 0
+    elif t < 8:
+        return 1 - np.cos(0.5*np.pi*(t-6))
+    elif t < 9:
+        return 2*np.cos(np.pi*(t-8))
+    elif t < 11:
+        return - 1 - np.cos(0.5*np.pi*(t-9))
 
 # def hdot(t):
 #     return 1.0
 
 # def h(t):
 #     return t
+
+# def hdot(t):
+#     return 0
+
+# def h(t):
+#     return 0
+
 
 
 def xin2body(x,t, U_ref):
@@ -68,17 +107,17 @@ def V_ind_b(gamma, xi_n, eta_n, c):
     - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
     '''
 
-    integrand_u = lambda xi: gamma(xi) * (eta_n - 0.0) / np.sqrt((xi_n - xi)**2 + (eta_n - 0.0)**2)
+    integrand_u = lambda xi: gamma(xi) * (0.0 - eta_n) / ((xi_n - xi)**2 + (eta_n - 0.0)**2)
 
     def_int_u, extra = inte.quad(integrand_u, 0, c)
 
     u_ind = 0.5 * PI_inv * def_int_u
 
-    integrand_v = lambda xi: gamma(xi) * (xi_n - xi) / np.sqrt((xi_n - xi)**2 + (eta_n - 0.0)**2)
+    integrand_v = lambda xi: gamma(xi) * (xi - xi_n) / ((xi_n - xi)**2 + (eta_n - 0.0)**2)
 
     def_int_v, extra = inte.quad(integrand_v, 0, c)
 
-    v_ind = 0.5 * PI_inv * def_int_v 
+    v_ind = -0.5 * PI_inv * def_int_v 
 
     return u_ind, v_ind
 
