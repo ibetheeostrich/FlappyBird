@@ -3,6 +3,8 @@ import scipy.integrate as inte
 import numpy as np
 import numpy as np
 
+from numba import complex128,float64,jit
+
 PI = math.pi
 PI_inv = 1 / math.pi
 
@@ -101,21 +103,66 @@ def W_0_fast_1(U_ref, alpha_eff, t):
 
     return - U_ref*math.sin(alpha_eff) + (hdot(t)) * math.cos(alpha_eff)
 
-def V_ind_b(gamma, xi_n, eta_n, c):
+def V_ind_b(gamma, xi_n, eta_n, c, v_core):
     '''
     - takes in vorticity distribution gamma
     - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
     '''
 
-    integrand_u = lambda xi: gamma(xi) * (0.0 - eta_n) / ((xi_n - xi)**2 + (eta_n - 0.0)**2)
+    integrand_u = lambda xi: gamma(xi) * (0.0 - eta_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + v_core**4)**0.5)
 
     def_int_u, extra = inte.quad(integrand_u, 0, c)
 
     u_ind = 0.5 * PI_inv * def_int_u
 
-    integrand_v = lambda xi: gamma(xi) * (xi - xi_n) / ((xi_n - xi)**2 + (eta_n - 0.0)**2)
+    integrand_v = lambda xi: gamma(xi) * (xi - xi_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + v_core**4)**0.5)
 
     def_int_v, extra = inte.quad(integrand_v, 0, c)
+
+    v_ind = -0.5 * PI_inv * def_int_v 
+
+    return u_ind, v_ind
+
+# @jit(complex128(float64, float64), nopython=True, cache=True)
+# def V_ind_b_fast_1(gamma, xi_n, eta_n, c):
+#     '''
+#     - takes in vorticity distribution gamma
+#     - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
+#     '''
+
+#     integrand_u = lambda xi: gamma(xi) * (0.0 - eta_n) / ((xi_n - xi)**2 + (eta_n - 0.0)**2)
+
+#     def_int_u, extra = inte.quad(integrand_u, 0, c)
+
+#     u_ind = 0.5 * PI_inv * def_int_u
+
+#     integrand_v = lambda xi: gamma(xi) * (xi - xi_n) / ((xi_n - xi)**2 + (eta_n - 0.0)**2)
+
+#     def_int_v, extra = inte.quad(integrand_v, 0, c)
+
+#     v_ind = -0.5 * PI_inv * def_int_v 
+
+#     return u_ind, v_ind
+
+    
+
+def V_ind_b_fast_2(gamma, xi_n, eta_n, c, v_core):
+    '''
+    - takes in vorticity distribution gamma
+    - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
+    '''
+
+    x = np.linspace(0.0001, c, 513, endpoint=True)
+
+    integrand_u = lambda xi: gamma(xi) * (0.0 - eta_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + v_core**4)**0.5)
+
+    def_int_u = inte.trapz(integrand_u(x),x)
+
+    u_ind = 0.5 * PI_inv * def_int_u
+
+    integrand_v = lambda xi: gamma(xi) * (xi - xi_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + v_core**4)**0.5)
+
+    def_int_v = inte.trapz(integrand_v(x),x)
 
     v_ind = -0.5 * PI_inv * def_int_v 
 

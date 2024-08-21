@@ -6,17 +6,21 @@ import pot_aux as pota
 import numpy as np
 from multiprocessing import Pool
 from copy import deepcopy
+import time
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.animation import FFMpegWriter
 import io
+
 # Constants and Globals
 
 PI_inv = 1 / math.pi
 
 
 def fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t):
+
+    x = np.linspace(0.0, np.pi, 513, endpoint=True)
 
     A = np.zeros(A_no)
     U_ref_inv = 1 / U_ref
@@ -40,7 +44,9 @@ def fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, U_ref, alpha_eff, v_core, g_t
                     xi_n    = xi_N[n]
                     dphideta = pot.dphideta(xi_n, eta_n, Gamma_n, v_core, alpha_eff)
                     integrand_n = lambda theta: dphideta(g_trans(theta))
-                    A_int, extra = inte.quad(integrand_n, 0.0, np.pi)
+
+                    A_int = inte.trapz(integrand_n(x), x)
+
                     A[i] -= A_int
                 A[i] *= - 1.0 / np.pi / U_ref
         # Computing A_n in fourier series of vorticity distribution on the bound vortex
@@ -50,7 +56,7 @@ def fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, U_ref, alpha_eff, v_core, g_t
                 A[i], extra = inte.quad(integrand_n , 0.0, np.pi)
                 A[i] *= 2.0 / np.pi / U_ref
             else: # solving for t > 0
-                integrand_n = lambda theta: pot.W_0_fast_1(U_ref, alpha_eff, t) * math.cos(i * theta)
+                integrand_n = lambda theta: pot.W_0_fast_1(U_ref, alpha_eff, t) * np.cos(i * theta)
                 A[i], extra = inte.quad(integrand_n , 0.0, np.pi)
                 for n in range(N):
 
@@ -58,8 +64,10 @@ def fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, U_ref, alpha_eff, v_core, g_t
                     eta_n   = eta_N[n]
                     xi_n    = xi_N[n]
                     dphideta = pot.dphideta(xi_n, eta_n, Gamma_n, v_core, alpha_eff)
-                    integrand_n = lambda theta: dphideta(g_trans(theta)) * math.cos(i * theta)
-                    A_int, extra = inte.quad(integrand_n, 0.0, np.pi)
+                    integrand_n = lambda theta: dphideta(g_trans(theta)) * np.cos(i * theta)
+
+                    A_int = inte.trapz(integrand_n(x), x)
+
                     A[i] -= A_int
 
                 A[i] *= 2.0 / np.pi / U_ref
@@ -70,6 +78,7 @@ def fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, U_ref, alpha_eff, v_core, g_t
 
 
 def main():
+    start = time.time()
     # movie
     frames = []
 
@@ -135,19 +144,19 @@ def main():
                     x_i = deepcopy(Gamma_N[-1])
 
                     # inputs at guess +h and -h to estimate first derivative
-                    Gamma_N_p = deepcopy(Gamma_N)
-                    Gamma_N_p[-1] = x_i + h
-
-                    Gamma_N_m = deepcopy(Gamma_N)
-                    Gamma_N_m[-1] = x_i - h
-
                     # calculating terms for estimating first derivative
-                    b = Gamma_tot - Gamma_sum
+                    Gamma_N_p = Gamma_N_m = Gamma_N
+
+                    Gamma_N_p[-1] = x_i + h
+                    A, Gamma_sum, Gamma_tot_p = fourier_gamma_calc(A_no, Gamma_N_p, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
+
+                    Gamma_N_m[-1] = x_i - h
+                    A, Gamma_sum, Gamma_tot_m = fourier_gamma_calc(A_no, Gamma_N_m, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
+
+
+                    # b = Gamma_tot - Gamma_sum
 
                     # print(b)
-                    
-                    A, Gamma_sum, Gamma_tot_p = fourier_gamma_calc(A_no, Gamma_N_p, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
-                    A, Gamma_sum, Gamma_tot_m = fourier_gamma_calc(A_no, Gamma_N_m, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
 
                     # Newton - Raphson iteration
                     Gamma_N[-1] = x_i - Gamma_tot / (0.5 * (Gamma_tot_p - Gamma_tot_m)/h)
@@ -171,33 +180,34 @@ def main():
                 
             while abs(Gamma_err) > 0.001 and abs(abs(A[0]) - LESP) > 0.001 :
 
+                A, Gamma_sum, Gamma_tot_0 = fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
+
                 # 2D Newton - Raphson iteration
                 # Guess
                 x_i = deepcopy(Gamma_N[-1])
                 y_i = deepcopy(Gamma_N[-2])
 
                 # inputs at guess +h and -h to estimate first derivative
-                Gamma_N_p_LEV = deepcopy(Gamma_N)
+                Gamma_N_p_LEV = Gamma_N_m_LEV = Gamma_N_p_TEV = Gamma_N_m_TEV =      Gamma_N
+
                 Gamma_N_p_LEV[-1] = x_i + 4*h
-
-                Gamma_N_m_LEV = deepcopy(Gamma_N)
-                Gamma_N_m_LEV[-1] = x_i - 4*h
-
-                Gamma_N_p_TEV = deepcopy(Gamma_N)
-                Gamma_N_p_TEV[-2] = y_i + 4*h
-
-                Gamma_N_m_TEV = deepcopy(Gamma_N)
-                Gamma_N_m_TEV[-2] = y_i - 4*h
-                
-                # calculating terms or estimating first derivative
-                A, Gamma_sum, Gamma_tot_0 = fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
-                
+                Gamma_N_p_LEV[-2] = y_i
                 A_LEV_p, Gamma_sum, Gamma_tot_p_LEV = fourier_gamma_calc(A_no, Gamma_N_p_LEV, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
+
+                Gamma_N_m_LEV[-1] = x_i - 4*h
+                Gamma_N_m_LEV[-2] = y_i
                 A_LEV_m, Gamma_sum, Gamma_tot_m_LEV = fourier_gamma_calc(A_no, Gamma_N_m_LEV, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
 
+                Gamma_N_p_TEV[-2] = y_i + 4*h
+                Gamma_N_p_TEV[-1] = x_i
                 A_TEV_p, Gamma_sum, Gamma_tot_p_TEV = fourier_gamma_calc(A_no, Gamma_N_p_TEV, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
-                A_TEV_m, Gamma_sum, Gamma_tot_m_TEV = fourier_gamma_calc(A_no, Gamma_N_m_TEV, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
 
+                Gamma_N_m_TEV[-2] = y_i - 4*h
+                Gamma_N_m_TEV[-1] = x_i
+                A_TEV_m, Gamma_sum, Gamma_tot_m_TEV = fourier_gamma_calc(A_no, Gamma_N_m_TEV, eta_N, xi_N, U_ref, alpha_eff, v_core, g_trans, c, N, t)
+                
+                # calculating terms or estimating first derivative
+                
                 F = np.array([abs(A[0]) - LESP, Gamma_tot_0])
                 J = np.array([[(A_LEV_p[0] - A_LEV_m[0]) / (2*h), (A_TEV_p[0] - A_TEV_m[0]) / (4*2*h)],
                               [(Gamma_tot_p_LEV - Gamma_tot_m_LEV)/(2*h), (Gamma_tot_p_TEV - Gamma_tot_m_TEV)/(4*2*h)]])
@@ -243,9 +253,9 @@ def main():
 
                 # Induced velocity on a vortex by the bounded vortex sheet            
                 trans = lambda xi: np.arccos(1 - 2*xi/c)
-                gamma = lambda xi: 2* U_ref * (A[0] * (1 + np.cos(trans(xi))) / np.sin(trans(xi)) + A[1] * np.sin(trans(xi))) + A[2] * np.sin(2*trans(xi)) + A[3] * np.sin(3*trans(xi)) #+ A[4] * np.sin(4*trans(xi)) + A[5] * np.sin(5*trans(xi))
+                gamma = lambda xi: 2* U_ref * (A[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + A[1] * np.sin(trans(xi)))# + A[2] * np.sin(2*trans(xi)) + A[3] * np.sin(3*trans(xi)) #+ A[4] * np.sin(4*trans(xi)) + A[5] * np.sin(5*trans(xi))
 
-                u_ind_p, v_ind_p = pot.V_ind_b(gamma, xi_N[n], eta_N[n], c)
+                u_ind_p, v_ind_p = pot.V_ind_b_fast_2(gamma, xi_N[n], eta_N[n], c, v_core)
 
                 u_ind[n] += u_ind_p #+ U_ref
                 v_ind[n] += v_ind_p #+ pot.hdot(t) 
@@ -282,50 +292,59 @@ def main():
         cl = np.append(cl, np.pi * (2 * A[0]+ A[1]))
 
 
-        # Movie
-        fig, ax = plt.subplots()
-        fig.dpi = 300
-        fig.set_size_inches(19.20, 10.80)
-        ax.plot(x_N, y_N, color='red', marker='o', markersize=10)
-        # ax.plot(xi_N, eta_N, 'bo')
-        # ax.plot([0, c], [0, 0], 'k')
-        ax.plot([0.0-U_ref *(t), c-U_ref*(t)], [pot.h(t), pot.h(t)], 'k')
-        ax.axis("equal")
-        ax.set_xlim(-30,5)
-        ax.set_ylim(-10,10)
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        frames.append(buf)
-        plt.close(fig)
+        # # Movie
+        # fig, ax = plt.subplots()
+        # fig.dpi = 300
+        # fig.set_size_inches(19.20, 10.80)
+        # ax.plot(x_N, y_N, color='red', marker='o', markersize=10)
+        # # ax.plot(xi_N, eta_N, 'bo')
+        # # ax.plot([0, c], [0, 0], 'k')
+        # ax.plot([0.0-U_ref *(t), c-U_ref*(t)], [pot.h(t), pot.h(t)], 'k')
+        # ax.axis("equal")
+        # ax.set_xlim(-30,5)
+        # ax.set_ylim(-10,10)
+        # buf = io.BytesIO()
+        # plt.savefig(buf, format='png')
+        # buf.seek(0)
+        # frames.append(buf)
+        # plt.close(fig)
+    end = time.time()
+    print(end - start)
+
 
     # Movie
-    images = []
-    for item in frames:
-        image = plt.imread(item)
-        images.append(image)
+    # images = []
+    # for item in frames:
+    #     image = plt.imread(item)
+    #     images.append(image)
+
+    # fig, ax = plt.subplots()
+
+    # def update(frame):
+    #     ax.clear()  # Clear the previous frame
+    #     ax.imshow(images[frame], animated=True)
+    #     ax.axis('off')
+    #     return []
+    
+    # ani = animation.FuncAnimation(fig, update, len(images), blit=True)
+    # writer = FFMpegWriter(fps=int(1/t_step))
+    # ani.save('wtf.mp4', writer=writer,dpi=300)
+
+
+    # print(t_step*U_ref/c)
+
+    # plt.plot(t_d,cl)
+    # plt.show()
 
     fig, ax = plt.subplots()
-
-    def update(frame):
-        ax.clear()  # Clear the previous frame
-        ax.imshow(images[frame], animated=True)
-        ax.axis('off')
-        return []
-    
-    ani = animation.FuncAnimation(fig, update, len(images), blit=True)
-    writer = FFMpegWriter(fps=int(1/t_step))
-    ani.save('test9.mp4', writer=writer,dpi=300)
-
-
-    print(t_step*U_ref/c)
-
-    plt.plot(t_d,cl)
+    fig.dpi = 300
+    fig.set_size_inches(19.20, 10.80)
+    ax.plot(x_N, y_N, 'ro')
+    ax.plot([0.0-U_ref *(t_end), c-U_ref*(t_end)], [pot.h(t_end), pot.h(t_end)], 'k')
+    ax.axis("equal")
     plt.show()
 
-
 if __name__ == "__main__":
-
     main()
 
 
