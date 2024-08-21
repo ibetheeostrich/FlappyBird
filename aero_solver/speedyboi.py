@@ -115,7 +115,7 @@ def main():
 
     # Initialise Fourier coefficient matrix and calculation variabls
     A = np.zeros(2)
-    A_no = 4
+    A_no = 2
 
     # Newton - Raphson Params
     h = 0.01
