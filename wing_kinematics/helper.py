@@ -43,6 +43,6 @@ def circle_intersect(x0, y0, r0, x1, y1, r1):
         x4=x2-h*(y1-y0)/d
         y4=y2+h*(x1-x0)/d
         
-        return (x3, y3), (x4, y4)
+        return x3, y3, x4, y4
     
     

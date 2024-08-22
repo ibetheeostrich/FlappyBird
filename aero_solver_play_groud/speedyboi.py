@@ -2,7 +2,6 @@ import math
 import scipy
 import scipy.integrate as inte
 import pot_func as pot
-import pot_aux as pota
 import numpy as np
 from multiprocessing import Pool
 from copy import deepcopy
@@ -88,7 +87,7 @@ def main():
     alpha_eff = np.deg2rad(0)   
     c = 2.0
     t_step = 0.025
-    t_end = 440 * t_step
+    t_end = 220 * t_step
     t_d = np.arange(0,t_end,t_step)
     cl = np.array([])
 

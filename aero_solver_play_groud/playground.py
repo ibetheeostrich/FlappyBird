@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from bem import bem
+from aero_solver.bem import bem
 
 def h_dot_func():
     cond = lambda t:  [
@@ -25,7 +25,7 @@ def h_dot_func():
         0.5*np.pi*np.sin(0.5*np.pi*(t-9))
     ]
 
-    return lambda t: 0.5 * np.piecewise(t, cond(t), func(t))
+    return lambda t: np.piecewise(t, cond(t), func(t))
 
 def h_func():
     cond = lambda t:  [
@@ -50,18 +50,17 @@ def h_func():
         - 1 - np.cos(0.5*np.pi*(t-9))
     ]
 
-    return lambda t: 0.5 * np.piecewise(t, cond(t), func(t))
+    return lambda t: np.piecewise(t, cond(t), func(t))
 
 # Initialise problem
-U_ref = 1
+U_ref = 5
 alpha_eff = np.deg2rad(0)   
-c = 0.5
+c = 2.0
 t_step = 0.025
 no_steps = 220
 
 h = h_func()
 hdot = h_dot_func()
-
 
 cl1, td1 = bem(U_ref, alpha_eff, c, t_step, no_steps, h, hdot)
 
