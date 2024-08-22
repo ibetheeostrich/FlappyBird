@@ -6,46 +6,6 @@ import numpy as np
 PI = math.pi
 PI_inv = 1 / math.pi
 
-
-# def hdot(t):
-#     if t < 0.5:
-#         return 0
-#     elif t < 2.5:
-#         return 0.5*np.pi*np.sin(0.5*np.pi*(t-0.5))
-#     elif t < 3.5:
-#         return - np.pi*2*np.sin(np.pi*(t-2.5))
-#     elif t < 5.5:
-#         return 0.5*np.pi*np.sin(0.5*np.pi*(t-3.5))
-    
-#     elif t < 6:
-#         return 0
-#     elif t < 8:
-#         return 0.5*np.pi*np.sin(0.5*np.pi*(t-6))
-#     elif t < 9:
-#         return - np.pi*2*np.sin(np.pi*(t-8))
-#     elif t < 11:
-#         return 0.5*np.pi*np.sin(0.5*np.pi*(t-9))
-
-# def h(t):
-#     if t < 0.5:
-#         return 0
-#     elif t < 2.5:
-#         return 1 - np.cos(0.5*np.pi*(t-0.5))
-#     elif t < 3.5:
-#         return 2*np.cos(np.pi*(t-2.5))
-#     elif t < 5.5:
-#         return - 1 - np.cos(0.5*np.pi*(t-3.5))
-    
-#     elif t < 6:
-#         return 0
-#     elif t < 8:
-#         return 1 - np.cos(0.5*np.pi*(t-6))
-#     elif t < 9:
-#         return 2*np.cos(np.pi*(t-8))
-#     elif t < 11:
-#         return - 1 - np.cos(0.5*np.pi*(t-9))
-
-
 class aero_solver_osc_flat:
     def __init__(self, h, hdot, c, U_ref, t_step, alpha_eff):
         self.c = c
@@ -62,8 +22,8 @@ class aero_solver_osc_flat:
     def yin2body(self, y, t):
         return y - self.h(t)
 
-    def bodyin2x(self, x,t, U_ref):
-        return x - U_ref*t
+    def bodyin2x(self, x,t):
+        return x - self.U_ref*t
 
     def bodyin2y(self, y, t):
         return y + self.h(t)
@@ -76,8 +36,6 @@ class aero_solver_osc_flat:
 
         const = 0.5 * Gamma_n * PI_inv
 
-        eta = lambda xi: 0.0
-
         func = lambda xi:  const * (
             (-eta_n * math.sin(self.alpha_eff) - (xi - xi_n) * math.cos(self.alpha_eff))  
             / 
@@ -86,11 +44,6 @@ class aero_solver_osc_flat:
         return func
 
     def W_0(self, t):
-
-        A = 1
-        p = 0.5
-
-        eta = lambda xi: 0.0
 
         return lambda xi: - self.U_ref*math.sin(self.alpha_eff) + (self.hdot(t)) * math.cos(self.alpha_eff)
 

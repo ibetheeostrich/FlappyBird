@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from bem import bem
 
+
+from multiprocessing import Pool
+
 def h_dot_func():
     cond = lambda t:  [
         t < 0.5, 
@@ -52,18 +55,37 @@ def h_func():
 
     return lambda t: 0.5 * np.piecewise(t, cond(t), func(t))
 
+def u_func():
+
+    return lambda t: 1 + 0.01*np.cos(0.5*np.pi*t)
+
 # Initialise problem
 U_ref = 1
 alpha_eff = np.deg2rad(0)   
 c = 0.5
 t_step = 0.025
-no_steps = 220
+no_steps = 440
 
-h = h_func()
-hdot = h_dot_func()
+h1 = h_func()
+h2 = h_func()
+
+hdot1 = h_dot_func()
+hdot2 = h_dot_func()
+
+h = [h1, h2]
+hdot = [hdot1, hdot2]
+c = [1, 1]
+alpha_eff = [0, 0]
+U_ref = [1, 1]
+t_step = [0.025, 0.025]
+no_steps = [440, 440]
+
+def pool_handler():
+    p = Pool(2)
+    p.map(bem, [U_ref, alpha_eff, c, t_step, no_steps, h, hdot])
+
+# cl1, td1 = bem(U_ref, alpha_eff, c, t_step, no_steps, h, hdot)
 
 
-cl1, td1 = bem(U_ref, alpha_eff, c, t_step, no_steps, h, hdot)
 
-plt.plot(td1,cl1)
-plt.show()
+pool_handler()
