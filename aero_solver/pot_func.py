@@ -7,10 +7,9 @@ PI = math.pi
 PI_inv = 1 / math.pi
 
 class aero_solver_osc_flat:
-    def __init__(self, h, hdot, c, U_ref, t_step, alpha_eff):
+    def __init__(self, kin, c, U_ref, t_step, alpha_eff):
         self.c = c
-        self.h = h
-        self.hdot = hdot
+        self.kin = kin
         self.U_ref = U_ref
 
         self.v_core = 1.3*t_step*U_ref
@@ -20,13 +19,13 @@ class aero_solver_osc_flat:
         return x + self.U_ref*t
 
     def yin2body(self, y, t):
-        return y - self.h(t)
+        return y - self.kin.h(t)
 
     def bodyin2x(self, x,t):
         return x - self.U_ref*t
 
     def bodyin2y(self, y, t):
-        return y + self.h(t)
+        return y + self.kin.h(t)
 
 
     def g_trans(self, theta):
@@ -45,11 +44,11 @@ class aero_solver_osc_flat:
 
     def W_0(self, t):
 
-        return lambda xi: - self.U_ref*math.sin(self.alpha_eff) + (self.hdot(t)) * math.cos(self.alpha_eff)
+        return lambda xi: - self.U_ref*math.sin(self.alpha_eff) + (self.kin.h_dot(t)) * math.cos(self.alpha_eff)
 
     def W_0_fast_1(self, t):
 
-        return - self.U_ref*math.sin(self.alpha_eff) + (self.hdot(t)) * math.cos(self.alpha_eff)
+        return - self.U_ref*math.sin(self.alpha_eff) + (self.kin.h_dot(t)) * math.cos(self.alpha_eff)
 
     def V_ind_b(self, gamma, xi_n, eta_n):
         '''

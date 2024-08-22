@@ -1,5 +1,5 @@
 import math
-import pot_func as aero
+import aero_solver.pot_func as aero
 import numpy as np
 from copy import deepcopy
 
@@ -7,13 +7,13 @@ from copy import deepcopy
 
 PI_inv = 1 / math.pi
 
-def bem(U_ref, alpha_eff, c, t_step, no_steps, h_func, hdot_func):
+def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
     # Initialise problem
     t_d = np.arange(0,t_step*no_steps,t_step)
     cl = np.array([])
 
-    pot = aero.aero_solver_osc_flat(h_func, hdot_func, c, U_ref, t_step, alpha_eff)
+    pot = aero.aero_solver_osc_flat(kin, c, U_ref, t_step, alpha_eff)
 
     LESP = 0.2
 
@@ -89,7 +89,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, h_func, hdot_func):
             xi_N = np.append(xi_N, 0)
             eta_N = np.append(eta_N, 0)
 
-            x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t, U_ref))
+            x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
             y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t))
 
             N += 1
@@ -137,10 +137,10 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, h_func, hdot_func):
         # Advecting and shedding vortices for next time step
         if t == 0:
             xi_N    = np.array([c + U_ref*t_step, c + U_ref*t_step/3])
-            eta_N   = np.array([h_func(t_step), h_func(t_step)/3])
+            eta_N   = np.array([kin.h(t_step), kin.h(t_step)/3])
 
             x_N = np.array([c , c - U_ref*t_step/3])
-            y_N = np.array([0, -h_func(t_step)/3])
+            y_N = np.array([0, -kin.h(t_step)/3])
 
             Gamma_N = np.append(Gamma_N, 0.0)
 
@@ -183,14 +183,14 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, h_func, hdot_func):
             # Shedding new TEV
             if t == t_step:
                 x_N = np.append(x_N,(x_N[0] - (c-U_ref*t_step))*0.33 + c-U_ref*t_step)
-                y_N = np.append(y_N,(y_N[0] - pot.h(t))*0.33 + pot.h(t))
+                y_N = np.append(y_N,(y_N[0] - kin.h(t))*0.33 + kin.h(t))
             else:
                 if LESP_flag:
                     x_N = np.append(x_N,(x_N[-2] - (c-U_ref*t))*0.33 + c-U_ref*t)
-                    y_N = np.append(y_N,(y_N[-2] - pot.h(t))*0.33 + pot.h(t))
+                    y_N = np.append(y_N,(y_N[-2] - kin.h(t))*0.33 + kin.h(t))
                 else:
                     x_N = np.append(x_N,(x_N[-1] - (c-U_ref*t))*0.33 + c-U_ref*t)
-                    y_N = np.append(y_N, pot.h(t))#(y_N[-1] - pot.h(t))*0.33 + pot.h(t))
+                    y_N = np.append(y_N, kin.h(t))#(y_N[-1] - pot.h(t))*0.33 + pot.h(t))
 
 
             # Adjusting the body frame coordinates
@@ -207,7 +207,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, h_func, hdot_func):
         # Calculate lift coefficient
         cl = np.append(cl, np.pi * (2 * A[0]+ A[1]))
 
-    return cl, t_d
+    return cl, t_d, x_N, y_N
 
     
 
