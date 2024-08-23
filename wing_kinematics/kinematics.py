@@ -1,5 +1,6 @@
 import numpy as np
 import math as mt
+import shapely
 
 # Define some parameters
 '''
@@ -24,7 +25,7 @@ s2 = np.array([0, 0])
 s3 = np.array([0, 0])
 
 class blade_element_kinematics:
-    def __init__(self, amplitude, freq, span_pos, chord, le_pos, U_ref):
+    def __init__(self, amplitude, freq, span_pos, chord, le_pos, U_ref, t_step):
 
         self.U_ref = U_ref
 
@@ -35,56 +36,66 @@ class blade_element_kinematics:
         self.chord = chord  # m
         self.le = le_pos    # m 
 
-        self.a = amplitude * span_pos # vertical amplitude m
         self.wavelength = 1.0 / freq
+
+        self.t_step = t_step
 
     def h(self, t):
 
+        index = int(t / self.t_step)
+
+        a = self.r[index] * self.aa
+
         if t < 1:
             return 0
         
         elif t >= 1 and t < 0.5 * self.wavelength + 1:
-            return 0.5*(self.a - self.a * np.cos(2 * np.pi * self.f * (t - 1)))
+
+            return 0.5*(a - a * np.cos(2 * np.pi * self.f * (t - 1)))
         
         elif t >= 0.5 * self.wavelength + 1:
-            return self.a * np.cos(2 * np.pi * self.f * (t - 0.5*self.wavelength - 1)) 
+            return a * np.cos(2 * np.pi * self.f * (t - 0.5*self.wavelength - 1)) 
 
     def h_dot(self, t):
 
+        index = int(t / self.t_step)
+
+        a = self.r[index] * self.aa
+
         if t < 1:
             return 0
         
         elif t >= 1 and t < 0.5 * self.wavelength + 1:
-            return np.pi * self.f * self.a * np.sin(2 * np.pi * self.f * (t - 1))
+            return np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 1))
         
         elif t >= 0.5 * self.wavelength + 1:
-            return - 2 * np.pi * self.f * self.a * np.sin(2 * np.pi * self.f * (t - 0.5*self.wavelength - 1)) 
+            return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.5*self.wavelength - 1)) 
         
 #################################################################################
 #               QUARANTINE                                                      #
 #################################################################################
 
-    # def pos(self, t, t_step):
+    # def pos(self, t):
 
-    #     index = int(t / t_step)
+    #     index = int(t / self.t_step)
 
     #     return self.U_ref*t - self.le[index]
     
-    # def pos_dot(self, t, t_step):
+    # def pos_dot(self, t):
 
-    #     index = int(t / t_step)
+    #     index = int(t / self.t_step)
 
     #     return self.U_ref - (self.le[index + 1] - self.le[index])
 
-    # def c(self, t, t_step):
+    # def c(self, t):
 
-    #     index = int(t / t_step)
+    #     index = int(t / self.t_step)
 
     #     return self.chord[index]
 
-    # def c_dot(self, t, t_step):
+    # def c_dot(self, t):
 
-    #     index = int(t / t_step)
+    #     index = int(t / self.t_step)
 
     #     return self.chord[index+1] - self.chord[index]
         
@@ -178,8 +189,53 @@ class wing_kinematics:
         int1 = (w2 - e3) / np.linalg.norm(w2 - e3) * (self.V-self.A_II) + e3
         f2 = (int1 - w1) / np.linalg.norm(int1 - w1) * self.F_II + w1
 
-        return sa, e2, w1, f1, f2, f3
+        return sa, w1, f1, f2, f3
     
+    def variable_wing_params(self, sa, w1, f1, f2, f3, no_bem):
+        '''
+        calculates the chord as the wing morphs as well as the change in radial distance
+        no_bem must be an even number
+        '''
+
+        
+
+        wing_vert = [tuple(sa), tuple(w1), tuple(f3), tuple(f2), tuple(f1), (-0.08, 0.0),tuple(sa)]
+
+        wing_poly = shapely.Polygon(wing_vert)
+
+        r_pos1 = np.linspace(0.0, w1[1], int(no_bem*0.5)+1)
+
+        r_pos2 = np.linspace(w1[1], f3[1], int(no_bem*0.5) + 1, endpoint=True)
+
+        r_pos = np.hstack([r_pos1[1:], r_pos2[1:]])
+
+        chords = np.zeros(len(r_pos))
+
+        le_pos = np.zeros(len(r_pos))
+
+        i = 0
+        for r in r_pos:
+
+            if r == r_pos[-1]:
+                
+                chords[i] = 0
+
+                le_pos[i] = 0
+
+            else:                
+
+                line = [(20, r), (-20, r)]
+                shapely_line = shapely.geometry.LineString(line)
+
+                intersection = list(wing_poly.intersection(shapely_line).coords)
+
+                chords[i] = abs(intersection[0][0] - intersection[1][0])
+
+                le_pos[i] = max(intersection[0][0], intersection[1][0])
+
+            i += 1
+
+        return r_pos, chords, le_pos, wing_poly.area
 
 def vec_rot(v: np.ndarray,k: np.ndarray,theta: float):
     '''
