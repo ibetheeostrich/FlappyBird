@@ -132,8 +132,8 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                 [Gamma_N[-1], Gamma_N[-2]] = np.array([x_i, y_i]) - J_inv@F 
 
-        if t>0:
-            print(A)
+        # if t>0:
+        #     print(A)
         # Advecting and shedding vortices for next time step
         if t == 0:
             xi_N    = np.array([c + U_ref*t_step, c + U_ref*t_step/3])
