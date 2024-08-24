@@ -14,14 +14,14 @@ import time
 # Initialise problem
 U_ref = 1
 alpha_eff = np.deg2rad(0)   
-c = 0.5
-t_step = 0.025
-no_steps = 100
+
+t_step = 0.01
+no_steps = 300
 
 no_bem = 12
 
 # Time span
-t_span = np.linspace(0.0, t_step*no_steps, no_steps)
+t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
 
 
 # Initialises the geometry and allows the kinematics to be solved
@@ -55,23 +55,24 @@ for t in np.append(t_span,t_span[-1]+t_step):
 
 args = []
 
-for i in range(no_bem):
+for i in range(no_bem-1):
 
-    kin = bek(np.deg2rad(30) , 1, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
+    kin = bek(np.deg2rad(50) , 1, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
     
-    args.append((U_ref, alpha_eff, c, t_step, no_steps, kin))
+    args.append((U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin))
 
 # # Multiprocessing
 def pool_handler():
-    p = Pool(12)
+    p = Pool(11)
     results = p.starmap(bem, args)
 
     return results
 
-
-
+start = time.time()
 
 a = pool_handler()
+
+print(time.time()-start)
 
 for results in a:
 
@@ -85,12 +86,21 @@ for results in a:
     plt.show()
 
     plt.plot(x,y,'ro')
+    plt.axis('equal')
     plt.show()
 
 
 
-print(a)
+# results = bem(U_ref, alpha_eff, c, t_step, no_steps, kin)
 
+# cl = results[0]
+# td = results[1]
+# x = results[2]
+# y = results[3]
+# plt.plot(td,cl)
+# plt.show()
+# plt.plot(x,y,'ro')
+# plt.show()
 
 
 # plt.plot(td1,cl1)

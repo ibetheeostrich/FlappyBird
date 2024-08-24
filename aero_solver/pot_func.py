@@ -7,8 +7,7 @@ PI = math.pi
 PI_inv = 1 / math.pi
 
 class aero_solver_osc_flat:
-    def __init__(self, kin, c, U_ref, t_step, alpha_eff):
-        self.c = c
+    def __init__(self, kin, U_ref, t_step, alpha_eff):
         self.kin = kin
         self.U_ref = U_ref
 
@@ -28,8 +27,8 @@ class aero_solver_osc_flat:
         return y + self.kin.h(t)
 
 
-    def g_trans(self, theta):
-        return 0.5 * self.c * (1 - np.cos(theta))
+    def g_trans(self, theta, c):
+        return 0.5 * c * (1 - np.cos(theta))
 
     def dphideta(self, xi_n, eta_n , Gamma_n):
 
@@ -50,33 +49,33 @@ class aero_solver_osc_flat:
 
         return - self.U_ref*math.sin(self.alpha_eff) + (self.kin.h_dot(t)) * math.cos(self.alpha_eff)
 
-    def V_ind_b(self, gamma, xi_n, eta_n):
+    # def V_ind_b(self, gamma, xi_n, eta_n):
+    #     '''
+    #     - takes in vorticity distribution gamma
+    #     - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
+    #     '''
+
+    #     integrand_u = lambda xi: gamma(xi) * (0.0 - eta_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
+
+    #     def_int_u, extra = inte.quad(integrand_u, 0, self.c)
+
+    #     u_ind = 0.5 * PI_inv * def_int_u
+
+    #     integrand_v = lambda xi: gamma(xi) * (xi - xi_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
+
+    #     def_int_v, extra = inte.quad(integrand_v, 0, self.c)
+
+    #     v_ind = -0.5 * PI_inv * def_int_v 
+
+    #     return u_ind, v_ind  
+
+    def V_ind_b_fast_2(self, gamma, xi_n, eta_n, c):
         '''
         - takes in vorticity distribution gamma
         - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
         '''
 
-        integrand_u = lambda xi: gamma(xi) * (0.0 - eta_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
-
-        def_int_u, extra = inte.quad(integrand_u, 0, self.c)
-
-        u_ind = 0.5 * PI_inv * def_int_u
-
-        integrand_v = lambda xi: gamma(xi) * (xi - xi_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
-
-        def_int_v, extra = inte.quad(integrand_v, 0, self.c)
-
-        v_ind = -0.5 * PI_inv * def_int_v 
-
-        return u_ind, v_ind  
-
-    def V_ind_b_fast_2(self, gamma, xi_n, eta_n):
-        '''
-        - takes in vorticity distribution gamma
-        - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
-        '''
-
-        x = np.linspace(0.0001, self.c, 513, endpoint=True)
+        x = np.linspace(0.0001, c, 513, endpoint=True)
 
         integrand_u = lambda xi: gamma(xi) * (0.0 - eta_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
 
@@ -84,7 +83,7 @@ class aero_solver_osc_flat:
 
         u_ind = 0.5 * PI_inv * def_int_u
 
-        integrand_v = lambda xi: gamma(xi) * (xi - xi_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
+        integrand_v = lambda xi: gamma(xi) *  (xi -  xi_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
 
         def_int_v = inte.trapz(integrand_v(x),x)
 
@@ -104,58 +103,60 @@ class aero_solver_osc_flat:
 
         return u_ind_ub, v_ind_ub
 
-    def fourier_gamma_calc(self, A_no, Gamma_N, eta_N, xi_N, N, t):
+    def fourier_gamma_calc(self, A_no, Gamma_N, eta_N, xi_N, N, c, t):
 
         x = np.linspace(0.0, np.pi, 513, endpoint=True)
 
-        A = np.zeros(A_no)
+        fourier = np.zeros(A_no)
         U_ref_inv = 1 / self.U_ref
 
+        g_trans = lambda theta: 0.5*c*(1-np.cos(theta))
+
         # Computing Fourier coefficients
-        for i in range(len(A)):
-            A[i] = 0.0
+        for i in range(len(fourier)):
+            fourier[i] = 0.0
             # Computing A_0 in fourier series of vorticity distribution on the bound vortex
             if i == 0: 
                 if N == 0: # solving for t = 0
-                    A[i] = - PI_inv * U_ref_inv * self.W_0_fast_1(t) * self.c
+                    fourier[i] = - PI_inv * U_ref_inv * self.W_0_fast_1(t) * c
                 else: # solving for t > 0
 
-                    A[i] = self.W_0_fast_1(t) * self.c
+                    fourier[i] = self.W_0_fast_1(t) * c
 
                     for n in range(N):                            
                         Gamma_n = Gamma_N[n]
                         eta_n   = eta_N[n]
                         xi_n    = xi_N[n]
                         dphideta = self.dphideta(xi_n, eta_n, Gamma_n)
-                        integrand_n = lambda theta: dphideta(self.g_trans(theta))
+                        integrand_n = lambda theta: dphideta(g_trans(theta))
 
                         A_int = inte.trapz(integrand_n(x), x)
 
-                        A[i] -= A_int
-                    A[i] *= - 1.0 / np.pi / self.U_ref
+                        fourier[i] -= A_int
+                    fourier[i] *= - 1.0 / np.pi / self.U_ref
             # Computing A_n in fourier series of vorticity distribution on the bound vortex
             else:
                 if N == 0: # solving for t = 0
                     integrand_n = lambda theta: self.W_0_fast_1(t) * math.cos(i * theta)
-                    A[i], extra = inte.quad(integrand_n , 0.0, np.pi)
-                    A[i] *= 2.0 / np.pi / self.U_ref
+                    fourier[i], extra = inte.quad(integrand_n , 0.0, np.pi)
+                    fourier[i] *= 2.0 / np.pi / self.U_ref
                 else: # solving for t > 0
                     integrand_n = lambda theta: self.W_0_fast_1(t) * np.cos(i * theta)
-                    A[i], extra = inte.quad(integrand_n , 0.0, np.pi)
+                    fourier[i], extra = inte.quad(integrand_n , 0.0, np.pi)
                     for n in range(N):
 
                         Gamma_n = Gamma_N[n]
                         eta_n   = eta_N[n]
                         xi_n    = xi_N[n]
                         dphideta = self.dphideta(xi_n, eta_n, Gamma_n)
-                        integrand_n = lambda theta: dphideta(self.g_trans(theta)) * np.cos(i * theta)
+                        integrand_n = lambda theta: dphideta(g_trans(theta)) * np.cos(i * theta)
 
                         A_int = inte.trapz(integrand_n(x), x)
 
-                        A[i] -= A_int
+                        fourier[i] -= A_int
 
-                    A[i] *= 2.0 / np.pi / self.U_ref
+                    fourier[i] *= 2.0 / np.pi / self.U_ref
 
-        Gamma_b = np.pi * self.c * self.U_ref * (A[0] + A[1] * 0.5)
+        Gamma_b = np.pi * c * self.U_ref * (fourier[0] + fourier[1] * 0.5)
 
-        return A, sum(Gamma_N), Gamma_b + sum(Gamma_N)
+        return fourier, sum(Gamma_N), Gamma_b + sum(Gamma_N)

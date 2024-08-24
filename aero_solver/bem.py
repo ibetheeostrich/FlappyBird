@@ -13,37 +13,32 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
     t_d = np.arange(0,t_step*no_steps,t_step)
     cl = np.array([])
 
-    pot = aero.aero_solver_osc_flat(kin, c, U_ref, t_step, alpha_eff)
+    pot = aero.aero_solver_osc_flat(kin, U_ref, t_step, alpha_eff)
 
-    LESP = 0.2
+    lesp = 0.035
 
-    LESP_flag = 0
+    lesp_flag = 0
 
     # Initialise vortex blob parameters
-    N = 0
+    no_gamma = 0
     Gamma_N = np.array([0.0])
-    xi_N    = np.array([c])
+    xi_N    = np.array([c[0]])
     eta_N   = np.array([0.0])
-    x_N     = np.array([c])
+    x_N     = np.array([c[0]])
     y_N     = np.array([0.0])
-
-    # Glauert's Transformation
-
-    g_trans = lambda theta: 0.5 * c * (1 - np.cos(theta))
-
-    # Camberline
-    eta_xi = lambda xi: 0.0
 
     # Initialise Fourier coefficient matrix and calculation variabls
     A_no = 2
-    A = np.zeros(A_no)
+    # A = np.zeros(A_no)
 
     # Newton - Raphson Params
-    h = 0.01
+    dh = 0.01
 
     # Time loop
 
     for t in t_d:
+
+        index = int(t/t_step)
 
         # TEV Shedding
         if t > 0:
@@ -52,7 +47,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
   
             while abs(Gamma_err) > 0.00001:
 
-                A, Gamma_sum, Gamma_tot = pot.fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, N, t)
+                fourier, Gamma_sum, Gamma_tot = pot.fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, no_gamma, c[index], t)
 
                 # print(Gamma_err, Gamma_b, sum(Gamma_N))
                 Gamma_err = Gamma_tot
@@ -68,89 +63,163 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
                     # calculating terms for estimating first derivative
                     Gamma_N_p = Gamma_N_m = Gamma_N
 
-                    Gamma_N_p[-1] = x_i + h
-                    A, Gamma_sum, Gamma_tot_p = pot.fourier_gamma_calc(A_no, Gamma_N_p, eta_N, xi_N, N, t)
+                    Gamma_N_p[-1] = x_i + dh
+                    extra, Gamma_sum, Gamma_tot_p = pot.fourier_gamma_calc(A_no, Gamma_N_p, eta_N, xi_N, no_gamma, c[index], t)
 
-                    Gamma_N_m[-1] = x_i - h
-                    A, Gamma_sum, Gamma_tot_m = pot.fourier_gamma_calc(A_no, Gamma_N_m, eta_N, xi_N, N, t)
+                    Gamma_N_m[-1] = x_i - dh
+                    extra, Gamma_sum, Gamma_tot_m = pot.fourier_gamma_calc(A_no, Gamma_N_m, eta_N, xi_N, no_gamma, c[index], t)
 
                     # Newton - Raphson iteration
-                    Gamma_N[-1] = x_i - Gamma_tot / (0.5 * (Gamma_tot_p - Gamma_tot_m)/h)
+                    Gamma_N[-1] = x_i - Gamma_tot / (0.5 * (Gamma_tot_p - Gamma_tot_m)/dh)
 
-        # LEV Shedding
-        if abs(A[0]) > LESP:
-            LESP_flag = 1
-            Gamma_err = 100000
+            # LEV Shedding
+            if abs(fourier[0]) > lesp:
 
-            Gamma_end = deepcopy(Gamma_N[-1])
+                stab = -1
 
-            Gamma_N = np.append(Gamma_N, -Gamma_end)
+                lesp_flag = 1
+                Gamma_err = 100000
 
-            xi_N = np.append(xi_N, 0)
-            eta_N = np.append(eta_N, 0)
+                Gamma_end = deepcopy(Gamma_N[-1])
 
-            x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
-            y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t))
+                Gamma_N = np.append(Gamma_N, fourier[0]*0.5)
+                # Gamma_N[-2] = fourier[0]
 
-            N += 1
-                
-            while abs(Gamma_err) > 0.001 and abs(abs(A[0]) - LESP) > 0.001 :
+                # Gamma_N = np.append(Gamma_N, 10)
+                # Gamma_N[-2] = 10
 
-                A, Gamma_sum, Gamma_tot_0 = pot.fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, N, t)
+                xi_N = np.append(xi_N, 0)
+                eta_N = np.append(eta_N, - y_N[-1]/abs(y_N[-1]) * 0.01 * c[index] )
 
-                # 2D Newton - Raphson iteration
-                # Guess
-                x_i = deepcopy(Gamma_N[-1])
-                y_i = deepcopy(Gamma_N[-2])
+                x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
+                y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t))
 
-                # inputs at guess +h and -h to estimate first derivative
-                Gamma_N_p_LEV = Gamma_N_m_LEV = Gamma_N_p_TEV = Gamma_N_m_TEV =      Gamma_N
+                no_gamma += 1
 
-                Gamma_N_p_LEV[-1] = x_i + 4*h
-                Gamma_N_p_LEV[-2] = y_i
-                A_LEV_p, Gamma_sum, Gamma_tot_p_LEV = pot.fourier_gamma_calc(A_no, Gamma_N_p_LEV, eta_N, xi_N, N, t)
+                while abs(Gamma_err) > 0.00001 or abs(abs(fourier[0]) - lesp) > 0.001 :
 
-                Gamma_N_m_LEV[-1] = x_i - 4*h
-                Gamma_N_m_LEV[-2] = y_i
-                A_LEV_m, Gamma_sum, Gamma_tot_m_LEV = pot.fourier_gamma_calc(A_no, Gamma_N_m_LEV, eta_N, xi_N, N, t)
+      
 
-                Gamma_N_p_TEV[-2] = y_i + 4*h
-                Gamma_N_p_TEV[-1] = x_i
-                A_TEV_p, Gamma_sum, Gamma_tot_p_TEV = pot.fourier_gamma_calc(A_no, Gamma_N_p_TEV, eta_N, xi_N, N, t)
+                    fourier, Gamma_sum, Gamma_tot_0 = pot.fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, no_gamma, c[index], t)
 
-                Gamma_N_m_TEV[-2] = y_i - 4*h
-                Gamma_N_m_TEV[-1] = x_i
-                A_TEV_m, Gamma_sum, Gamma_tot_m_TEV = pot.fourier_gamma_calc(A_no, Gamma_N_m_TEV, eta_N, xi_N, N, t)
-                
-                # calculating terms or estimating first derivative
-                
-                F = np.array([abs(A[0]) - LESP, Gamma_tot_0])
-                J = np.array([[(A_LEV_p[0] - A_LEV_m[0]) / (2*h), (A_TEV_p[0] - A_TEV_m[0]) / (4*2*h)],
-                              [(Gamma_tot_p_LEV - Gamma_tot_m_LEV)/(2*h), (Gamma_tot_p_TEV - Gamma_tot_m_TEV)/(4*2*h)]])
-                
-                J_inv = np.linalg.inv(J)
+                    # 2D Newton - Raphson iteration
+                    # Guess
+                    x_i = deepcopy(Gamma_N[-1])
+                    y_i = deepcopy(Gamma_N[-2])
 
-                [Gamma_N[-1], Gamma_N[-2]] = np.array([x_i, y_i]) - J_inv@F 
+                    # inputs at guess +h and -h to estimate first derivative
+                    Gamma_N_p_LEV = Gamma_N_m_LEV = Gamma_N_p_TEV = Gamma_N_m_TEV = Gamma_N
+
+                    Gamma_N_p_LEV[-1] = x_i + stab * dh
+                    Gamma_N_p_LEV[-2] = y_i
+                    A_LEV_p, Gamma_sum, Gamma_tot_p_LEV = pot.fourier_gamma_calc(A_no, Gamma_N_p_LEV, eta_N, xi_N, no_gamma, c[index], t)
+
+                    Gamma_N_m_LEV[-1] = x_i - stab * dh
+                    Gamma_N_m_LEV[-2] = y_i
+                    A_LEV_m, Gamma_sum, Gamma_tot_m_LEV = pot.fourier_gamma_calc(A_no, Gamma_N_m_LEV, eta_N, xi_N, no_gamma, c[index], t)
+
+                    Gamma_N_p_TEV[-2] = y_i + stab * dh
+                    Gamma_N_p_TEV[-1] = x_i
+                    A_TEV_p, Gamma_sum, Gamma_tot_p_TEV = pot.fourier_gamma_calc(A_no, Gamma_N_p_TEV, eta_N, xi_N, no_gamma, c[index], t)
+
+                    Gamma_N_m_TEV[-2] = y_i - stab * dh
+                    Gamma_N_m_TEV[-1] = x_i
+                    A_TEV_m, Gamma_sum, Gamma_tot_m_TEV = pot.fourier_gamma_calc(A_no, Gamma_N_m_TEV, eta_N, xi_N, no_gamma, c[index], t)
+
+                    # calculating terms or estimating first derivative
+
+                    # F = np.array([abs(fourier[0]) - lesp, Gamma_tot_0])
+
+                    F = np.array([abs(fourier[0]) - lesp, Gamma_tot_0])
+
+                    J = np.array([[(A_LEV_p[0] + A_LEV_m[0]) / (2* stab *dh),         (A_TEV_p[0] + A_TEV_m[0]) / (2* stab *dh)],
+                                  [(Gamma_tot_p_LEV - Gamma_tot_m_LEV)/(2* stab *dh), (Gamma_tot_p_TEV - Gamma_tot_m_TEV)/(2* stab *dh)]])
+
+#########################################################################################################
+#                                       unstable                                                        #
+#########################################################################################################
+
+                    try:
+
+                        J_inv = np.linalg.inv(J)
+
+                        [Gamma_N[-1], Gamma_N[-2]] = np.array([x_i, y_i]) - J_inv@F 
+
+                        Gamma_err = Gamma_tot_0
+
+                        print(fourier)
+
+                    except:
+
+                        return cl, t_d[0:no_gamma-2], x_N, y_N
+                            
+                        # if np.linalg.norm(J[0]) < 0.000001:
+                        
+                        #     J[0] = np.array([1, 1])
+
+                        #     J_inv = np.linalg.inv(J)
+
+                        #     [Gamma_N[-1], Gamma_N[-2]] = np.array([x_i, y_i]) - J_inv@F 
+
+                        #     Gamma_err = Gamma_tot_0
+
+                        # else:
+
+                        #     J[1] = np.array([1, 1])
+
+                        #     J_inv = np.linalg.inv(J)
+
+                        #     [Gamma_N[-1], Gamma_N[-2]] = np.array([x_i, y_i]) - J_inv@F 
+
+                        #     Gamma_err = Gamma_tot_0
+
+
+
+
+                    # except:
+
+                    #     Gamma_N = np.delete(Gamma_N, -1)
+                    #     Gamma_N[-1] = Gamma_end
+
+                    #     xi_N = np.delete(xi_N, -1)
+                    #     eta_N = np.delete(eta_N, -1)
+
+                    #     x_N = np.delete(x_N, -1)
+                    #     y_N = np.delete(y_N, -1)
+
+                    #     lesp_flag = 0
+
+                    #     N -= 1
+
+                    #     A, Gamma_sum, Gamma_err = pot.fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, N, c[index], t)
+
+                    #     print(fourier[0], Gamma_err)
+
+                    #     break
+
+#########################################################################################################
+
+
 
         # if t>0:
         #     print(A)
         # Advecting and shedding vortices for next time step
         if t == 0:
-            xi_N    = np.array([c + U_ref*t_step, c + U_ref*t_step/3])
+            xi_N    = np.array([c[index] + U_ref*t_step, c[index] + U_ref*t_step/3])
             eta_N   = np.array([kin.h(t_step), kin.h(t_step)/3])
 
-            x_N = np.array([c , c - U_ref*t_step/3])
+            x_N = np.array([c[index] , c[index] - U_ref*t_step/3])
             y_N = np.array([0, -kin.h(t_step)/3])
 
             Gamma_N = np.append(Gamma_N, 0.0)
 
-            N += 2
+            no_gamma += 2
 
         if t > 0:
 
 
-            u_ind = np.zeros(N)
-            v_ind = np.zeros(N)    
+            u_ind = np.zeros(no_gamma)
+            v_ind = np.zeros(no_gamma)    
 
             # Finding induced velocity at each vortex
             for n in range(len(u_ind)):
@@ -168,10 +237,10 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
                         v_ind[n] += 0.0
 
                 # Induced velocity on a vortex by the bounded vortex sheet            
-                trans = lambda xi: np.arccos(1 - 2*xi/c)
-                gamma = lambda xi: 2* U_ref * (A[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + A[1] * np.sin(trans(xi)))# + A[2] * np.sin(2*trans(xi)) + A[3] * np.sin(3*trans(xi)) #+ A[4] * np.sin(4*trans(xi)) + A[5] * np.sin(5*trans(xi))
+                trans = lambda xi: np.arccos(1 - 2*xi/c[index])
+                gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
 
-                u_ind_p, v_ind_p = pot.V_ind_b_fast_2(gamma, xi_N[n], eta_N[n])
+                u_ind_p, v_ind_p = pot.V_ind_b_fast_2(gamma, xi_N[n], eta_N[n], c[index])
 
                 u_ind[n] += u_ind_p #+ U_ref
                 v_ind[n] += v_ind_p #+ pot.hdot(t) 
@@ -182,15 +251,15 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
             # Shedding new TEV
             if t == t_step:
-                x_N = np.append(x_N,(x_N[0] - (c-U_ref*t_step))*0.33 + c-U_ref*t_step)
+                x_N = np.append(x_N,(x_N[0] - (c[index]-U_ref*t_step))*0.33 + c[index]-U_ref*t_step)
                 y_N = np.append(y_N,(y_N[0] - kin.h(t))*0.33 + kin.h(t))
             else:
-                if LESP_flag:
-                    x_N = np.append(x_N,(x_N[-2] - (c-U_ref*t))*0.33 + c-U_ref*t)
+                if lesp_flag:
+                    x_N = np.append(x_N,(x_N[-2] - (c[index]-U_ref*t))*0.33 + c[index]-U_ref*t)
                     y_N = np.append(y_N,(y_N[-2] - kin.h(t))*0.33 + kin.h(t))
                 else:
-                    x_N = np.append(x_N,(x_N[-1] - (c-U_ref*t))*0.33 + c-U_ref*t)
-                    y_N = np.append(y_N, kin.h(t))#(y_N[-1] - pot.h(t))*0.33 + pot.h(t))
+                    x_N = np.append(x_N,(x_N[-1] - (c[index]-U_ref*t))*0.33 + c[index]-U_ref*t)
+                    y_N = np.append(y_N,(y_N[-2] - kin.h(t))*0.33 + kin.h(t))#(y_N[-1] - pot.h(t))*0.33 + pot.h(t))
 
 
             # Adjusting the body frame coordinates
@@ -200,12 +269,19 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
             # New TEV circulation
             Gamma_N = np.append(Gamma_N, 0.0)
 
-            N += 1
+            no_gamma += 1
 
-            LESP_flag = 0
+            lesp_flag = 0
 
         # Calculate lift coefficient
-        cl = np.append(cl, np.pi * (2 * A[0]+ A[1]))
+
+        if t > 0:
+            cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1])*c[index])
+            # print(fourier[0])
+        else:
+            cl = np.append(cl,0)
+
+        
 
     return cl, t_d, x_N, y_N
 

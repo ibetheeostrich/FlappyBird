@@ -29,12 +29,12 @@ class blade_element_kinematics:
 
         self.U_ref = U_ref
 
-        self.aa = amplitude  # radians
-        self.f = freq     # hz?
-        self.r = span_pos   # m
+        self.aa = amplitude     # radians
+        self.f = freq           # hz?
+        self.r = span_pos       # m
 
-        self.chord = chord  # m
-        self.le = le_pos    # m 
+        self.chord = chord      # m
+        self.le = le_pos        # m 
 
         self.wavelength = 1.0 / freq
 
