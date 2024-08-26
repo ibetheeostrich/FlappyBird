@@ -2,6 +2,7 @@ import math
 import aero_solver.pot_func as aero
 import numpy as np
 from copy import deepcopy
+import scipy.integrate as inte
 
 # Constants and Globals
 
@@ -15,7 +16,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
     pot = aero.aero_solver_osc_flat(kin, U_ref, t_step, alpha_eff)
 
-    lesp = 0.035
+    rho = 1.225
 
     lesp_flag = 0
 
@@ -28,7 +29,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
     y_N     = np.array([0.0])
 
     # Initialise Fourier coefficient matrix and calculation variabls
-    A_no = 2
+    A_no = 3
     # A = np.zeros(A_no)
 
     # Newton - Raphson Params
@@ -40,8 +41,17 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         index = int(t/t_step)
 
+        lesp = 0.2*c[index]
+
         # TEV Shedding
         if t > 0:
+
+            if t == t_step:
+                fourier_old = np.zeros(A_no)
+
+            else:
+                fourier_old = deepcopy(fourier)
+
             # Solving for TEV vorticity
             Gamma_err = 10000
   
@@ -135,10 +145,6 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
                     J = np.array([[(A_LEV_p[0] + A_LEV_m[0]) / (2* stab *dh),         (A_TEV_p[0] + A_TEV_m[0]) / (2* stab *dh)],
                                   [(Gamma_tot_p_LEV - Gamma_tot_m_LEV)/(2* stab *dh), (Gamma_tot_p_TEV - Gamma_tot_m_TEV)/(2* stab *dh)]])
 
-#########################################################################################################
-#                                       unstable                                                        #
-#########################################################################################################
-
                     try:
 
                         J_inv = np.linalg.inv(J)
@@ -153,56 +159,6 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                         return cl, t_d[0:no_gamma-2], x_N, y_N
                             
-                        # if np.linalg.norm(J[0]) < 0.000001:
-                        
-                        #     J[0] = np.array([1, 1])
-
-                        #     J_inv = np.linalg.inv(J)
-
-                        #     [Gamma_N[-1], Gamma_N[-2]] = np.array([x_i, y_i]) - J_inv@F 
-
-                        #     Gamma_err = Gamma_tot_0
-
-                        # else:
-
-                        #     J[1] = np.array([1, 1])
-
-                        #     J_inv = np.linalg.inv(J)
-
-                        #     [Gamma_N[-1], Gamma_N[-2]] = np.array([x_i, y_i]) - J_inv@F 
-
-                        #     Gamma_err = Gamma_tot_0
-
-
-
-
-                    # except:
-
-                    #     Gamma_N = np.delete(Gamma_N, -1)
-                    #     Gamma_N[-1] = Gamma_end
-
-                    #     xi_N = np.delete(xi_N, -1)
-                    #     eta_N = np.delete(eta_N, -1)
-
-                    #     x_N = np.delete(x_N, -1)
-                    #     y_N = np.delete(y_N, -1)
-
-                    #     lesp_flag = 0
-
-                    #     N -= 1
-
-                    #     A, Gamma_sum, Gamma_err = pot.fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, N, c[index], t)
-
-                    #     print(fourier[0], Gamma_err)
-
-                    #     break
-
-#########################################################################################################
-
-
-
-        # if t>0:
-        #     print(A)
         # Advecting and shedding vortices for next time step
         if t == 0:
             xi_N    = np.array([c[index] + U_ref*t_step, c[index] + U_ref*t_step/3])
@@ -217,33 +173,8 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         if t > 0:
 
-
-            u_ind = np.zeros(no_gamma)
-            v_ind = np.zeros(no_gamma)    
-
-            # Finding induced velocity at each vortex
-            for n in range(len(u_ind)):
-                
-                # Induced velocity on a vortex by another vortex
-                for m in range(len(u_ind)):
-
-                    u_ind_p, v_ind_p = pot.V_ind_ub(x_N[n], y_N[n], x_N[m], y_N[m],  Gamma_N[m])
-
-                    u_ind[n] += u_ind_p
-                    v_ind[n] += v_ind_p
-
-                    if m == n:
-                        u_ind[n] += 0.0
-                        v_ind[n] += 0.0
-
-                # Induced velocity on a vortex by the bounded vortex sheet            
-                trans = lambda xi: np.arccos(1 - 2*xi/c[index])
-                gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
-
-                u_ind_p, v_ind_p = pot.V_ind_b_fast_2(gamma, xi_N[n], eta_N[n], c[index])
-
-                u_ind[n] += u_ind_p #+ U_ref
-                v_ind[n] += v_ind_p #+ pot.hdot(t) 
+            # Calculating induced velocity on each vortex
+            u_ind, v_ind = pot.V_ind_tot_field(x_N,y_N,x_N,y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
 
             # Advecting the vortex
             x_N     = x_N + u_ind*t_step 
@@ -276,7 +207,32 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
         # Calculate lift coefficient
 
         if t > 0:
-            cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1])*c[index])
+
+            disc_chord = np.linspace(0.0001,c[index], 500,endpoint = True)
+            disc_y = np.zeros(500)
+
+            lift_u, lift_v = pot.V_ind_ub_field(disc_chord, disc_y, xi_N, eta_N, Gamma_N, no_gamma)
+
+            disc_dphidx = lift_u*np.cos(alpha_eff) - lift_v*np.sin(alpha_eff)
+
+            trans = lambda xi: np.arccos(1 - 2*xi/c[index])
+            gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
+
+            ub_terms = inte.trapz(disc_dphidx * gamma(disc_chord),disc_chord)
+
+            fourier_dot = (fourier - fourier_old)/t_step
+
+            f_n = rho * np.pi * c[index] * U_ref * (
+                U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
+                c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
+            ) + rho * (
+                ub_terms
+            )
+
+
+
+            # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
+            cl = np.append(cl, f_n)
             # print(fourier[0])
         else:
             cl = np.append(cl,0)
