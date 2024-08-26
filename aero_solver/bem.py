@@ -41,7 +41,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         index = int(t/t_step)
 
-        lesp = 0.2*c[index]
+        lesp = 0.4*c[index]
 
         # TEV Shedding
         if t > 0:
@@ -85,26 +85,25 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
             # LEV Shedding
             if abs(fourier[0]) > lesp:
 
-                stab = -1
-
+                stab = - 0.6
                 lesp_flag = 1
                 Gamma_err = 100000
 
-                Gamma_end = deepcopy(Gamma_N[-1])
-
                 Gamma_N = np.append(Gamma_N, fourier[0]*0.5)
-                # Gamma_N[-2] = fourier[0]
+                Gamma_N[-2] = - fourier[0]*0.5
 
                 # Gamma_N = np.append(Gamma_N, 10)
                 # Gamma_N[-2] = 10
 
                 xi_N = np.append(xi_N, 0)
-                eta_N = np.append(eta_N, - y_N[-1]/abs(y_N[-1]) * 0.01 * c[index] )
+                eta_N = np.append(eta_N, 0)#y_N[-1]/abs(y_N[-1]) * 0.005 * c[index] )
 
                 x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
-                y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t))
+                y_N = np.append(y_N, y_N[-1])
 
                 no_gamma += 1
+
+                iter_count = 0
 
                 while abs(Gamma_err) > 0.00001 or abs(abs(fourier[0]) - lesp) > 0.001 :
 
@@ -147,17 +146,30 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                     try:
 
+                        # print(Gamma_N[-1])
+
                         J_inv = np.linalg.inv(J)
 
                         [Gamma_N[-1], Gamma_N[-2]] = np.array([x_i, y_i]) - J_inv@F 
 
                         Gamma_err = Gamma_tot_0
 
-                        print(fourier)
+                        if iter_count > 100:
+                            break
+                        else:
+
+                            iter_count += 1
+
+                        # print(fourier)
 
                     except:
 
+                        print(lesp, fourier)
+
+                        print(J)
+
                         return cl, t_d[0:no_gamma-2], x_N, y_N
+                    
                             
         # Advecting and shedding vortices for next time step
         if t == 0:
@@ -237,7 +249,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
         else:
             cl = np.append(cl,0)
 
-        
+        print(t)
 
     return cl, t_d, x_N, y_N
 
