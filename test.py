@@ -12,11 +12,11 @@ from geom import *
 import time
 
 # Initialise problem
-U_ref = 1
+U_ref = 5
 alpha_eff = np.deg2rad(0)   
 
-t_step = 0.01
-no_steps = 300
+t_step = 0.0025
+no_steps = 400
 
 no_bem = 12
 
@@ -28,14 +28,14 @@ t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
 wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
 # Defining root kinematics that will drive morphing
-root_kin = lambda x: - 0.05 - 0.01 - 0.01*np.cos(2 * np.pi * 1 * x) if x >= 1 else -0.07
+root_kin = lambda x: - 0.05 #- 0.01 - 0.01*np.cos(2 * np.pi * 2 * x) if x >= 0.25 else -0.07
 
 
 
 
 # Initialising array for storing BEM kinematics
 
-r_pos_temp = np.zeros((no_bem,no_steps+1))
+r_pos_temp = np.zeros((no_bem,no_steps+1))  
 chords_temp = np.zeros((no_bem,no_steps+1))
 le_pos_temp = np.zeros((no_bem,no_steps+1))
 area_temp = np.zeros(no_steps+1)
@@ -57,7 +57,7 @@ args = []
 
 for i in range(no_bem-1):
 
-    kin = bek(np.deg2rad(50) , 1, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
+    kin = bek(np.deg2rad(50) , 2, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
     
     args.append((U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin))
 
@@ -81,6 +81,7 @@ for results in a:
 
     x = results[2]
     y = results[3]
+
 
     plt.plot(td,cl)
     plt.show()

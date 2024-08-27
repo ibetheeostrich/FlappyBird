@@ -46,15 +46,15 @@ class blade_element_kinematics:
 
         a = self.r[index] * self.aa
 
-        if t < 1:
+        if t < 0.0:
             return 0
         
-        elif t >= 1 and t < 0.5 * self.wavelength + 1:
+        elif t >= 0.0 and t < 0.5 * self.wavelength:
 
-            return 0.5*(a - a * np.cos(2 * np.pi * self.f * (t - 1)))
+            return 0.5*(a - a * np.cos(2 * np.pi * self.f * (t)))
         
-        elif t >= 0.5 * self.wavelength + 1:
-            return a * np.cos(2 * np.pi * self.f * (t - 0.5*self.wavelength - 1)) 
+        elif t >= 0.5 * self.wavelength:
+            return a * np.cos(2 * np.pi * self.f * (t - 0.5*self.wavelength)) 
 
     def h_dot(self, t):
 
@@ -62,14 +62,14 @@ class blade_element_kinematics:
 
         a = self.r[index] * self.aa
 
-        if t < 1:
+        if t < 0.25:
             return 0
         
-        elif t >= 1 and t < 0.5 * self.wavelength + 1:
-            return np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 1))
+        elif t >= 0.25 and t < 0.5 * self.wavelength + 0.25:
+            return np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.25))
         
-        elif t >= 0.5 * self.wavelength + 1:
-            return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.5*self.wavelength - 1)) 
+        elif t >= 0.5 * self.wavelength + 0.25:
+            return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.5*self.wavelength - 0.25)) 
         
 #################################################################################
 #               QUARANTINE                                                      #

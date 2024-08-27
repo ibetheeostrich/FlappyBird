@@ -85,26 +85,14 @@ class aero_solver_osc_flat:
         return u_ind_ub, v_ind_ub
     
 
+
     def V_ind_tot_field(self, x1_N, y1_N, x2_N, y2_N, Gamma_N, fourier, no_gamma, U, c, t):
             
-        u_ind = np.zeros(no_gamma)
-        v_ind = np.zeros(no_gamma)    
+        u_ind, v_ind = self.V_ind_ub_field(x1_N, y1_N, x2_N, y2_N, Gamma_N, no_gamma)
 
         # Finding induced velocity at each vortex
         for n in range(len(u_ind)):
             
-            # Induced velocity on a vortex by another vortex
-            for m in range(len(u_ind)):
-
-                u_ind_p, v_ind_p = self.V_ind_ub(x1_N[n], y1_N[n], x2_N[m], y2_N[m],  Gamma_N[m])
-
-                u_ind[n] += u_ind_p
-                v_ind[n] += v_ind_p
-
-                if m == n:
-                    u_ind[n] += 0.0
-                    v_ind[n] += 0.0
-
             # Induced velocity on a vortex by the bounded vortex sheet            
             trans = lambda xi: np.arccos(1 - 2*xi/c)
             gamma = lambda xi: 2* U * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
@@ -117,23 +105,29 @@ class aero_solver_osc_flat:
         
         return u_ind, v_ind
     
-
+    
     def V_ind_ub_field(self, x1_N, y1_N, x2_N, y2_N, Gamma_N, no_gamma):
-            
-        u_ind = np.zeros(len(x1_N))
-        v_ind = np.zeros(len(x1_N))    
+        # Reshape the input arrays to enable broadcasting
+        x1_N = np.reshape(x1_N, (-1, 1))  # Shape: (len(x1_N), 1)
+        y1_N = np.reshape(y1_N, (-1, 1))  # Shape: (len(y1_N), 1)
 
-        # Finding induced velocity at each vortex
-        for n in range(len(u_ind)):
-            
-            # Induced velocity on a vortex by another vortex
-            for m in range(no_gamma):
+        # Compute the difference arrays (x1_N - x2_N) and (y1_N - y2_N)
+        dx = x1_N - x2_N  # Shape: (len(x1_N), len(x2_N))
+        dy = y1_N - y2_N  # Shape: (len(y1_N), len(y2_N))
 
-                u_ind_p, v_ind_p = self.V_ind_ub(x1_N[n], y1_N[n], x2_N[m], y2_N[m],  Gamma_N[m])
+        # Calculate the squared distance and avoid division by zero by adding a small value (epsilon)
+        r_squared = dx**2 + dy**2
+        epsilon = 1e-10  # Small value to prevent division by zero
+        r_squared = np.where(r_squared == 0, epsilon, r_squared)
 
-                u_ind[n] += u_ind_p
-                v_ind[n] += v_ind_p
-     
+        # Calculate induced velocities using broadcasting
+        u_ind_p = -Gamma_N / (2 * np.pi * r_squared) * dy  # Shape: (len(x1_N), len(x2_N))
+        v_ind_p = Gamma_N / (2 * np.pi * r_squared) * dx   # Shape: (len(y1_N), len(y2_N))
+
+        # Sum along the second axis to accumulate the induced velocities
+        u_ind = np.sum(u_ind_p, axis=1)
+        v_ind = np.sum(v_ind_p, axis=1)
+
         return u_ind, v_ind
 
     def fourier_gamma_calc(self, A_no, Gamma_N, eta_N, xi_N, N, c, t):
@@ -193,6 +187,7 @@ class aero_solver_osc_flat:
         Gamma_b = np.pi * c * self.U_ref * (fourier[0] + fourier[1] * 0.5)
 
         return fourier, sum(Gamma_N), Gamma_b + sum(Gamma_N)
+    
 
     # def V_ind_b(self, gamma, xi_n, eta_n):
     #     '''

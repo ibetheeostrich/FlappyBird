@@ -41,7 +41,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         index = int(t/t_step)
 
-        lesp = 0.4*c[index]
+        lesp = 0.2*c[index]
 
         # TEV Shedding
         if t > 0:
@@ -113,31 +113,25 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                     # 2D Newton - Raphson iteration
                     # Guess
-                    x_i = deepcopy(Gamma_N[-1])
-                    y_i = deepcopy(Gamma_N[-2])
+                    x_i = Gamma_N[-1]
+                    y_i = Gamma_N[-2]
 
                     # inputs at guess +h and -h to estimate first derivative
                     Gamma_N_p_LEV = Gamma_N_m_LEV = Gamma_N_p_TEV = Gamma_N_m_TEV = Gamma_N
 
-                    Gamma_N_p_LEV[-1] = x_i + stab * dh
-                    Gamma_N_p_LEV[-2] = y_i
-                    A_LEV_p, Gamma_sum, Gamma_tot_p_LEV = pot.fourier_gamma_calc(A_no, Gamma_N_p_LEV, eta_N, xi_N, no_gamma, c[index], t)
+                    Gamma_N_p_LEV = np.array([y_i, x_i + stab * dh])
+                    A_LEV_p, Gamma_sum, Gamma_tot_p_LEV = pot.fourier_gamma_calc(A_no, Gamma_N_p_LEV, eta_N[-2:], xi_N[-2:], 2, c[index], t)
 
-                    Gamma_N_m_LEV[-1] = x_i - stab * dh
-                    Gamma_N_m_LEV[-2] = y_i
-                    A_LEV_m, Gamma_sum, Gamma_tot_m_LEV = pot.fourier_gamma_calc(A_no, Gamma_N_m_LEV, eta_N, xi_N, no_gamma, c[index], t)
+                    Gamma_N_m_LEV = np.array([y_i, x_i - stab * dh])
+                    A_LEV_m, Gamma_sum, Gamma_tot_m_LEV = pot.fourier_gamma_calc(A_no, Gamma_N_m_LEV, eta_N[-2:], xi_N[-2:], 2, c[index], t)
 
-                    Gamma_N_p_TEV[-2] = y_i + stab * dh
-                    Gamma_N_p_TEV[-1] = x_i
-                    A_TEV_p, Gamma_sum, Gamma_tot_p_TEV = pot.fourier_gamma_calc(A_no, Gamma_N_p_TEV, eta_N, xi_N, no_gamma, c[index], t)
+                    Gamma_N_p_TEV = np.array([y_i + stab * dh, x_i])
+                    A_TEV_p, Gamma_sum, Gamma_tot_p_TEV = pot.fourier_gamma_calc(A_no, Gamma_N_p_TEV, eta_N[-2:], xi_N[-2:], 2, c[index], t)
 
-                    Gamma_N_m_TEV[-2] = y_i - stab * dh
-                    Gamma_N_m_TEV[-1] = x_i
-                    A_TEV_m, Gamma_sum, Gamma_tot_m_TEV = pot.fourier_gamma_calc(A_no, Gamma_N_m_TEV, eta_N, xi_N, no_gamma, c[index], t)
+                    Gamma_N_m_TEV = np.array([y_i - stab * dh, x_i])
+                    A_TEV_m, Gamma_sum, Gamma_tot_m_TEV = pot.fourier_gamma_calc(A_no, Gamma_N_m_TEV, eta_N[-2:], xi_N[-2:], 2, c[index], t)
 
                     # calculating terms or estimating first derivative
-
-                    # F = np.array([abs(fourier[0]) - lesp, Gamma_tot_0])
 
                     F = np.array([abs(fourier[0]) - lesp, Gamma_tot_0])
 
@@ -249,10 +243,12 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
         else:
             cl = np.append(cl,0)
 
-        print(t)
+        if t>0:
+            print(t, t_step/c[index]*U_ref, fourier[0])
+
+
 
     return cl, t_d, x_N, y_N
-
     
 
 
