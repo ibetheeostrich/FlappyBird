@@ -12,11 +12,11 @@ from geom import *
 import time
 
 # Initialise problem
-U_ref = 9
+U_ref = 5
 alpha_eff = np.deg2rad(0)   
 
-t_step = 0.01
-no_steps = 100
+t_step = 0.0025
+no_steps = 400
 
 no_bem = 12
 
@@ -55,19 +55,16 @@ for t in np.append(t_span,t_span[-1]+t_step):
 
 args = []
 
-chords_temp = np.zeros((no_bem,no_steps+1)) + 1
-r_pos_temp = np.zeros((no_bem,no_steps+1))  + 1
-
 for i in range(no_bem-1):
 
-    kin = bek(np.deg2rad(10) , 3, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
+    kin = bek(np.deg2rad(50) , 2, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
     
     args.append((U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin))
 
 # # Multiprocessing
 def pool_handler():
     p = Pool(11)
-    results = p.starmap(bem, args[1:2])
+    results = p.starmap(bem, args)
 
     return results
 
@@ -85,16 +82,11 @@ for results in a:
     x = results[2]
     y = results[3]
 
-    gamma = results[4]
 
-    pos_arr = np.where(gamma > 0)[0]
-    neg_arr = np.where(gamma < 0)[0]
+    plt.plot(td,cl)
+    plt.show()
 
-    # plt.plot(td,cl)
-    # plt.show()
-
-    plt.plot(x[pos_arr],y[pos_arr],'ro')
-    plt.plot(x[neg_arr],y[neg_arr],'bo')
+    plt.plot(x,y,'ro')
     plt.axis('equal')
     plt.show()
 
@@ -117,3 +109,4 @@ for results in a:
 
 # plt.plot(x_N,y_N,'ro')
 # plt.show()
+ 

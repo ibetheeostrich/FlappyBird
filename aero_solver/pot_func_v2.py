@@ -14,32 +14,43 @@ class aero_solver_osc_flat:
         self.v_core = 1.3*t_step*U_ref
         self.alpha_eff = alpha_eff
 
-    def xin2body(self, x, t):
-        return x + self.U_ref*t
+    def gin2body(self, g, t):
 
-    def yin2body(self, y, t):
-        return y - self.kin.h(t)
+        '''
+        converts global coords into body axis
+        '''
 
-    def bodyin2x(self, x,t):
-        return x - self.U_ref*t
+        rot = np.array([
+            [math.cos(self.alpha_eff),  math.sin(self.alpha_eff)],
+            [- math.sin(self.alpha_eff),math.cos(self.alpha_eff),]
+        ])
 
-    def bodyin2y(self, y, t):
-        return y + self.kin.h(t)
+        trans = np.array([
+            [g[0] + self.U_ref*t],
+            [g[1] - self.kin.h(t)]
+        ])
 
+                            
+        return rot@trans
+    
+    def bodyin2g(self, b, t):
 
-    def g_trans(self, theta, c):
-        return 0.5 * c * (1 - np.cos(theta))
+        '''
+        converts body coords into globa axis
+        '''
 
-    def dphideta(self, xi_n, eta_n , Gamma_n):
+        rot_inv = np.array([
+            [math.cos(self.alpha_eff), -math.sin(self.alpha_eff)],
+            [math.sin(self.alpha_eff),  math.cos(self.alpha_eff),]
+        ])
 
-        const = 0.5 * Gamma_n * PI_inv
+        trans = np.array([
+            [  self.U_ref*t],
+            [- self.kin.h(t)]
+        ])
 
-        func = lambda xi:  const * (
-            (-eta_n * math.sin(self.alpha_eff) - (xi - xi_n) * math.cos(self.alpha_eff))  
-            / 
-            np.sqrt((eta_n**2 + (xi - xi_n)**2)**2 + self.v_core**4)
-                             )
-        return func
+                            
+        return rot_inv@(b - trans)
 
     def W_0(self, t):
 
@@ -72,19 +83,6 @@ class aero_solver_osc_flat:
 
         return u_ind, v_ind
 
-    def V_ind_ub(self, xi, eta, xi_n, eta_n, gamma):
-
-        '''
-        - calculates the induced velocity at a point by another vortex blob centred at (xi_n, eta_n)
-        '''
-
-        u_ind_ub = 0.5 * gamma * PI_inv * (eta - eta_n) / math.sqrt(((xi - xi_n)**2 + (eta - eta_n)**2)**2 + self.v_core**4)
-
-        v_ind_ub = -0.5 * gamma * PI_inv * (xi - xi_n) / math.sqrt(((xi - xi_n)**2 + (eta - eta_n)**2)**2 + self.v_core**4)
-
-        return u_ind_ub, v_ind_ub
-    
-
 
     def V_ind_tot_field(self, x1_N, y1_N, x2_N, y2_N, Gamma_N, fourier, no_gamma, U, c, t):
             
@@ -106,8 +104,7 @@ class aero_solver_osc_flat:
         return u_ind, v_ind
     
     
-    
-    def V_ind_ub_field(self, x1_N, y1_N, x2_N, y2_N, Gamma_N,dd):
+    def V_ind_ub_field(self, x1_N, y1_N, x2_N, y2_N, Gamma_N):
         '''
         calculates induced velocity at (x1,y1) by vortices at (x2,y2)
         '''
@@ -135,7 +132,6 @@ class aero_solver_osc_flat:
 
         return u_ind, v_ind
 
-
     def fourier_gamma_calc(self, A_no, Gamma_N, eta_N, xi_N, N, c, t):
 
         x = np.linspace(0.0, np.pi, 513, endpoint=True)
@@ -151,10 +147,10 @@ class aero_solver_osc_flat:
             # Computing A_0 in fourier series of vorticity distribution on the bound vortex
             if i == 0: 
                 if N == 0: # solving for t = 0
-                    fourier[i] = - PI_inv * U_ref_inv * self.W_0_fast_1(t) * np.pi
+                    fourier[i] = - PI_inv * U_ref_inv * self.W_0_fast_1(t) * c
                 else: # solving for t > 0
 
-                    fourier[i] = self.W_0_fast_1(t) * np.pi
+                    fourier[i] = self.W_0_fast_1(t) * c
 
                     for n in range(N):                            
                         Gamma_n = Gamma_N[n]
