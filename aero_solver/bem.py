@@ -4,11 +4,19 @@ import numpy as np
 from copy import deepcopy
 import scipy.integrate as inte
 
+
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib.animation import FFMpegWriter
+import io
+
 # Constants and Globals
 
 PI_inv = 1 / math.pi
 
 def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
+
+    frames = []
 
     # Initialise problem
     t_d = np.arange(0,t_step*no_steps,t_step)
@@ -89,8 +97,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
                 lesp_flag = 1
                 Gamma_err = 100000
 
-                Gamma_N = np.append(Gamma_N, 0.0)#fourier[0]*0.5)
-                # Gamma_N[-2] = - fourier[0]*0.5
+                Gamma_N = np.append(Gamma_N, fourier[0]*10)
 
                 # Gamma_N = np.append(Gamma_N, 10)
                 # Gamma_N[-2] = 10
@@ -98,14 +105,14 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
                 xi_N = np.append(xi_N, 0)
                 eta_N = np.append(eta_N, 0)#y_N[-1]/abs(y_N[-1]) * 0.005 * c[index] )
 
-                x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
-                y_N = np.append(y_N, y_N[-1])
+                x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t-t_step))
+                y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t-t_step))
 
                 no_gamma += 1
 
                 iter_count = 0
 
-                while abs(Gamma_err) > 0.00001 or abs(abs(fourier[0]) - lesp) > 0.001 :
+                while abs(Gamma_err) > 0.00001 or abs(abs(fourier[0]) - lesp) > 0.00001 :
 
       
 
@@ -212,7 +219,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         # Calculate lift coefficient
 
-        if t > 0:
+        # if t > 0:
 
             # disc_chord = np.linspace(0.0001,c[index], 500,endpoint = True)
             # disc_y = np.zeros(500)
@@ -238,17 +245,32 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
 
             # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
-            cl = np.append(cl, 0)
-            # print(fourier[0])
-        else:
-            cl = np.append(cl,0)
+
 
         if t>0:
-            print(t, t_step/c[index]*U_ref, fourier[0])
+            x = np.linspace(0.0001, c, 513, endpoint=True)
+            
+            # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
+            cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
+
+            print(t, t_step/c[index]*U_ref,  np.pi * (2 * fourier[0]+ fourier[1]))
+
+        # Movie
+        # fig, ax = plt.subplots()
+        # fig.dpi = 300
+        # fig.set_size_inches(19.20, 10.80)
+        # ax.plot(x_N, y_N, 'ro')
+        # # ax.plot(xi_N, eta_N, 'bo')
+        # # ax.plot([0, c], [0, 0], 'k')
+        # ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
+        # ax.axis("equal")
+        # # ax.set_xlim(-30,5)
+        # # ax.set_ylim(-10,10)
+        # plt.savefig(str(index) + '.png',)
+        # plt.close(fig)
 
 
-
-    return cl, t_d, x_N, y_N, Gamma_N
+    return cl, t_d[0:-1], x_N, y_N, Gamma_N
     
 
 
