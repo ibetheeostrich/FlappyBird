@@ -18,6 +18,8 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
     frames = []
 
+    zeroth = np.array([])
+
     # Initialise problem
     t_d = np.arange(0,t_step*no_steps,t_step)
     cl = np.array([])
@@ -93,17 +95,23 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
             # LEV Shedding
             if abs(fourier[0]) > lesp:
 
-                stab = 2
+                if fourier[0] < 0:
+                    lesp_c = - lesp
+
+                else:
+                    lesp_c = lesp
+
+                stab = 0.1
                 lesp_flag = 1
                 Gamma_err = 100000
 
-                Gamma_N = np.append(Gamma_N, fourier[0]*10)
+                Gamma_N = np.append(Gamma_N, -fourier[0]*10)
 
                 # Gamma_N = np.append(Gamma_N, 10)
                 # Gamma_N[-2] = 10
 
                 xi_N = np.append(xi_N, 0)
-                eta_N = np.append(eta_N, 0)#y_N[-1]/abs(y_N[-1]) * 0.005 * c[index] )
+                eta_N = np.append(eta_N, 0)
 
                 x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t-t_step))
                 y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t-t_step))
@@ -114,14 +122,12 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                 while abs(Gamma_err) > 0.00001 or abs(abs(fourier[0]) - lesp) > 0.00001 :
 
-      
-
                     fourier, Gamma_sum, Gamma_tot_0 = pot.fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, no_gamma, c[index], t)
 
                     # 2D Newton - Raphson iteration
                     # Guess
-                    x_i = Gamma_N[-1]
-                    y_i = Gamma_N[-2]
+                    x_i = Gamma_N[-1] # LEV
+                    y_i = Gamma_N[-2] # TEV
 
                     # inputs at guess +h and -h to estimate first derivative
                     Gamma_N_p_LEV = Gamma_N_m_LEV = Gamma_N_p_TEV = Gamma_N_m_TEV = Gamma_N
@@ -140,7 +146,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                     # calculating terms or estimating first derivative
 
-                    F = np.array([abs(fourier[0]) - lesp, Gamma_tot_0])
+                    F = np.array([fourier[0] - lesp_c, Gamma_tot_0])
 
                     J = np.array([[(A_LEV_p[0] - A_LEV_m[0]) / (2* stab *dh),         (A_TEV_p[0] - A_TEV_m[0]) / (2* stab *dh)],
                                   [(Gamma_tot_p_LEV - Gamma_tot_m_LEV)/(2* stab *dh), (Gamma_tot_p_TEV - Gamma_tot_m_TEV)/(2* stab *dh)]])
@@ -203,7 +209,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
                     y_N = np.append(y_N,(y_N[-2] - kin.h(t))*0.33 + kin.h(t))
                 else:
                     x_N = np.append(x_N,(x_N[-1] - (c[index]-U_ref*t))*0.33 + c[index]-U_ref*t)
-                    y_N = np.append(y_N,(y_N[-1] - kin.h(t))*0.33 + kin.h(t))#(y_N[-1] - pot.h(t))*0.33 + pot.h(t))
+                    y_N = np.append(y_N,(y_N[-1] - kin.h(t))*0.33 + kin.h(t))
 
 
             # Adjusting the body frame coordinates
@@ -231,7 +237,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
             # trans = lambda xi: np.arccos(1 - 2*xi/c[index])
             # gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
 
-            # ub_terms = inte.trapz(disc_dphidx * gamma(disc_chord),disc_chord)
+            # ub_terms = inte.trapezoid(disc_dphidx * gamma(disc_chord),disc_chord)
 
             # fourier_dot = (fourier - fourier_old)/t_step
 
@@ -252,8 +258,9 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
             
             # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
             cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
+            zeroth = np.append(zeroth, fourier[0])
 
-            print(t, t_step/c[index]*U_ref,  np.pi * (2 * fourier[0]+ fourier[1]))
+            print(t, t_step/c[index]*U_ref,  np.pi * c[index] * U_ref * (fourier[0] + fourier[1] * 0.5))
 
         # Movie
         # fig, ax = plt.subplots()
@@ -270,7 +277,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
         # plt.close(fig)
 
 
-    return cl, t_d[0:-1], x_N, y_N, Gamma_N
+    return cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth
     
 
 

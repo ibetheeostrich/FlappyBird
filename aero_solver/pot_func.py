@@ -60,13 +60,13 @@ class aero_solver_osc_flat:
 
         integrand_u = lambda xi: gamma(xi) * (0.0 - eta_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
 
-        def_int_u = inte.trapz(integrand_u(x),x)
+        def_int_u = inte.trapezoid(integrand_u(x),x)
 
         u_ind = 0.5 * PI_inv * def_int_u
 
         integrand_v = lambda xi: gamma(xi) *  (xi -  xi_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
 
-        def_int_v = inte.trapz(integrand_v(x),x)
+        def_int_v = inte.trapezoid(integrand_v(x),x)
 
         v_ind = -0.5 * PI_inv * def_int_v 
 
@@ -163,7 +163,7 @@ class aero_solver_osc_flat:
                         dphideta = self.dphideta(xi_n, eta_n, Gamma_n)
                         integrand_n = lambda theta: dphideta(g_trans(theta))
 
-                        A_int = inte.trapz(integrand_n(x), x)
+                        A_int = inte.trapezoid(integrand_n(x), x)
 
                         fourier[i] -= A_int
                     fourier[i] *= - 1.0 / np.pi / self.U_ref
@@ -184,7 +184,7 @@ class aero_solver_osc_flat:
                         dphideta = self.dphideta(xi_n, eta_n, Gamma_n)
                         integrand_n = lambda theta: dphideta(g_trans(theta)) * np.cos(i * theta)
 
-                        A_int = inte.trapz(integrand_n(x), x)
+                        A_int = inte.trapezoid(integrand_n(x), x)
 
                         fourier[i] -= A_int
 

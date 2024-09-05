@@ -12,7 +12,7 @@ from geom import *
 import time
 
 # Initialise problem
-U_ref = 16
+U_ref = 8
 alpha_eff = np.deg2rad(0)   
 
 t_step = 0.0025
@@ -58,6 +58,7 @@ args = []
 chords_temp = np.zeros((no_bem,no_steps+1)) + 1
 r_pos_temp = np.zeros((no_bem,no_steps+1))  + 2
 
+start = time.time()
 for i in range(1):
 
     kin = bek(np.deg2rad(20) , 3, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
@@ -65,6 +66,8 @@ for i in range(1):
     args.append((U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin))
 
     a = bem(U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin)
+
+print(time.time()-start)
 
 # # # Multiprocessing
 # def pool_handler():
@@ -90,8 +93,12 @@ y = a[3]
 
 gamma = a[4]
 
+a0 = a[5]
+
     # pos_arr = np.where(gamma > 0)[0]
     # neg_arr = np.where(gamma < 0)[0]
+plt.plot(td,a0)
+plt.show()
 
 plt.plot(td,cl)
 plt.show()
