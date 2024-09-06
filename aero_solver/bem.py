@@ -263,18 +263,18 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
             print(t, t_step/c[index]*U_ref,  np.pi * c[index] * U_ref * (fourier[0] + fourier[1] * 0.5))
 
         # Movie
-        # fig, ax = plt.subplots()
-        # fig.dpi = 300
-        # fig.set_size_inches(19.20, 10.80)
-        # ax.plot(x_N, y_N, 'ro')
-        # # ax.plot(xi_N, eta_N, 'bo')
-        # # ax.plot([0, c], [0, 0], 'k')
-        # ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
-        # ax.axis("equal")
-        # # ax.set_xlim(-30,5)
-        # # ax.set_ylim(-10,10)
-        # plt.savefig(str(index) + '.png',)
-        # plt.close(fig)
+        fig, ax = plt.subplots()
+        fig.dpi = 300
+        fig.set_size_inches(19.20, 10.80)
+        ax.plot(x_N, y_N, 'ro')
+        # ax.plot(xi_N, eta_N, 'bo')
+        # ax.plot([0, c], [0, 0], 'k')
+        ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
+        ax.axis("equal")
+        # ax.set_xlim(-30,5)
+        # ax.set_ylim(-10,10)
+        plt.savefig(str(index) + '.png',)
+        plt.close(fig)
 
 
     return cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth

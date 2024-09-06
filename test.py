@@ -12,11 +12,11 @@ from geom import *
 import time
 
 # Initialise problem
-U_ref = 8
+U_ref = 5
 alpha_eff = np.deg2rad(0)   
 
 t_step = 0.0025
-no_steps = 600
+no_steps = 400
 
 no_bem = 12
 
@@ -55,58 +55,43 @@ for t in np.append(t_span,t_span[-1]+t_step):
 
 args = []
 
-chords_temp = np.zeros((no_bem,no_steps+1)) + 1
-r_pos_temp = np.zeros((no_bem,no_steps+1))  + 2
+for i in range(no_bem-1):
 
-start = time.time()
-for i in range(1):
-
-    kin = bek(np.deg2rad(20) , 3, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
+    kin = bek(np.deg2rad(30) , 3, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
     
     args.append((U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin))
 
-    a = bem(U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin)
+# # Multiprocessing
+def pool_handler():
+    p = Pool(11)
+    results = p.starmap(bem, args[8:9])
 
-print(time.time()-start)
+    return results
 
-# # # Multiprocessing
-# def pool_handler():
-#     p = Pool(1)
-#     results = p.starmap(bem, args[1:3])
+start = time.time()
 
-#     return results
-
-# start = time.time()
-
-# a = pool_handler()
+a = pool_handler()
 
 
 # print(time.time()-start)
 
-# for results in a:
+for results in a:
 
-cl = a[0]
-td = a[1]
+    cl = results[0]
+    td = results[1]
 
-x = a[2]
-y = a[3]
+    x = results[2]
+    y = results[3]
 
-gamma = a[4]
+    gamma = results[4]
+    pos_arr = np.where(gamma > 0)[0]
+    neg_arr = np.where(gamma < 0)[0]
 
-a0 = a[5]
 
-    # pos_arr = np.where(gamma > 0)[0]
-    # neg_arr = np.where(gamma < 0)[0]
-plt.plot(td,a0)
-plt.show()
-
-plt.plot(td,cl)
-plt.show()
-
-    # plt.plot(x[pos_arr],y[pos_arr],'ro')
-    # plt.plot(x[neg_arr],y[neg_arr],'bo')
-    # plt.axis('equal')
-    # plt.show()
+    plt.plot(x[pos_arr],y[pos_arr],'ro')
+    plt.plot(x[neg_arr],y[neg_arr],'bo')
+    plt.axis('equal')
+    plt.show()
 
 
 
@@ -127,3 +112,4 @@ plt.show()
 
 # plt.plot(x_N,y_N,'ro')
 # plt.show()
+
