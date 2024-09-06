@@ -278,12 +278,16 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
             U = np.reshape(U,shape=(100,200))
             V = np.reshape(V,shape=(100,200))
 
-            cp = 1.0 - (U**2 + V**2) / U_ref**2
+            cp = - (U**2 + V**2) / U_ref**2
 
             fig, ax = plt.subplots()
             fig.dpi = 300
             fig.set_size_inches(19.20, 10.80)
-            ax.contourf(X,Y,cp,levels=np.linspace(-2.0, 1.0, 100), extend='both')
+            contf = ax.contourf(X,Y,cp,levels=np.linspace(-2.0, 1.0, 100), extend='both')
+            fig.colorbar(contf,
+                       orientation='horizontal',
+                       shrink=0.5, pad = 0.1,
+                       ticks=[-2.0, -1.0, 0.0, 1.0])
             # ax.plot(x_N, y_N, 'ro')
             ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
             ax.axis("equal")
@@ -301,8 +305,8 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
             # # ax.plot([0, c], [0, 0], 'k')
             # ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
             # ax.axis("equal")
-            # # ax.set_xlim(-30,5)
-            # # ax.set_ylim(-10,10)
+            # ax.set_xlim(-5.2,0.5)
+            # ax.set_ylim(-1.5,1.5)
             # plt.savefig(str(index) + '.png',)
             # plt.close(fig)
 
