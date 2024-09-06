@@ -39,7 +39,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
     y_N     = np.array([0.0])
 
     # Initialise Fourier coefficient matrix and calculation variabls
-    A_no = 3
+    A_no = 4
     # A = np.zeros(A_no)
 
     # Newton - Raphson Params
@@ -113,14 +113,14 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
                 xi_N = np.append(xi_N, 0)
                 eta_N = np.append(eta_N, 0)
 
-                x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t-t_step))
-                y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t-t_step))
+                x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
+                y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t))
 
                 no_gamma += 1
 
                 iter_count = 0
 
-                while abs(Gamma_err) > 0.00001 or abs(abs(fourier[0]) - lesp) > 0.00001 :
+                while abs(Gamma_err) > 0.00001 or abs(abs(fourier[0]) - lesp) > 0.00000001 :
 
                     fourier, Gamma_sum, Gamma_tot_0 = pot.fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, no_gamma, c[index], t)
 
@@ -265,50 +265,50 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         # Pressure Field
 
-            x = np.linspace(-5.2,0.5,200)
-            y = np.linspace(-1.5,1.5,100)
+            # x = np.linspace(-20.2,0.5,200)
+            # y = np.linspace(-1.5,1.5,100)
 
-            X,Y = np.meshgrid(x,y)
+            # X,Y = np.meshgrid(x,y)
 
-            X_straight = np.reshape(X,-1)
-            Y_straight = np.reshape(Y,-1)
+            # X_straight = np.reshape(X,-1)
+            # Y_straight = np.reshape(Y,-1)
 
-            U,V = pot.V_ind_tot_field(X_straight, Y_straight, x_N, y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
+            # U,V = pot.V_ind_tot_field(X_straight, Y_straight, x_N, y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
 
-            U = np.reshape(U,shape=(100,200))
-            V = np.reshape(V,shape=(100,200))
+            # U = np.reshape(U,shape=(100,200))
+            # V = np.reshape(V,shape=(100,200))
 
-            cp = - (U**2 + V**2) / U_ref**2
+            # cp = - (U**2 + V**2) / U_ref**2
 
-            fig, ax = plt.subplots()
-            fig.dpi = 300
-            fig.set_size_inches(19.20, 10.80)
-            contf = ax.contourf(X,Y,cp,levels=np.linspace(-2.0, 1.0, 100), extend='both')
-            fig.colorbar(contf,
-                       orientation='horizontal',
-                       shrink=0.5, pad = 0.1,
-                       ticks=[-2.0, -1.0, 0.0, 1.0])
-            # ax.plot(x_N, y_N, 'ro')
-            ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
-            ax.axis("equal")
-            # ax.set_xlim(-30,5)
-            # ax.set_ylim(-10,10)
-            plt.savefig(str(index) + 'pressure'+'.png',)
-            plt.close(fig)
-
-        # Movie
             # fig, ax = plt.subplots()
             # fig.dpi = 300
             # fig.set_size_inches(19.20, 10.80)
-            # ax.plot(x_N, y_N, 'ro')
-            # # ax.plot(xi_N, eta_N, 'bo')
-            # # ax.plot([0, c], [0, 0], 'k')
+            # contf = ax.contourf(X,Y,cp,levels=np.linspace(-1.0, 1.0, 100), extend='both')
+            # fig.colorbar(contf,
+            #            orientation='horizontal',
+            #            shrink=0.5, pad = 0.1,
+            #            ticks=[-1.0, -1.0, 0.0, 1.0])
+            # # ax.plot(x_N, y_N, 'ro')
             # ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
             # ax.axis("equal")
-            # ax.set_xlim(-5.2,0.5)
-            # ax.set_ylim(-1.5,1.5)
-            # plt.savefig(str(index) + '.png',)
+            # # ax.set_xlim(-30,5)
+            # # ax.set_ylim(-10,10)
+            # plt.savefig(str(index) + 'pressure'+'.png',)
             # plt.close(fig)
+
+        # Movie
+            fig, ax = plt.subplots()
+            fig.dpi = 300
+            fig.set_size_inches(19.20, 10.80)
+            ax.plot(x_N, y_N, 'ro')
+            # ax.plot(xi_N, eta_N, 'bo')
+            # ax.plot([0, c], [0, 0], 'k')
+            ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
+            ax.axis("equal")
+            # ax.set_xlim(-20.2,0.5)
+            # ax.set_ylim(-1.5,1.5)
+            plt.savefig(str(index) + '.png',)
+            plt.close(fig)
 
 
     return cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth

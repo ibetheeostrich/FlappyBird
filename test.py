@@ -14,11 +14,11 @@ from geom import *
 import time
 
 # Initialise problem
-U_ref = 5
+U_ref = 10
 alpha_eff = np.deg2rad(0)   
 
-t_step = 0.005
-no_steps = 200
+t_step = 0.00125
+no_steps = 400
 
 no_bem = 12
 
@@ -30,7 +30,7 @@ t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
 wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
 # Defining root kinematics that will drive morphing
-root_kin = lambda x: - 0.05 - 0.01 - 0.01*np.cos(2 * np.pi * 3 * x) 
+root_kin = lambda x: - 0.05 - 0.01 - 0.01*np.cos(2 * np.pi * 8 * x) 
 
 
 
@@ -59,14 +59,14 @@ args = []
 
 for i in range(no_bem-1):
 
-    kin = bek(np.deg2rad(30) , 3, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
+    kin = bek(np.deg2rad(30) , 8, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref,t_step)
     
     args.append((U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin))
 
 # # Multiprocessing
 def pool_handler():
     p = Pool(24)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-    results = p.starmap(bem, args[8:9])
+    results = p.starmap(bem, args[3:4])
 
     return results
 
