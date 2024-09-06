@@ -188,7 +188,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
             Gamma_N = np.append(Gamma_N, 0.0)
 
-            no_gamma += 2
+            no_gamma += 2        
 
         if t > 0:
 
@@ -227,54 +227,54 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         # if t > 0:
 
-            # disc_chord = np.linspace(0.0001,c[index], 500,endpoint = True)
-            # disc_y = np.zeros(500)
+            disc_chord = np.linspace(0.0001,c[index], 500,endpoint = True)
+            disc_y = np.zeros(500)
 
-            # lift_u, lift_v = pot.V_ind_ub_field(disc_chord, disc_y, xi_N, eta_N, Gamma_N, no_gamma)
+            lift_u, lift_v = pot.V_ind_ub_field(disc_chord, disc_y, xi_N, eta_N, Gamma_N, no_gamma)
 
-            # disc_dphidx = lift_u*np.cos(alpha_eff) - lift_v*np.sin(alpha_eff)
+            disc_dphidx = lift_u*np.cos(alpha_eff) - lift_v*np.sin(alpha_eff)
 
-            # trans = lambda xi: np.arccos(1 - 2*xi/c[index])
-            # gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
+            trans = lambda xi: np.arccos(1 - 2*xi/c[index])
+            gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
 
-            # ub_terms = inte.trapezoid(disc_dphidx * gamma(disc_chord),disc_chord)
+            ub_terms = inte.trapezoid(disc_dphidx * gamma(disc_chord),disc_chord)
 
-            # fourier_dot = (fourier - fourier_old)/t_step
+            fourier_dot = (fourier - fourier_old)/t_step
 
-            # f_n = rho * np.pi * c[index] * U_ref * (
-            #     U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
-            #     c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
-            # ) + rho * (
-            #     ub_terms
-            # )
+            f_n = rho * np.pi * c[index] * U_ref * (
+                U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
+                c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
+            ) + rho * (
+                ub_terms
+            )
 
 
 
-            # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
+            cl = np.append(cl, f_n)
 
 
         if t>0:
             x = np.linspace(0.0001, c, 513, endpoint=True)
             
             # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
-            cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
+            # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
             zeroth = np.append(zeroth, fourier[0])
 
             print(t, t_step/c[index]*U_ref,  np.pi * c[index] * U_ref * (fourier[0] + fourier[1] * 0.5))
 
-        # Movie
-        fig, ax = plt.subplots()
-        fig.dpi = 300
-        fig.set_size_inches(19.20, 10.80)
-        ax.plot(x_N, y_N, 'ro')
-        # ax.plot(xi_N, eta_N, 'bo')
-        # ax.plot([0, c], [0, 0], 'k')
-        ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
-        ax.axis("equal")
-        # ax.set_xlim(-30,5)
-        # ax.set_ylim(-10,10)
-        plt.savefig(str(index) + '.png',)
-        plt.close(fig)
+        # # # Movie
+        # fig, ax = plt.subplots()
+        # fig.dpi = 300
+        # fig.set_size_inches(19.20, 10.80)
+        # ax.plot(x_N, y_N, 'ro')
+        # # ax.plot(xi_N, eta_N, 'bo')
+        # # ax.plot([0, c], [0, 0], 'k')
+        # ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
+        # ax.axis("equal")
+        # # ax.set_xlim(-30,5)
+        # # ax.set_ylim(-10,10)
+        # plt.savefig(str(index) + '.png',)
+        # plt.close(fig)
 
 
     return cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth

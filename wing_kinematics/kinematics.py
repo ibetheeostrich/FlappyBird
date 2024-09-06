@@ -48,7 +48,7 @@ class blade_element_kinematics:
 
         # if t < 0.25:
         #     return 0
-        
+    
         if t >= 0.0 and t < 0.5 * self.wavelength:
 
             return 0.5*(a - a * np.cos(2 * np.pi * self.f * (t)))
