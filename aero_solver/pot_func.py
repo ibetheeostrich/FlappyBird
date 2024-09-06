@@ -97,7 +97,7 @@ class aero_solver_osc_flat:
             trans = lambda xi: np.arccos(1 - 2*xi/c)
             gamma = lambda xi: 2* U * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
 
-            u_ind_p, v_ind_p = self.V_ind_b_fast_2(gamma, self.xin2body(x2_N[n],t), self.yin2body(y2_N[n],t), c)
+            u_ind_p, v_ind_p = self.V_ind_b_fast_2(gamma, self.xin2body(x1_N[n],t), self.yin2body(y1_N[n],t), c)
 
             u_ind[n] += u_ind_p #+ U_ref
             v_ind[n] += v_ind_p #+ pot.hdot(t) 
