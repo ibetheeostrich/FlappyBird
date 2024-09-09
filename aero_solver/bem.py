@@ -1,5 +1,5 @@
 import math
-import aero_solver.pot_func as aero
+import aero_solver.pot_func_simp as aero
 import numpy as np
 from copy import deepcopy
 import scipy.integrate as inte
@@ -14,7 +14,7 @@ import io
 
 PI_inv = 1 / math.pi
 
-def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
+def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
     frames = []
 
@@ -216,14 +216,14 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
             # Shedding new TEV
             if t == t_step:
-                x_N = np.append(x_N,(x_N[0] - (c[index]-kin.pos_dot(t)*t_step))*0.33 + c[index]-kin.pos_dot(t)*t_step)
+                x_N = np.append(x_N,(x_N[0] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
                 y_N = np.append(y_N,(y_N[0] - kin.h(t))*0.33 + kin.h(t))
             else:
                 if lesp_flag:
-                    x_N = np.append(x_N,(x_N[-2] - (c[index]-kin.pos_dot(t)*t))*0.33 + c[index]-kin.pos_dot(t)*t)
+                    x_N = np.append(x_N,(x_N[-2] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
                     y_N = np.append(y_N,(y_N[-2] - kin.h(t))*0.33 + kin.h(t))
                 else:
-                    x_N = np.append(x_N,(x_N[-1] - (c[index]-kin.pos_dot(t)*t))*0.33 + c[index]-kin.pos_dot(t)*t)
+                    x_N = np.append(x_N,(x_N[-1] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
                     y_N = np.append(y_N,(y_N[-1] - kin.h(t))*0.33 + kin.h(t))
 
             # Adjusting the body frame coordinates
@@ -241,30 +241,36 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         # if t > 0:
 
-            disc_chord = np.linspace(0.0001,c[index], 500,endpoint = True)
-            disc_y = np.zeros(500)
+            # disc_chord = np.linspace(0.0001,c[index], 500,endpoint = True)
+            # disc_y = np.zeros(500)
 
-            lift_u, lift_v = pot.V_ind_ub_field(disc_chord, disc_y, xi_N, eta_N, Gamma_N, no_gamma)
+            # lift_u, lift_v = pot.V_ind_ub_field(disc_chord, disc_y, xi_N, eta_N, Gamma_N, no_gamma)
 
-            disc_dphidx = lift_u*np.cos(alpha_eff) - lift_v*np.sin(alpha_eff)
+            # disc_dphidx = lift_u*np.cos(alpha_eff) - lift_v*np.sin(alpha_eff)
 
-            trans = lambda xi: np.arccos(1 - 2*xi/c[index])
-            gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
+            # trans = lambda xi: np.arccos(1 - 2*xi/c[index])
+            # gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
 
-            ub_terms = inte.trapezoid(disc_dphidx * gamma(disc_chord),disc_chord)
+            # ub_terms = inte.trapezoid(disc_dphidx * gamma(disc_chord),disc_chord)
 
-            fourier_dot = (fourier - fourier_old)/t_step
+            # fourier_dot = (fourier - fourier_old)/t_step
 
-            f_n = rho * np.pi * c[index] * U_ref * (
-                U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
-                c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
-            ) + rho * (
-                ub_terms
-            )
+            # f_n = rho * np.pi * c[index] * U_ref * (
+            #     U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
+            #     c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
+            # ) + rho * (
+            #     ub_terms
+            # )
 
 
 
-            cl = np.append(cl, f_n)
+            # cl = np.append(cl, f_n)
+
+            index_close = np.where(xi_N < 1.5*c[index])
+
+            cl_gamma = -np.pi * (2 * fourier[0]+ fourier[1]) #+ np.sum(Gamma_N[index_close])
+
+            cl = np.append(cl, cl_gamma)
 
 
         if t>0:
@@ -279,36 +285,36 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         # Pressure Field
 
-            x = np.linspace(-5.2,0.5,200)
-            y = np.linspace(-1.5,1.5,100)
+            # x = np.linspace(-5.2,0.5,200)
+            # y = np.linspace(-1.5,1.5,100)
 
-            X,Y = np.meshgrid(x,y)
+            # X,Y = np.meshgrid(x,y)
 
-            X_straight = np.reshape(X,-1)
-            Y_straight = np.reshape(Y,-1)
+            # X_straight = np.reshape(X,-1)
+            # Y_straight = np.reshape(Y,-1)
 
-            U,V = pot.V_ind_tot_field(X_straight, Y_straight, x_N, y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
+            # U,V = pot.V_ind_tot_field(X_straight, Y_straight, x_N, y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
 
-            U = np.reshape(U,newshape=(100,200))
-            V = np.reshape(V,newshape=(100,200))
+            # U = np.reshape(U,newshape=(100,200))
+            # V = np.reshape(V,newshape=(100,200))
 
-            cp = - (U**2 + V**2) / U_ref**2
+            # cp = - (U**2 + V**2) / U_ref**2
 
-            fig, ax = plt.subplots()
-            fig.dpi = 300
-            fig.set_size_inches(19.20, 10.80)
-            contf = ax.contourf(X,Y,cp,levels=np.linspace(-1.0, 1.0, 100), extend='both')
-            fig.colorbar(contf,
-                       orientation='horizontal',
-                       shrink=0.5, pad = 0.1,
-                       ticks=[-1.0, -1.0, 0.0, 1.0])
-            # ax.plot(x_N, y_N, 'ro')
-            ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
-            ax.axis("equal")
-            # ax.set_xlim(-30,5)
-            # ax.set_ylim(-10,10)
-            plt.savefig(str(index) + 'pressure'+'.png',)
-            plt.close(fig)
+            # fig, ax = plt.subplots()
+            # fig.dpi = 300
+            # fig.set_size_inches(19.20, 10.80)
+            # contf = ax.contourf(X,Y,cp,levels=np.linspace(-1.0, 1.0, 100), extend='both')
+            # fig.colorbar(contf,
+            #            orientation='horizontal',
+            #            shrink=0.5, pad = 0.1,
+            #            ticks=[-1.0, -1.0, 0.0, 1.0])
+            # # ax.plot(x_N, y_N, 'ro')
+            # ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
+            # ax.axis("equal")
+            # ax.set_xlim(-5.2,0.5)
+            # ax.set_ylim(-1.5,1.5)
+            # plt.savefig(str(index) + 'pressure'+'.png',)
+            # plt.close(fig)
 
         # Movie
             # fig, ax = plt.subplots()
@@ -317,7 +323,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
             # ax.plot(x_N, y_N, 'ro')
             # # ax.plot(xi_N, eta_N, 'bo')
             # # ax.plot([0, c], [0, 0], 'k')
-            # ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
+            # ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
             # ax.axis("equal")
             # # ax.set_xlim(-20.2,0.5)
             # # ax.set_ylim(-1.5,1.5)
@@ -325,7 +331,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
             # plt.close(fig)
 
 
-    return cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth
+    return tag, cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth
     
 
 

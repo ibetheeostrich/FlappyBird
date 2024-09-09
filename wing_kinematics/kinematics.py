@@ -25,9 +25,10 @@ s2 = np.array([0, 0])
 s3 = np.array([0, 0])
 
 class blade_element_kinematics:
-    def __init__(self, amplitude, freq, span_pos, chord, le_pos, U_ref, t_step):
+    def __init__(self, amplitude, freq, span_pos, chord, le_pos, U_ref, alpha_eff, t_step):
 
-        self.U_ref = U_ref
+        self.U_ref = U_ref*np.cos(alpha_eff)
+        self.V_ref = U_ref*np.sin(alpha_eff)
 
         self.aa = amplitude     # radians
         self.f = freq           # hz?
@@ -61,7 +62,7 @@ class blade_element_kinematics:
         # else:
         #     return -7.0*(t - 0.25)
 
-        return a * np.cos(2 * np.pi * self.f * (t - 0.25/self.f)) 
+        return a * np.cos(2 * np.pi * self.f * (t - 0.25/self.f)) - self.V_ref*t
 
     def h_dot(self, t):
 
@@ -82,7 +83,7 @@ class blade_element_kinematics:
         # else:
         #     return -7.0
 
-        return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.25/self.f)) 
+        return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.25/self.f)) - self.V_ref
         
 #################################################################################
 #               QUARANTINE                                                      #

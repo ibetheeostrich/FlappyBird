@@ -9,7 +9,8 @@ PI_inv = 1 / math.pi
 class aero_solver_osc_flat:
     def __init__(self, kin, U_ref, t_step, alpha_eff):
         self.kin = kin
-        self.U_ref = U_ref
+        self.U_ref = U_ref*math.cos(alpha_eff)
+        self.V_ref = U_ref*math.sin(alpha_eff)
 
         self.v_core = 1.3*t_step*U_ref
         self.alpha_eff = alpha_eff
@@ -27,6 +28,7 @@ class aero_solver_osc_flat:
 
     def bodyin2y(self, y, t):
         return y + self.kin.h(t)
+
  
 
     def g_trans(self, theta, c):
@@ -37,7 +39,7 @@ class aero_solver_osc_flat:
         const = 0.5 * Gamma_n * PI_inv
 
         func = lambda xi:  const * (
-            (-eta_n * math.sin(self.alpha_eff) - (xi - xi_n) * math.cos(self.alpha_eff))  
+            (- (xi - xi_n))  
             / 
             np.sqrt((eta_n**2 + (xi - xi_n)**2)**2 + self.v_core**4)
                              )
@@ -45,11 +47,11 @@ class aero_solver_osc_flat:
 
     def W_0(self, t):
 
-        return lambda xi: - self.U_ref*math.sin(self.alpha_eff) + (self.kin.h_dot(t)) * math.cos(self.alpha_eff)
+        return lambda xi:  (self.kin.h_dot(t))
 
     def W_0_fast_1(self, t):
 
-        return - self.U_ref*math.sin(self.alpha_eff) + (self.kin.h_dot(t)) * math.cos(self.alpha_eff)
+        return (self.kin.h_dot(t))
 
 
     def V_ind_b_fast_2(self, gamma, xi_n, eta_n, c):
@@ -143,7 +145,7 @@ class aero_solver_osc_flat:
         x = np.linspace(0.0, np.pi, 513, endpoint=True)
 
         fourier = np.zeros(A_no)
-        U_ref_inv = 1 / self.U_ref
+        U_ref_inv = 1 / self.kin.pos_dot(t)
 
         g_trans = lambda theta: 0.5*c*(1-np.cos(theta))
 
@@ -168,13 +170,13 @@ class aero_solver_osc_flat:
                         A_int = inte.trapezoid(integrand_n(x), x)
 
                         fourier[i] -= A_int
-                    fourier[i] *= - 1.0 / np.pi / self.U_ref
+                    fourier[i] *= - 1.0 / np.pi / self.kin.pos_dot(t)
             # Computing A_n in fourier series of vorticity distribution on the bound vortex
             else:
                 if N == 0: # solving for t = 0
                     integrand_n = lambda theta: self.W_0_fast_1(t) * math.cos(i * theta)
                     fourier[i], extra = inte.quad(integrand_n , 0.0, np.pi)
-                    fourier[i] *= 2.0 / np.pi / self.U_ref
+                    fourier[i] *= 2.0 / np.pi / self.kin.pos_dot(t)
                 else: # solving for t > 0
                     integrand_n = lambda theta: self.W_0_fast_1(t) * np.cos(i * theta)
                     fourier[i], extra = inte.quad(integrand_n , 0.0, np.pi)
@@ -190,9 +192,9 @@ class aero_solver_osc_flat:
 
                         fourier[i] -= A_int
 
-                    fourier[i] *= 2.0 / np.pi / self.U_ref
+                    fourier[i] *= 2.0 / np.pi / self.kin.pos_dot(t)
 
-        Gamma_b = np.pi * c * self.U_ref * (fourier[0] + fourier[1] * 0.5)
+        Gamma_b = np.pi * c * self.kin.pos_dot(t) * (fourier[0] + fourier[1] * 0.5)
 
         return fourier, sum(Gamma_N), Gamma_b + sum(Gamma_N)
     
