@@ -49,7 +49,7 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
     for t in t_d:
 
-        index = int(t/t_step)
+        index = round(t/t_step)
 
         lesp = 0.2*c[index]
 
@@ -180,10 +180,12 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
                             
         # Advecting and shedding vortices for next time step
         if t == 0:
-            xi_N    = np.array([c[index] + U_ref*t_step, c[index] + U_ref*t_step/3])
+            # xi_N    = np.array([c[index] + U_ref*t_step, c[index] + U_ref*t_step/3])
+            xi_N    = np.array([c[index] + kin.pos_dot(t)*t_step, c[index] + kin.pos_dot(t)*t_step/3])
             eta_N   = np.array([kin.h(t_step), kin.h(t_step)/3])
 
-            x_N = np.array([c[index] , c[index] - U_ref*t_step/3])
+            # x_N = np.array([c[index] , c[index] - U_ref*t_step/3])
+            x_N = np.array([c[index] , c[index] - kin.pos_dot(t)*t_step/3])
             y_N = np.array([0, -kin.h(t_step)/3])
 
             Gamma_N = np.append(Gamma_N, 0.0)
@@ -193,24 +195,36 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
         if t > 0:
 
             # Calculating induced velocity on each vortex
-            u_ind, v_ind = pot.V_ind_tot_field(x_N,y_N,x_N,y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
+            # u_ind, v_ind = pot.V_ind_tot_field(x_N,y_N,x_N,y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
+            u_ind, v_ind = pot.V_ind_tot_field(x_N,y_N,x_N,y_N, Gamma_N,fourier,no_gamma, kin.pos_dot(t),c[index],t)
 
             # Advecting the vortex
             x_N     = x_N + u_ind*t_step 
             y_N     = y_N + v_ind*t_step 
 
+            # # Shedding new TEV
+            # if t == t_step:
+            #     x_N = np.append(x_N,(x_N[0] - (c[index]-U_ref*t_step))*0.33 + c[index]-U_ref*t_step)
+            #     y_N = np.append(y_N,(y_N[0] - kin.h(t))*0.33 + kin.h(t))
+            # else:
+            #     if lesp_flag:
+            #         x_N = np.append(x_N,(x_N[-2] - (c[index]-U_ref*t))*0.33 + c[index]-U_ref*t)
+            #         y_N = np.append(y_N,(y_N[-2] - kin.h(t))*0.33 + kin.h(t))
+            #     else:
+            #         x_N = np.append(x_N,(x_N[-1] - (c[index]-U_ref*t))*0.33 + c[index]-U_ref*t)
+            #         y_N = np.append(y_N,(y_N[-1] - kin.h(t))*0.33 + kin.h(t))
+
             # Shedding new TEV
             if t == t_step:
-                x_N = np.append(x_N,(x_N[0] - (c[index]-U_ref*t_step))*0.33 + c[index]-U_ref*t_step)
+                x_N = np.append(x_N,(x_N[0] - (c[index]-kin.pos_dot(t)*t_step))*0.33 + c[index]-kin.pos_dot(t)*t_step)
                 y_N = np.append(y_N,(y_N[0] - kin.h(t))*0.33 + kin.h(t))
             else:
                 if lesp_flag:
-                    x_N = np.append(x_N,(x_N[-2] - (c[index]-U_ref*t))*0.33 + c[index]-U_ref*t)
+                    x_N = np.append(x_N,(x_N[-2] - (c[index]-kin.pos_dot(t)*t))*0.33 + c[index]-kin.pos_dot(t)*t)
                     y_N = np.append(y_N,(y_N[-2] - kin.h(t))*0.33 + kin.h(t))
                 else:
-                    x_N = np.append(x_N,(x_N[-1] - (c[index]-U_ref*t))*0.33 + c[index]-U_ref*t)
+                    x_N = np.append(x_N,(x_N[-1] - (c[index]-kin.pos_dot(t)*t))*0.33 + c[index]-kin.pos_dot(t)*t)
                     y_N = np.append(y_N,(y_N[-1] - kin.h(t))*0.33 + kin.h(t))
-
 
             # Adjusting the body frame coordinates
             xi_N    = pot.xin2body(x_N, t)
@@ -265,50 +279,50 @@ def bem(U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         # Pressure Field
 
-            # x = np.linspace(-20.2,0.5,200)
-            # y = np.linspace(-1.5,1.5,100)
+            x = np.linspace(-5.2,0.5,200)
+            y = np.linspace(-1.5,1.5,100)
 
-            # X,Y = np.meshgrid(x,y)
+            X,Y = np.meshgrid(x,y)
 
-            # X_straight = np.reshape(X,-1)
-            # Y_straight = np.reshape(Y,-1)
+            X_straight = np.reshape(X,-1)
+            Y_straight = np.reshape(Y,-1)
 
-            # U,V = pot.V_ind_tot_field(X_straight, Y_straight, x_N, y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
+            U,V = pot.V_ind_tot_field(X_straight, Y_straight, x_N, y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
 
-            # U = np.reshape(U,shape=(100,200))
-            # V = np.reshape(V,shape=(100,200))
+            U = np.reshape(U,newshape=(100,200))
+            V = np.reshape(V,newshape=(100,200))
 
-            # cp = - (U**2 + V**2) / U_ref**2
+            cp = - (U**2 + V**2) / U_ref**2
 
-            # fig, ax = plt.subplots()
-            # fig.dpi = 300
-            # fig.set_size_inches(19.20, 10.80)
-            # contf = ax.contourf(X,Y,cp,levels=np.linspace(-1.0, 1.0, 100), extend='both')
-            # fig.colorbar(contf,
-            #            orientation='horizontal',
-            #            shrink=0.5, pad = 0.1,
-            #            ticks=[-1.0, -1.0, 0.0, 1.0])
-            # # ax.plot(x_N, y_N, 'ro')
-            # ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
-            # ax.axis("equal")
-            # # ax.set_xlim(-30,5)
-            # # ax.set_ylim(-10,10)
-            # plt.savefig(str(index) + 'pressure'+'.png',)
-            # plt.close(fig)
-
-        # Movie
             fig, ax = plt.subplots()
             fig.dpi = 300
             fig.set_size_inches(19.20, 10.80)
-            ax.plot(x_N, y_N, 'ro')
-            # ax.plot(xi_N, eta_N, 'bo')
-            # ax.plot([0, c], [0, 0], 'k')
+            contf = ax.contourf(X,Y,cp,levels=np.linspace(-1.0, 1.0, 100), extend='both')
+            fig.colorbar(contf,
+                       orientation='horizontal',
+                       shrink=0.5, pad = 0.1,
+                       ticks=[-1.0, -1.0, 0.0, 1.0])
+            # ax.plot(x_N, y_N, 'ro')
             ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
             ax.axis("equal")
-            # ax.set_xlim(-20.2,0.5)
-            # ax.set_ylim(-1.5,1.5)
-            plt.savefig(str(index) + '.png',)
+            # ax.set_xlim(-30,5)
+            # ax.set_ylim(-10,10)
+            plt.savefig(str(index) + 'pressure'+'.png',)
             plt.close(fig)
+
+        # Movie
+            # fig, ax = plt.subplots()
+            # fig.dpi = 300
+            # fig.set_size_inches(19.20, 10.80)
+            # ax.plot(x_N, y_N, 'ro')
+            # # ax.plot(xi_N, eta_N, 'bo')
+            # # ax.plot([0, c], [0, 0], 'k')
+            # ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
+            # ax.axis("equal")
+            # # ax.set_xlim(-20.2,0.5)
+            # # ax.set_ylim(-1.5,1.5)
+            # plt.savefig(str(index) + '.png',)
+            # plt.close(fig)
 
 
     return cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth

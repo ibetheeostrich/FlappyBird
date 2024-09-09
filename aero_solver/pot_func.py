@@ -15,13 +15,15 @@ class aero_solver_osc_flat:
         self.alpha_eff = alpha_eff
 
     def xin2body(self, x, t):
-        return x + self.U_ref*t
+        # return x + self.U_ref*t
+        return x + self.kin.pos(t)
 
     def yin2body(self, y, t):
         return y - self.kin.h(t)
 
     def bodyin2x(self, x,t):
-        return x - self.U_ref*t
+        # return x - self.U_ref*t
+        return x - self.kin.pos(t)
 
     def bodyin2y(self, y, t):
         return y + self.kin.h(t)
@@ -56,19 +58,19 @@ class aero_solver_osc_flat:
         - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
         '''
 
-        x = np.linspace(0.0001, c, 513, endpoint=True)
+        x = np.linspace(c*0.000001, c, 513, endpoint=True)
 
-        integrand_u = lambda xi: gamma(xi) * (0.0 - eta_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
+        integrand_u = lambda xi: gamma(xi) * (eta_n - 0.0) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
 
         def_int_u = inte.trapezoid(integrand_u(x),x)
 
         u_ind = 0.5 * PI_inv * def_int_u
 
-        integrand_v = lambda xi: gamma(xi) *  (xi -  xi_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
+        integrand_v = lambda xi: gamma(xi) *  (xi_n - xi) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
 
         def_int_v = inte.trapezoid(integrand_v(x),x)
 
-        v_ind = -0.5 * PI_inv * def_int_v 
+        v_ind = - 0.5 * PI_inv * def_int_v 
 
         return u_ind, v_ind
 
