@@ -18,7 +18,7 @@ U_ref = 5
 alpha_eff = np.deg2rad(0)   
 
 t_step = 0.0025
-no_steps = 400
+no_steps = 200
 
 no_bem = 12
 
