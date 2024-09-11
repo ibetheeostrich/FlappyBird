@@ -47,21 +47,6 @@ class blade_element_kinematics:
 
         a = self.r[index] * self.aa
 
-        # if t < 0.25:
-        #     return 0
-    
-        # if t >= 0.0 and t < 0.5 * self.wavelength:
-
-        #     return 0.5*(a - a * np.cos(2 * np.pi * self.f * (t)))
-        
-        # elif t >= 0.5 * self.wavelength:
-        #     return a * np.cos(2 * np.pi * self.f * (t - 0.5/self.f)) 
-
-        # if t<0.25:
-        #     return 0
-        # else:
-        #     return -7.0*(t - 0.25)
-
         return a * np.cos(2 * np.pi * self.f * (t - 0.25/self.f)) - self.V_ref*t
 
     def h_dot(self, t):
@@ -69,19 +54,6 @@ class blade_element_kinematics:
         index = round(t / self.t_step)
 
         a = self.r[index] * self.aa
-
-        # if t < 0.25:
-        #     return 0
-        
-        # if t >= 0.0 and t < 0.5 * self.wavelength:
-        #     return np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t))
-        
-        # elif t >= 0.5 * self.wavelength:
-        #     return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.5/self.f)) 
-        # if t<0.25:
-        #     return 0
-        # else:
-        #     return -7.0
 
         return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.25/self.f)) - self.V_ref
         
@@ -100,18 +72,6 @@ class blade_element_kinematics:
         index = round(t / self.t_step)
 
         return self.U_ref - (self.le[index + 1] - self.le[index]) / self.t_step
-
-    # def c(self, t):
-
-    #     index = int(t / self.t_step)
-
-    #     return self.chord[index]
-
-    # def c_dot(self, t):
-
-    #     index = int(t / self.t_step)
-
-    #     return self.chord[index+1] - self.chord[index]
         
 #################################################################################
 
