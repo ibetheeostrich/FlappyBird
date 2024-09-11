@@ -285,36 +285,36 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         # Pressure Field
 
-            # x = np.linspace(-5.2,0.5,200)
-            # y = np.linspace(-1.5,1.5,100)
+            x = np.linspace(-5.2,0.5,200)
+            y = np.linspace(-1.5,1.5,100)
 
-            # X,Y = np.meshgrid(x,y)
+            X,Y = np.meshgrid(x,y)
 
-            # X_straight = np.reshape(X,-1)
-            # Y_straight = np.reshape(Y,-1)
+            X_straight = np.reshape(X,-1)
+            Y_straight = np.reshape(Y,-1)
 
-            # U,V = pot.V_ind_tot_field(X_straight, Y_straight, x_N, y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
+            U,V = pot.V_ind_tot_field(X_straight, Y_straight, x_N, y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
 
-            # U = np.reshape(U,newshape=(100,200))
-            # V = np.reshape(V,newshape=(100,200))
+            U = np.reshape(U,newshape=(100,200))
+            V = np.reshape(V,newshape=(100,200))
 
-            # cp = - (U**2 + V**2) / U_ref**2
+            cp = - (U**2 + V**2) / U_ref**2
 
-            # fig, ax = plt.subplots()
-            # fig.dpi = 300
-            # fig.set_size_inches(19.20, 10.80)
-            # contf = ax.contourf(X,Y,cp,levels=np.linspace(-1.0, 1.0, 100), extend='both')
-            # fig.colorbar(contf,
-            #            orientation='horizontal',
-            #            shrink=0.5, pad = 0.1,
-            #            ticks=[-1.0, -1.0, 0.0, 1.0])
-            # # ax.plot(x_N, y_N, 'ro')
-            # ax.plot([0.0-U_ref *(t), c[index]-U_ref*(t)], [kin.h(t), kin.h(t)], 'k')
-            # ax.axis("equal")
-            # ax.set_xlim(-5.2,0.5)
-            # ax.set_ylim(-1.5,1.5)
-            # plt.savefig(str(index) + 'pressure'+'.png',)
-            # plt.close(fig)
+            fig, ax = plt.subplots()
+            fig.dpi = 300
+            fig.set_size_inches(19.20, 10.80)
+            contf = ax.contourf(X,Y,cp,levels=np.linspace(-1.0, 1.0, 100), extend='both')
+            fig.colorbar(contf,
+                       orientation='horizontal',
+                       shrink=0.5, pad = 0.1,
+                       ticks=[-1.0, -1.0, 0.0, 1.0])
+            # ax.plot(x_N, y_N, 'ro')
+            ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
+            ax.axis("equal")
+            ax.set_xlim(-5.2,0.5)
+            ax.set_ylim(-1.5,1.5)
+            plt.savefig(str(index) + 'pressure'+'.png',)
+            plt.close(fig)
 
         # Movie
             # fig, ax = plt.subplots()
