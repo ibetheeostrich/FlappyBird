@@ -71,9 +71,9 @@ for t in np.append(t_span,t_span[-1]+t_step):
     # Creating Figures
     fig, ax = plt.subplots()
     fig.dpi = 300
-    ax.plot([sa[0], w1[0], f3[0]], [sa[1], w1[1], f3[1]])
+    ax.plot([sa[0], w1[0], f3[0], f2[0], f1[0], -0.15], [sa[1], w1[1], f3[1], f2[1], f1[1], 0.0])
     ax.set_aspect('equal')
-    plt.savefig('l v t' + str(i) + '.png')
+    plt.savefig(str(i) + '.png')
     plt.close(fig)
 
     i +=1
@@ -126,14 +126,14 @@ for results in a:
     pos_arr = np.where(gamma > 0)[0]
     neg_arr = np.where(gamma < 0)[0]
 
-    # # Creating Figures
-    # fig, ax = plt.subplots()
-    # fig.dpi = 300
-    # ax.plot(td, cl)
-    # ax.set_xlabel('Time  (s)')
-    # ax.set_ylabel('Lift Force (n)')
-    # plt.savefig('l v t' + str(i) + '.png')
-    # plt.close(fig)
+    # Creating Figures
+    fig, ax = plt.subplots()
+    fig.dpi = 300
+    ax.plot(td, cl)
+    ax.set_xlabel('Time  (s)')
+    ax.set_ylabel('Lift Force (n)')
+    plt.savefig('l v t' + str(i) + '.png')
+    plt.close(fig)
 
 # Integrating BEM
 l_int = np.trapz(cl_mat,r_mat,axis=0)
