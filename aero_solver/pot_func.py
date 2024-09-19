@@ -140,12 +140,16 @@ class aero_solver_osc_flat:
 
     def fourier_gamma_calc(self, A_no, Gamma_N, eta_N, xi_N, N, c, t):
 
-        x = np.linspace(0.0, np.pi, 513, endpoint=True)
+        x = np.linspace(0.0, c, 513, endpoint=True)
 
         fourier = np.zeros(A_no)
         U_ref_inv = 1 / self.U_ref
 
         g_trans = lambda theta: 0.5*c*(1-np.cos(theta))
+
+        g_inv = lambda xi: np.arccos(1 - 2*xi/c)
+
+        dxi = lambda xi: 1 / np.sqrt(1-(1 - 2*xi/c)**2)
 
         # Computing Fourier coefficients
         for i in range(len(fourier)):
@@ -163,12 +167,14 @@ class aero_solver_osc_flat:
                         eta_n   = eta_N[n]
                         xi_n    = xi_N[n]
                         dphideta = self.dphideta(xi_n, eta_n, Gamma_n)
-                        integrand_n = lambda theta: dphideta(g_trans(theta))
+                        # integrand_n = lambda theta: dphideta(g_trans(theta))
+                        integrand_n = lambda xi: dphideta(xi) * dxi(xi)
 
-                        A_int = inte.trapezoid(integrand_n(x), x)
+                        A_int = inte.trapezoid(integrand_n(x), x) 
+
 
                         fourier[i] -= A_int
-                    fourier[i] *= - 1.0 / np.pi / self.U_ref
+                    fourier[i] *= - 1.0 / np.pi / self.U_ref * 2 / c
             # Computing A_n in fourier series of vorticity distribution on the bound vortex
             else:
                 if N == 0: # solving for t = 0
@@ -184,15 +190,17 @@ class aero_solver_osc_flat:
                         eta_n   = eta_N[n]
                         xi_n    = xi_N[n]
                         dphideta = self.dphideta(xi_n, eta_n, Gamma_n)
-                        integrand_n = lambda theta: dphideta(g_trans(theta)) * np.cos(i * theta)
+                        # integrand_n = lambda theta: dphideta(g_trans(theta)) * np.cos(i * theta)
+                        integrand_n = lambda xi: dphideta(xi) * np.cos(i * g_inv(xi)) * dxi(xi)
+
 
                         A_int = inte.trapezoid(integrand_n(x), x)
 
                         fourier[i] -= A_int
 
-                    fourier[i] *= 2.0 / np.pi / self.U_ref
+                    fourier[i] *= 2.0 / np.pi / self.U_ref * 2 / c
 
-        Gamma_b = np.pi * c * self.U_ref * (fourier[0] + fourier[1] * 0.5)
+        Gamma_b = np.pi * self.U_ref * (fourier[0] + fourier[1] * 0.5)
 
         return fourier, sum(Gamma_N), Gamma_b + sum(Gamma_N)
     

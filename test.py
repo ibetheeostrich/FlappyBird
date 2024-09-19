@@ -20,24 +20,31 @@ start = time.time()
 
 # Initialise problem
 rho = 1.225
-U_ref = 10
-alpha_eff = np.deg2rad(2)   
+U_ref = 8
+alpha_eff = np.deg2rad(4)   
+wing_amplitude = 42.5
 
-t_step = 0.005
+# t_step = 0.0025
 no_steps = 200
 
 no_bem = 12 
 
-frequency = 8
+frequency = 4
+
+t_end = 3/frequency
+t_step = t_end/no_steps
+
 
 # Time span
-t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
+# t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
+t_span = np.linspace(0.0, t_end, no_steps, endpoint=False)
+
 
 # Initialises the geometry and allows the kinematics to be solved
 wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
 # Defining root kinematics that will drive morphing
-root_kin = lambda x: - 0.05 - 0.01 - 0.01*np.sin(2 * np.pi * frequency * x) 
+root_kin = lambda x: - 0.05 - 0.01 - 0.01*np.cos(2 * np.pi * frequency * x) 
 
        
 # Initialising array for storing BEM kinematics
@@ -71,7 +78,7 @@ for i in range(no_bem-1):
 
 for i in range(no_bem-1):
 
-    kin = bek(np.deg2rad(40) , frequency, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref, alpha_eff, t_step)
+    kin = bek(np.deg2rad(wing_amplitude) , frequency, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref, alpha_eff, t_step)
     
     args.append((round(tag[i]),U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin))
 
@@ -79,7 +86,7 @@ for i in range(no_bem-1):
 # # Multiprocessing
 def pool_handler():
     p = Pool(no_bem-1)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-    results = p.starmap(bem, args[5:6])
+    results = p.starmap(bem, args)
 
     return results
 
@@ -88,7 +95,7 @@ a = pool_handler()
 
 # Results accumulation matrices 
 cl_mat = np.zeros((no_bem,no_steps-1))
-r_mat = r_pos_temp[:,:-2]
+r_mat = r_pos_temp[:,1:-1]
 
 # Processing results for each blade element
 for results in a:
@@ -108,26 +115,26 @@ for results in a:
     pos_arr = np.where(gamma > 0)[0]
     neg_arr = np.where(gamma < 0)[0]
 
-    # Creating Figures
-    fig, ax = plt.subplots()
-    fig.dpi = 300
-    ax.plot(td, cl)
-    ax.set_xlabel('Time  (s)')
-    ax.set_ylabel('Lift Force (n)')
-    plt.savefig('l v t' + str(i) + '.png')
-    plt.close(fig)
+    # # Creating Figures
+    # fig, ax = plt.subplots()
+    # fig.dpi = 300
+    # ax.plot(td, cl)
+    # ax.set_xlabel('Time  (s)')
+    # ax.set_ylabel('Lift Force (n)')
+    # plt.savefig('l v t' + str(i) + '.png')
+    # plt.close(fig)
 
 # Integrating BEM
-l_int = np.trapezoid(cl_mat,r_mat,axis=0)
+l_int = np.trapz(cl_mat,r_mat,axis=0)
 
-print(np.trapezoid(l_int-0.300*9.81*0.5,td)) 
+print(np.trapz(l_int,td)) 
 
 fig, ax = plt.subplots()
 fig.dpi = 300
-ax.plot(td, l_int-0.300*9.81)
+ax.plot(td, l_int)
 ax.set_xlabel('Time  (s)')
 ax.set_ylabel('Lift Force (n)')
 plt.savefig('lint v t' + str(i) + '.png')
-plt.clf()
+plt.show()
 
 print(time.time()-start)

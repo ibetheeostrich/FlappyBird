@@ -268,9 +268,9 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
             index_close = np.where(xi_N < 1.5*c[index])
 
-            cl_gamma = -np.pi * c[index] * U_ref * (2 * fourier[0]+ fourier[1]) #+ np.sum(Gamma_N[index_close])
+            cl_gamma = np.pi * c[index] * U_ref * (2 * fourier[0]+ fourier[1]) #+ np.sum(Gamma_N[index_close])
 
-            cl = np.append(cl, cl_gamma*1.225*U_ref*np.cos(alpha_eff))
+            cl = np.append(cl, cl_gamma*1.225*U_ref)
 
 
         if t>0:
@@ -316,18 +316,18 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             # plt.close(fig)
 
             # Movie
-            fig, ax = plt.subplots()
-            fig.dpi = 300
-            fig.set_size_inches(19.20, 10.80)
-            ax.plot(x_N, y_N, 'ro')
-            # ax.plot(xi_N, eta_N, 'bo')
-            # ax.plot([0, c], [0, 0], 'k')
-            ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
-            ax.axis("equal")
-            # ax.set_xlim(-20.2,0.5)
-            # ax.set_ylim(-1.5,1.5)
-            plt.savefig(str(index) + '.png',)
-            plt.close(fig)
+            # fig, ax = plt.subplots()
+            # fig.dpi = 300
+            # fig.set_size_inches(19.20, 10.80)
+            # ax.plot(x_N, y_N, 'ro')
+            # # ax.plot(xi_N, eta_N, 'bo')
+            # # ax.plot([0, c], [0, 0], 'k')
+            # ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
+            # ax.axis("equal")
+            # # ax.set_xlim(-20.2,0.5)
+            # # ax.set_ylim(-1.5,1.5)
+            # plt.savefig(str(index) + '.png',)
+            # plt.close(fig)
 
 
     return tag, cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth

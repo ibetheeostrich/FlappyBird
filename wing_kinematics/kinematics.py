@@ -47,7 +47,9 @@ class blade_element_kinematics:
 
         a = self.r[index] * self.aa
 
-        return a * np.cos(2 * np.pi * self.f * (t - 0.25/self.f)) - self.V_ref*t
+        # return a * np.cos(2 * np.pi * self.f * (t - 0.25/self.f)) - self.V_ref*t
+        return a * np.cos(2 * np.pi * self.f * (t)) - self.V_ref*t
+
 
     def h_dot(self, t):
 
@@ -55,7 +57,9 @@ class blade_element_kinematics:
 
         a = self.r[index] * self.aa
 
-        return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.25/self.f)) - self.V_ref
+        # return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.25/self.f)) - self.V_ref
+        return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t)) - self.V_ref
+    
         
 #################################################################################
 #               QUARANTINE                                                      #
@@ -233,7 +237,7 @@ class wing_kinematics:
 
         
 
-        wing_vert = [tuple(sa), tuple(w1), tuple(f3), tuple(f2), tuple(f1), (-0.08, 0.0),tuple(sa)]
+        wing_vert = [tuple(sa), tuple(w1), tuple(f3), tuple(f2), tuple(f1), (-0.15, 0.0),tuple(sa)]
 
         wing_poly = shapely.Polygon(wing_vert)
 
