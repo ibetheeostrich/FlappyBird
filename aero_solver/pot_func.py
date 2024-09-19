@@ -149,7 +149,7 @@ class aero_solver_osc_flat:
 
         g_inv = lambda xi: np.arccos(1 - 2*xi/c)
 
-        dxi = lambda xi: 1 / np.sqrt(1-(1 - 2*xi/c)**2)
+        dxi = lambda xi: - 2 / np.sqrt(1-(1 - 2*xi/c)**2) / c
 
         # Computing Fourier coefficients
         for i in range(len(fourier)):
@@ -160,7 +160,9 @@ class aero_solver_osc_flat:
                     fourier[i] = - PI_inv * U_ref_inv * self.W_0_fast_1(t) * np.pi
                 else: # solving for t > 0
 
-                    fourier[i] = self.W_0_fast_1(t) * np.pi
+                    # fourier[i] = self.W_0_fast_1(t) * np.pi
+                    integrand_n = lambda xi: self.W_0_fast_1(t) * dxi(x)
+                    fourier[i] = inte.trapezoid(integrand_n(x), x)
 
                     for n in range(N):                            
                         Gamma_n = Gamma_N[n]
@@ -174,7 +176,7 @@ class aero_solver_osc_flat:
 
 
                         fourier[i] -= A_int
-                    fourier[i] *= - 1.0 / np.pi / self.U_ref * 2 / c
+                    fourier[i] *=  - 1.0 / np.pi / self.U_ref
             # Computing A_n in fourier series of vorticity distribution on the bound vortex
             else:
                 if N == 0: # solving for t = 0
@@ -182,8 +184,8 @@ class aero_solver_osc_flat:
                     fourier[i], extra = inte.quad(integrand_n , 0.0, np.pi)
                     fourier[i] *= 2.0 / np.pi / self.U_ref
                 else: # solving for t > 0
-                    integrand_n = lambda theta: self.W_0_fast_1(t) * np.cos(i * theta)
-                    fourier[i], extra = inte.quad(integrand_n , 0.0, np.pi)
+                    integrand_n = lambda xi: self.W_0_fast_1(t) * np.cos(i * g_inv(xi)) * dxi(xi)
+                    fourier[i] = inte.trapezoid(integrand_n(x), x)
                     for n in range(N):
 
                         Gamma_n = Gamma_N[n]
@@ -198,7 +200,7 @@ class aero_solver_osc_flat:
 
                         fourier[i] -= A_int
 
-                    fourier[i] *= 2.0 / np.pi / self.U_ref * 2 / c
+                    fourier[i] *=  2.0 / np.pi / self.U_ref
 
         Gamma_b = np.pi * self.U_ref * (fourier[0] + fourier[1] * 0.5)
 

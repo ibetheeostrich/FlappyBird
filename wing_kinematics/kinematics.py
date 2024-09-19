@@ -48,7 +48,7 @@ class blade_element_kinematics:
         a = self.r[index] * self.aa
 
         # return a * np.cos(2 * np.pi * self.f * (t - 0.25/self.f)) - self.V_ref*t
-        return a * np.cos(2 * np.pi * self.f * (t)) - self.V_ref*t
+        return a * np.sin(2 * np.pi * self.f * (t)) - self.V_ref*t
 
 
     def h_dot(self, t):
@@ -58,7 +58,7 @@ class blade_element_kinematics:
         a = self.r[index] * self.aa
 
         # return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t - 0.25/self.f)) - self.V_ref
-        return - 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t)) - self.V_ref
+        return 2 * np.pi * self.f * a * np.cos(2 * np.pi * self.f * (t)) - self.V_ref
     
         
 #################################################################################

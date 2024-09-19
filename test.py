@@ -22,29 +22,22 @@ start = time.time()
 rho = 1.225
 U_ref = 8
 alpha_eff = np.deg2rad(4)   
-wing_amplitude = 42.5
 
-# t_step = 0.0025
+t_step = 0.0025
 no_steps = 200
 
 no_bem = 12 
 
 frequency = 4
 
-t_end = 3/frequency
-t_step = t_end/no_steps
-
-
 # Time span
-# t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
-t_span = np.linspace(0.0, t_end, no_steps, endpoint=False)
-
+t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
 
 # Initialises the geometry and allows the kinematics to be solved
 wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
 # Defining root kinematics that will drive morphing
-root_kin = lambda x: - 0.05 - 0.01 - 0.01*np.cos(2 * np.pi * frequency * x) 
+root_kin = lambda x: - 0.05 - 0.01 + 0.01*np.sin(2 * np.pi * frequency * x) 
 
        
 # Initialising array for storing BEM kinematics
@@ -54,7 +47,6 @@ chords_temp = np.zeros((no_bem,no_steps+1))
 le_pos_temp = np.zeros((no_bem,no_steps+1))
 area_temp = np.zeros(no_steps+1)
 
-i=1
 for t in np.append(t_span,t_span[-1]+t_step):
 
     sa, w1, f1, f2, f3 = wing_kin.kin_2d_V2(t, root_kin)
@@ -68,16 +60,6 @@ for t in np.append(t_span,t_span[-1]+t_step):
     area_temp[round(t/t_step)] = area
     le_pos_temp[:, round(t/t_step)] = le_pos
 
-    # Creating Figures
-    fig, ax = plt.subplots()
-    fig.dpi = 300
-    ax.plot([sa[0], w1[0], f3[0], f2[0], f1[0], -0.15], [sa[1], w1[1], f3[1], f2[1], f1[1], 0.0])
-    ax.set_aspect('equal')
-    plt.savefig(str(i) + '.png')
-    plt.close(fig)
-
-    i +=1
-
 args = []
 
 tag = np.linspace(0,no_bem,no_bem,endpoint=False)
@@ -89,7 +71,7 @@ for i in range(no_bem-1):
 
 for i in range(no_bem-1):
 
-    kin = bek(np.deg2rad(wing_amplitude) , frequency, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref, alpha_eff, t_step)
+    kin = bek(np.deg2rad(42.5) , frequency, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref, alpha_eff, t_step)
     
     args.append((round(tag[i]),U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin))
 
@@ -106,7 +88,7 @@ a = pool_handler()
 
 # Results accumulation matrices 
 cl_mat = np.zeros((no_bem,no_steps-1))
-r_mat = r_pos_temp[:,1:-1]
+r_mat = r_pos_temp[:,:-2]
 
 # Processing results for each blade element
 for results in a:
@@ -138,7 +120,7 @@ for results in a:
 # Integrating BEM
 l_int = np.trapz(cl_mat,r_mat,axis=0)
 
-print(np.trapz(l_int,td)) 
+print(np.trapz(l_int-0.300*9.81*0.5,td)) 
 
 fig, ax = plt.subplots()
 fig.dpi = 300
@@ -146,6 +128,6 @@ ax.plot(td, l_int)
 ax.set_xlabel('Time  (s)')
 ax.set_ylabel('Lift Force (n)')
 plt.savefig('lint v t' + str(i) + '.png')
-plt.show()
+plt.clf()
 
 print(time.time()-start)

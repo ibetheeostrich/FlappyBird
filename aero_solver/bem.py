@@ -96,7 +96,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             if abs(fourier[0]) > lesp:
 
                 if fourier[0] < 0:
-                    lesp_c = - lesp
+                    lesp_c = -lesp
 
                 else:
                     lesp_c = lesp
@@ -268,9 +268,12 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
             index_close = np.where(xi_N < 1.5*c[index])
 
-            cl_gamma = np.pi * c[index] * U_ref * (2 * fourier[0]+ fourier[1]) #+ np.sum(Gamma_N[index_close])
+            if tag == 5:
+                print(fourier[0],fourier[1])
 
-            cl = np.append(cl, cl_gamma*1.225*U_ref)
+            cl_gamma = np.pi * c[index] * U_ref * (fourier[0] + 0.5 * fourier[1]) #+ np.sum(Gamma_N[index_close])
+
+            cl = np.append(cl, cl_gamma*1.225*U_ref*np.cos(alpha_eff))
 
 
         if t>0:
@@ -280,7 +283,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
             zeroth = np.append(zeroth, fourier[0])
 
-            print(t, t_step/c[index]*U_ref,  np.pi * c[index] * U_ref * (fourier[0] + fourier[1] * 0.5))
+            # print(t, t_step/c[index]*U_ref,  np.pi * c[index] * U_ref * (fourier[0] + fourier[1] * 0.5))
 
 
             # Pressure Field
