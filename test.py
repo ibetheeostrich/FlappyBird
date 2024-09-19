@@ -120,7 +120,7 @@ for results in a:
 # Integrating BEM
 l_int = np.trapz(cl_mat,r_mat,axis=0)
 
-print(np.trapz(l_int-0.300*9.81*0.5,td)) 
+print(np.trapz(l_int,td)) 
 
 fig, ax = plt.subplots()
 fig.dpi = 300

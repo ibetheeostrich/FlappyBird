@@ -249,7 +249,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             # disc_dphidx = lift_u*np.cos(alpha_eff) - lift_v*np.sin(alpha_eff)
 
             # trans = lambda xi: np.arccos(1 - 2*xi/c[index])
-            # gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)))# + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
+            # gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)) + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi))) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
 
             # ub_terms = inte.trapezoid(disc_dphidx * gamma(disc_chord),disc_chord)
 
@@ -269,7 +269,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             index_close = np.where(xi_N < 1.5*c[index])
 
             if tag == 5:
-                print(fourier[0],fourier[1])
+                print(fourier[0],fourier[1],fourier[2])
 
             cl_gamma = np.pi * c[index] * U_ref * (fourier[0] + 0.5 * fourier[1]) #+ np.sum(Gamma_N[index_close])
 
@@ -319,18 +319,19 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             # plt.close(fig)
 
             # Movie
-            # fig, ax = plt.subplots()
-            # fig.dpi = 300
-            # fig.set_size_inches(19.20, 10.80)
-            # ax.plot(x_N, y_N, 'ro')
-            # # ax.plot(xi_N, eta_N, 'bo')
-            # # ax.plot([0, c], [0, 0], 'k')
-            # ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
-            # ax.axis("equal")
-            # # ax.set_xlim(-20.2,0.5)
-            # # ax.set_ylim(-1.5,1.5)
-            # plt.savefig(str(index) + '.png',)
-            # plt.close(fig)
+            if tag ==4:
+                fig, ax = plt.subplots()
+                fig.dpi = 300
+                fig.set_size_inches(19.20, 10.80)
+                ax.plot(x_N, y_N, 'ro')
+                # ax.plot(xi_N, eta_N, 'bo')
+                # ax.plot([0, c], [0, 0], 'k')
+                ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
+                ax.axis("equal")
+                # ax.set_xlim(-20.2,0.5)
+                # ax.set_ylim(-1.5,1.5)
+                plt.savefig(str(index) + '.png',)
+                plt.close(fig)
 
 
     return tag, cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth
