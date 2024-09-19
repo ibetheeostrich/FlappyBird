@@ -110,7 +110,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                 # Gamma_N = np.append(Gamma_N, 10)
                 # Gamma_N[-2] = 10
 
-                xi_N = np.append(xi_N, 0)
+                xi_N = np.append(xi_N, -c[index]*0.005 )
                 eta_N = np.append(eta_N, 0)
 
                 x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
@@ -199,36 +199,45 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             u_ind, v_ind = pot.V_ind_tot_field(x_N,y_N,x_N,y_N, Gamma_N,fourier,no_gamma, kin.pos_dot(t),c[index],t)
 
             # Advecting the vortex
-            x_N     = x_N + u_ind*t_step 
-            y_N     = y_N + v_ind*t_step 
+            # x_N     = x_N + u_ind*t_step 
+            # y_N     = y_N + v_ind*t_step 
+
+            xi_N     = xi_N + u_ind*t_step + kin.pos_dot(t)*t_step
+            eta_N     = eta_N + v_ind*t_step - kin.h_dot(t)*t_step
+
 
             # # Shedding new TEV
             # if t == t_step:
-            #     x_N = np.append(x_N,(x_N[0] - (c[index]-U_ref*t_step))*0.33 + c[index]-U_ref*t_step)
+            #     x_N = np.append(x_N,(x_N[0] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
             #     y_N = np.append(y_N,(y_N[0] - kin.h(t))*0.33 + kin.h(t))
             # else:
             #     if lesp_flag:
-            #         x_N = np.append(x_N,(x_N[-2] - (c[index]-U_ref*t))*0.33 + c[index]-U_ref*t)
+            #         x_N = np.append(x_N,(x_N[-2] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
             #         y_N = np.append(y_N,(y_N[-2] - kin.h(t))*0.33 + kin.h(t))
             #     else:
-            #         x_N = np.append(x_N,(x_N[-1] - (c[index]-U_ref*t))*0.33 + c[index]-U_ref*t)
+            #         x_N = np.append(x_N,(x_N[-1] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
             #         y_N = np.append(y_N,(y_N[-1] - kin.h(t))*0.33 + kin.h(t))
 
             # Shedding new TEV
             if t == t_step:
-                x_N = np.append(x_N,(x_N[0] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
-                y_N = np.append(y_N,(y_N[0] - kin.h(t))*0.33 + kin.h(t))
+                xi_N = np.append(xi_N,(xi_N[0] - c[index])*0.33 + c[index])
+                eta_N = np.append(eta_N,(eta_N[0])*0.33)
             else:
                 if lesp_flag:
-                    x_N = np.append(x_N,(x_N[-2] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
-                    y_N = np.append(y_N,(y_N[-2] - kin.h(t))*0.33 + kin.h(t))
+                    xi_N = np.append(xi_N,(xi_N[-2] - c[index])*0.33 + c[index])
+                    eta_N = np.append(eta_N,(eta_N[-2])*0.33)
                 else:
-                    x_N = np.append(x_N,(x_N[-1] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
-                    y_N = np.append(y_N,(y_N[-1] - kin.h(t))*0.33 + kin.h(t))
+                    xi_N = np.append(xi_N,(xi_N[-1] - c[index])*0.33 + c[index])
+                    eta_N = np.append(eta_N,(eta_N[-1])*0.33)
+
+
+            # # Adjusting the body frame coordinates
+            # xi_N    = pot.xin2body(x_N, t)
+            # eta_N   = pot.yin2body(y_N, t)
 
             # Adjusting the body frame coordinates
-            xi_N    = pot.xin2body(x_N, t)
-            eta_N   = pot.yin2body(y_N, t)
+            x_N    = pot.bodyin2x(xi_N, t)
+            y_N    = pot.bodyin2y(eta_N, t)
 
             # New TEV circulation
             Gamma_N = np.append(Gamma_N, 0.0)
@@ -241,39 +250,47 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         # if t > 0:
 
-            # disc_chord = np.linspace(0.0001,c[index], 500,endpoint = True)
-            # disc_y = np.zeros(500)
+            disc_chord = np.linspace(0.0001,c[index], 500,endpoint = True)
+            disc_y = np.zeros(500)
 
-            # lift_u, lift_v = pot.V_ind_ub_field(disc_chord, disc_y, xi_N, eta_N, Gamma_N, no_gamma)
+            lift_u, lift_v = pot.V_ind_ub_field(disc_chord, disc_y, xi_N, eta_N, Gamma_N, no_gamma)
 
-            # disc_dphidx = lift_u*np.cos(alpha_eff) - lift_v*np.sin(alpha_eff)
+            disc_dphidx = lift_u*np.cos(alpha_eff) - lift_v*np.sin(alpha_eff)
 
-            # trans = lambda xi: np.arccos(1 - 2*xi/c[index])
+            trans = lambda xi: np.arccos(1 - 2*xi/c[index])
             # gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)) + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi))) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
+            gamma = lambda xi: 2* U_ref * np.cos(alpha_eff) * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)) + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi))) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
 
-            # ub_terms = inte.trapezoid(disc_dphidx * gamma(disc_chord),disc_chord)
+            ub_terms = inte.trapezoid(disc_dphidx * gamma(disc_chord),disc_chord)
 
-            # fourier_dot = (fourier - fourier_old)/t_step
+            fourier_dot = (fourier - fourier_old)/t_step
 
             # f_n = rho * np.pi * c[index] * U_ref * (
             #     U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
             #     c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
-            # ) + rho * (
+            # ) - rho * (
             #     ub_terms
             # )
 
 
+            f_n = rho * np.pi * c[index] * U_ref * np.cos(alpha_eff)*(
+                U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
+                c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
+            ) - rho * (
+                ub_terms
+            )
 
-            # cl = np.append(cl, f_n)
+
+            cl = np.append(cl, f_n)
 
             index_close = np.where(xi_N < 1.5*c[index])
 
             if tag == 5:
                 print(fourier[0],fourier[1],fourier[2])
 
-            cl_gamma = np.pi * c[index] * U_ref * (fourier[0] + 0.5 * fourier[1]) #+ np.sum(Gamma_N[index_close])
+            # cl_gamma = np.pi * c[index] * U_ref * (fourier[0] + 0.5 * fourier[1]) #+ np.sum(Gamma_N[index_close])
 
-            cl = np.append(cl, cl_gamma*1.225*U_ref*np.cos(alpha_eff))
+            # cl = np.append(cl, cl_gamma*1.225*U_ref*np.cos(alpha_eff))
 
 
         if t>0:
