@@ -54,6 +54,7 @@ chords_temp = np.zeros((no_bem,no_steps+1))
 le_pos_temp = np.zeros((no_bem,no_steps+1))
 area_temp = np.zeros(no_steps+1)
 
+i=1
 for t in np.append(t_span,t_span[-1]+t_step):
 
     sa, w1, f1, f2, f3 = wing_kin.kin_2d_V2(t, root_kin)
@@ -66,6 +67,16 @@ for t in np.append(t_span,t_span[-1]+t_step):
     chords_temp[:, round(t/t_step)] = chords
     area_temp[round(t/t_step)] = area
     le_pos_temp[:, round(t/t_step)] = le_pos
+
+    # Creating Figures
+    fig, ax = plt.subplots()
+    fig.dpi = 300
+    ax.plot([sa[0], w1[0], f3[0]], [sa[1], w1[1], f3[1]])
+    ax.set_aspect('equal')
+    plt.savefig('l v t' + str(i) + '.png')
+    plt.close(fig)
+
+    i +=1
 
 args = []
 
