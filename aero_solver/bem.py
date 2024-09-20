@@ -24,7 +24,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
     t_d = np.arange(0,t_step*no_steps,t_step)
     cl = np.array([])
 
-    pot = aero.aero_solver_osc_flat(kin, U_ref, t_step, alpha_eff)
+    pot = aero.aero_solver_osc_flat(kin, U_ref, t_step, alpha_eff,np.max(c))
 
     rho = 1.225
 
@@ -276,7 +276,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             f_n = rho * np.pi * c[index] * U_ref * np.cos(alpha_eff)*(
                 U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
                 c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
-            ) - rho * (
+            ) + rho * (
                 ub_terms
             )
 

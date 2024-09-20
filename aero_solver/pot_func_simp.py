@@ -7,12 +7,12 @@ PI = math.pi
 PI_inv = 1 / math.pi
 
 class aero_solver_osc_flat:
-    def __init__(self, kin, U_ref, t_step, alpha_eff):
+    def __init__(self, kin, U_ref, t_step, alpha_eff,c):
         self.kin = kin
         self.U_ref = U_ref*math.cos(alpha_eff)
         self.V_ref = U_ref*math.sin(alpha_eff)
 
-        self.v_core = 1.3*t_step*U_ref
+        self.v_core = 1.3*t_step*U_ref*c
         self.alpha_eff = alpha_eff
 
     def xin2body(self, x, t):

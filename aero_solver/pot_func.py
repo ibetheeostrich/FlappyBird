@@ -11,7 +11,7 @@ class aero_solver_osc_flat:
         self.kin = kin
         self.U_ref = U_ref
 
-        self.v_core = 1.3*t_step*U_ref
+        self.v_core = 1.3*t_step*U_ref/5
         self.alpha_eff = alpha_eff
 
     def xin2body(self, x, t):
