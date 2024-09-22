@@ -7,12 +7,12 @@ PI = math.pi
 PI_inv = 1 / math.pi
 
 class aero_solver_osc_flat:
-    def __init__(self, kin, U_ref, t_step, alpha_eff,c):
+    def __init__(self, kin, U_ref, t_step, alpha_eff,chord):
         self.kin = kin
         self.U_ref = U_ref*math.cos(alpha_eff)
         self.V_ref = U_ref*math.sin(alpha_eff)
 
-        self.v_core = 1.3*t_step*U_ref*c
+        self.v_core = 1.3*t_step*U_ref*chord*2
         self.alpha_eff = alpha_eff
 
     def xin2body(self, x, t):
@@ -39,7 +39,7 @@ class aero_solver_osc_flat:
         const = 0.5 * Gamma_n * PI_inv
 
         func = lambda xi:  const * (
-            (- (xi - xi_n))  
+            (-(xi - xi_n))  
             / 
             np.sqrt((eta_n**2 + (xi - xi_n)**2)**2 + self.v_core**4)
                              )
@@ -60,7 +60,7 @@ class aero_solver_osc_flat:
         - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
         '''
 
-        x = np.linspace(c*0.000001, c, 513, endpoint=True)
+        x = np.linspace(0.01*c, c, 513, endpoint=True)
 
         integrand_u = lambda xi: gamma(xi) * (eta_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
 
@@ -68,7 +68,9 @@ class aero_solver_osc_flat:
 
         u_ind = 0.5 * PI_inv * def_int_u
 
-        integrand_v = lambda xi: gamma(xi) *  (xi_n - xi) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
+        # integrand_v = lambda xi: gamma(xi) *  (xi_n - xi) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
+        integrand_v = lambda xi: gamma(xi) *  (xi_n - xi) / ((((xi_n - xi)**2 + eta_n**2)**2 + 0.001**4)**0.5)
+
 
         def_int_v = inte.trapezoid(integrand_v(x),x)
 
@@ -99,9 +101,10 @@ class aero_solver_osc_flat:
             
             # Induced velocity on a vortex by the bounded vortex sheet            
             trans = lambda xi: np.arccos(1 - 2*xi/c)
+            # gamma = lambda xi: 2* U * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi))) + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
             gamma = lambda xi: 2* U * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi))) + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
 
-            u_ind_p, v_ind_p = self.V_ind_b_fast_2(gamma, self.xin2body(x1_N[n],t), self.yin2body(y1_N[n],t), c)
+            u_ind_p, v_ind_p = self.V_ind_b_fast_2(gamma, x1_N[n], y1_N[n], c)
 
             u_ind[n] += u_ind_p #+ U_ref
             v_ind[n] += v_ind_p #+ pot.hdot(t) 

@@ -37,7 +37,7 @@ class blade_element_kinematics:
         self.chord = chord      # m
         self.le = le_pos        # m 
 
-        self.wavelength = 1.0 / freq
+        # self.wavelength = 1.0 / freq
 
         self.t_step = t_step
 

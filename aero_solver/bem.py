@@ -30,6 +30,8 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
     lesp_flag = 0
 
+    tev_shed_flag = 0
+
     # Initialise vortex blob parameters
     no_gamma = 0
     Gamma_N = np.array([0.0])
@@ -51,7 +53,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         index = round(t/t_step)
 
-        lesp = 0.2*c[index]
+        lesp = 0.2#*c[index]
 
         # TEV Shedding
         if t > 0:
@@ -92,6 +94,11 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                     # Newton - Raphson iteration
                     Gamma_N[-1] = x_i - Gamma_tot / (0.5 * (Gamma_tot_p - Gamma_tot_m)/dh)
 
+                    if tev_shed_flag == 1 and (abs(fourier[0]) > lesp): 
+                        tev_shed_flag == 1
+                    else:
+                        tev_shed_flag = 0
+
             # LEV Shedding
             if abs(fourier[0]) > lesp:
 
@@ -110,8 +117,14 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                 # Gamma_N = np.append(Gamma_N, 10)
                 # Gamma_N[-2] = 10
 
-                xi_N = np.append(xi_N, -c[index]*0.005 )
-                eta_N = np.append(eta_N, 0)
+                if tev_shed_flag:
+                    xi_N = np.append(xi_N, xi_N[-2]*0.3 )
+                    eta_N = np.append(eta_N, eta_N[-2]*0.3)
+
+                elif not tev_shed_flag:
+
+                    xi_N = np.append(xi_N, -c[index]*0.005 )
+                    eta_N = np.append(eta_N, 0)
 
                 x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
                 y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t))
@@ -160,6 +173,8 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                         [Gamma_N[-1], Gamma_N[-2]] = np.array([x_i, y_i]) - J_inv@F 
 
                         Gamma_err = Gamma_tot_0
+
+                        tev_shed_flag = 1
 
                         if iter_count > 100:
                             break
@@ -304,36 +319,37 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
 
             # Pressure Field
-            # x = np.linspace(-5.2,0.5,200)
-            # y = np.linspace(-1.5,1.5,100)
+            # if tag == 5:
+            #     x = np.linspace(-0.1,0.5,100)
+            #     y = np.linspace(-0.1,0.1,100)   
 
-            # X,Y = np.meshgrid(x,y)
+            #     X,Y = np.meshgrid(x,y)  
 
-            # X_straight = np.reshape(X,-1)
-            # Y_straight = np.reshape(Y,-1)
+            #     X_straight = np.reshape(X,-1)
+            #     Y_straight = np.reshape(Y,-1)   
 
-            # U,V = pot.V_ind_tot_field(X_straight, Y_straight, x_N, y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
+            #     U,V = pot.V_ind_tot_field(X_straight, Y_straight, xi_N, eta_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t) 
 
-            # U = np.reshape(U,newshape=(100,200))
-            # V = np.reshape(V,newshape=(100,200))
+            #     U = np.reshape(U,newshape=(100,100))
+            #     V = np.reshape(V,newshape=(100,100))    
 
-            # cp = - (U**2 + V**2) / U_ref**2
+            #     cp = - (U**2 + V**2) / U_ref**2 
 
-            # fig, ax = plt.subplots()
-            # fig.dpi = 300
-            # fig.set_size_inches(19.20, 10.80)
-            # contf = ax.contourf(X,Y,cp,levels=np.linspace(-1.0, 1.0, 100), extend='both')
-            # fig.colorbar(contf,
-            #            orientation='horizontal',
-            #            shrink=0.5, pad = 0.1,
-            #            ticks=[-1.0, -1.0, 0.0, 1.0])
-            # # ax.plot(x_N, y_N, 'ro')
-            # ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
-            # ax.axis("equal")
-            # ax.set_xlim(-5.2,0.5)
-            # ax.set_ylim(-1.5,1.5)
-            # plt.savefig(str(index) + 'pressure'+'.png',)
-            # plt.close(fig)
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     fig.set_size_inches(10.80, 10.80)
+            #     contf = ax.contourf(X,Y,cp,levels=np.linspace(-2.0, 1.0, 100), extend='both')
+            #     fig.colorbar(contf,
+            #                orientation='horizontal',
+            #                shrink=0.5, pad = 0.1,
+            #                ticks=[-2.0, -1.0, 0.0, 1.0])
+            #     ax.plot(xi_N, eta_N, 'ro')
+            #     ax.plot([0.0, c[index]], [0, 0], 'k')
+            #     ax.axis("equal")
+            #     ax.set_xlim(-0.1,0.5)
+            #     ax.set_ylim(-0.1,0.1)
+            #     plt.savefig('pressure'+str(index)+'.png',)
+            #     plt.close(fig)
 
             # Movie
             if tag ==4:
@@ -347,7 +363,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                 ax.axis("equal")
                 # ax.set_xlim(-20.2,0.5)
                 # ax.set_ylim(-1.5,1.5)
-                plt.savefig(str(index) + '.png',)
+                plt.savefig('vorticity'+str(index)+'.png',)
                 plt.close(fig)
 
 
