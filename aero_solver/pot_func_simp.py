@@ -9,10 +9,11 @@ PI_inv = 1 / math.pi
 class aero_solver_osc_flat:
     def __init__(self, kin, U_ref, t_step, alpha_eff,chord):
         self.kin = kin
+        self.U_ref_M = U_ref
         self.U_ref = U_ref*math.cos(alpha_eff)
         self.V_ref = U_ref*math.sin(alpha_eff)
 
-        self.v_core = 3*t_step*U_ref*chord
+        self.v_core = 1.3*t_step*U_ref
         self.alpha_eff = alpha_eff
 
     def xin2body(self, x, t):
@@ -60,16 +61,18 @@ class aero_solver_osc_flat:
         - find the induced velocity of the vorticity distribution at point (xi_n, eta_n)
         '''
 
-        x = np.linspace(0.01*c, c, 513, endpoint=True)
+        dxi = lambda xi: 2 / np.sqrt(4 * c * xi - 4 * xi**2)
 
-        integrand_u = lambda xi: gamma(xi) * (eta_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
+        x = np.linspace(0.001*c, c, 513, endpoint=True)
+
+        integrand_u = lambda xi: gamma(xi) * (eta_n) / ((((xi_n - xi)**2 + eta_n**2)**2 + (0.0001*self.v_core)**4)**0.5) 
 
         def_int_u = inte.trapezoid(integrand_u(x),x)
 
         u_ind = 0.5 * PI_inv * def_int_u
 
-        # integrand_v = lambda xi: gamma(xi) *  (xi_n - xi) / ((((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)**0.5)
-        integrand_v = lambda xi: gamma(xi) *  (xi_n - xi) / ((((xi_n - xi)**2 + eta_n**2)**2 + (self.v_core*0.001)**4)**0.5)
+        integrand_v = lambda xi: gamma(xi) * (xi_n - xi) / ((((xi_n - xi)**2 + eta_n**2)**2 + (0.0001*self.v_core)**4)**0.5)
+        # integrand_v = lambda xi: gamma(xi) *  (xi_n - xi) / np.sqrt(((xi_n - xi)**2 + eta_n**2)**2 + (self.v_core)**4)
 
 
         def_int_v = inte.trapezoid(integrand_v(x),x)
@@ -78,20 +81,7 @@ class aero_solver_osc_flat:
 
         return u_ind, v_ind
 
-    def V_ind_ub(self, xi, eta, xi_n, eta_n, gamma):
-
-        '''
-        - calculates the induced velocity at a point by another vortex blob centred at (xi_n, eta_n)
-        '''
-
-        u_ind_ub = 0.5 * gamma * PI_inv * (eta - eta_n) / math.sqrt(((xi - xi_n)**2 + (eta - eta_n)**2)**2 + self.v_core**4)
-
-        v_ind_ub = -0.5 * gamma * PI_inv * (xi - xi_n) / math.sqrt(((xi - xi_n)**2 + (eta - eta_n)**2)**2 + self.v_core**4)
-
-        return u_ind_ub, v_ind_ub
     
-
-
     def V_ind_tot_field(self, x1_N, y1_N, x2_N, y2_N, Gamma_N, fourier, no_gamma, U, c, t):
             
         u_ind, v_ind = self.V_ind_ub_field(x1_N, y1_N, x2_N, y2_N, Gamma_N, no_gamma)
@@ -102,7 +92,7 @@ class aero_solver_osc_flat:
             # Induced velocity on a vortex by the bounded vortex sheet            
             trans = lambda xi: np.arccos(1 - 2*xi/c)
             # gamma = lambda xi: 2* U * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi))) + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
-            gamma = lambda xi: 2* U * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi))) + fourier[2] * np.sin(3*trans(xi)) + fourier[3] * np.sin(5*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
+            gamma = lambda xi: 2* U * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi))) + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi)) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
 
             u_ind_p, v_ind_p = self.V_ind_b_fast_2(gamma, x1_N[n], y1_N[n], c)
 
@@ -198,6 +188,8 @@ class aero_solver_osc_flat:
                     fourier[i] *= 2.0 / np.pi / self.kin.pos_dot(t)
 
         Gamma_b = np.pi * c * self.kin.pos_dot(t) * (fourier[0] + fourier[1] * 0.5)
+        # Gamma_b = 0.5*np.pi * (c**2) * self.kin.pos_dot(t) * (fourier[0] + fourier[1] * 0.5)
+        # Gamma_b = 0.5*self.U_ref_M*(c**2)*np.pi*(fourier[0] + 0.5*fourier[1])
 
         return fourier, sum(Gamma_N), Gamma_b + sum(Gamma_N)
     

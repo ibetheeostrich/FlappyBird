@@ -53,7 +53,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         index = round(t/t_step)
 
-        lesp = 0.2#*c[index]
+        lesp =0.2#*c[index]
 
         # TEV Shedding
         if t > 0:
@@ -112,19 +112,26 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                 lesp_flag = 1
                 Gamma_err = 100000
 
-                Gamma_N = np.append(Gamma_N, -fourier[0]*10)
+                Gamma_N = np.append(Gamma_N, fourier[0]*10)
 
                 # Gamma_N = np.append(Gamma_N, 10)
                 # Gamma_N[-2] = 10
 
                 if tev_shed_flag:
-                    xi_N = np.append(xi_N, xi_N[-2]*0.3 )
-                    eta_N = np.append(eta_N, eta_N[-2]*0.3)
+                    xi_N = np.append(xi_N, xi_N[-2]*0.33 )
+                    eta_N = np.append(eta_N, eta_N[-2]*0.33 )
 
                 elif not tev_shed_flag:
 
-                    xi_N = np.append(xi_N, -c[index]*0.005 )
-                    eta_N = np.append(eta_N, 0)
+                    if lesp < 0:
+
+                        xi_N = np.append(xi_N, -c[index]*0.005 )
+                        eta_N = np.append(eta_N, -c[index]*0.005)
+
+                    elif lesp > 0:
+
+                        xi_N = np.append(xi_N, -c[index]*0.005 )
+                        eta_N = np.append(eta_N, c[index]*0.005)
 
                 x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
                 y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t))
@@ -213,25 +220,8 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             # u_ind, v_ind = pot.V_ind_tot_field(x_N,y_N,x_N,y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
             u_ind, v_ind = pot.V_ind_tot_field(x_N,y_N,x_N,y_N, Gamma_N,fourier,no_gamma, kin.pos_dot(t),c[index],t)
 
-            # Advecting the vortex
-            # x_N     = x_N + u_ind*t_step 
-            # y_N     = y_N + v_ind*t_step 
-
             xi_N     = xi_N + u_ind*t_step + kin.pos_dot(t)*t_step
             eta_N     = eta_N + v_ind*t_step - kin.h_dot(t)*t_step
-
-
-            # # Shedding new TEV
-            # if t == t_step:
-            #     x_N = np.append(x_N,(x_N[0] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
-            #     y_N = np.append(y_N,(y_N[0] - kin.h(t))*0.33 + kin.h(t))
-            # else:
-            #     if lesp_flag:
-            #         x_N = np.append(x_N,(x_N[-2] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
-            #         y_N = np.append(y_N,(y_N[-2] - kin.h(t))*0.33 + kin.h(t))
-            #     else:
-            #         x_N = np.append(x_N,(x_N[-1] - (c[index]-kin.pos(t)))*0.33 + c[index]-kin.pos(t))
-            #         y_N = np.append(y_N,(y_N[-1] - kin.h(t))*0.33 + kin.h(t))
 
             # Shedding new TEV
             if t == t_step:
@@ -295,17 +285,21 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             #     ub_terms
             # )
 
+            f_n = 0.5 * rho * (U_ref**2) * c[index] * np.pi*(2*fourier[0] + fourier[1]) + rho * (ub_terms)
 
-            # cl = np.append(cl, f_n)
+
+            cl = np.append(cl, f_n)
 
             index_close = np.where(xi_N < 1.5*c[index])
 
+            # cl_gamma = np.pi * c[index] * (fourier[0] + 0.5 * fourier[1])#+ np.sum(Gamma_N[index_close])
+
+            # cl = np.append(cl, cl_gamma)
+
             if tag == 5:
-                print(fourier[0],fourier[1],fourier[2])
-
-            cl_gamma = np.pi * c[index] * U_ref * (fourier[0] + 0.5 * fourier[1]) #+ np.sum(Gamma_N[index_close])
-
-            cl = np.append(cl, cl_gamma*1.225*U_ref*np.cos(alpha_eff))
+                # print(fourier[0],fourier[1],fourier[2])
+                # print(np.pi*(2*fourier[0] + fourier[1]), fourier[0],fourier[1],fourier[2])
+                print(F)
 
 
         if t>0:
@@ -320,8 +314,8 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
             # Pressure Field
             if tag == 4:
-                x = np.linspace(-0.1,0.5,100)
-                y = np.linspace(-0.1,0.1,100)   
+                x = np.linspace(-0.5,0.5,100)
+                y = np.linspace(-0.5,0.5,100)   
 
                 X,Y = np.meshgrid(x,y)  
 
@@ -330,10 +324,10 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                 U,V = pot.V_ind_tot_field(X_straight, Y_straight, xi_N, eta_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t) 
 
-                U = np.reshape(U,newshape=(100,100))
-                V = np.reshape(V,newshape=(100,100))    
+                U = np.reshape(U,newshape=(100,100)) + kin.pos_dot(t)
+                V = np.reshape(V,newshape=(100,100)) - kin.h_dot(t)   
 
-                cp = 1 - (U**2 + V**2) / U_ref**2 
+                cp =  1 - (U**2 + V**2) / U_ref**2 
 
                 fig, ax = plt.subplots()
                 fig.dpi = 300
@@ -366,6 +360,16 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             #     plt.savefig('vorticity'+str(index)+'.png',)
             #     plt.close(fig)
 
+            # Vorticity distribution
+            # if tag ==4:
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     fig.set_size_inches(19.20, 10.80)
+            #     ax.plot(disc_chord, gamma(disc_chord))
+            #     ax.set_xlim(0,c[index])
+            #     ax.set_ylim(-20,20)
+            #     plt.savefig('vorticity_dist'+str(index)+'.png',)
+            #     plt.close(fig)
 
     return tag, cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth
     

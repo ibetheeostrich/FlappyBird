@@ -21,9 +21,9 @@ start = time.time()
 # Initialise problem
 rho = 1.225
 U_ref = 8
-alpha_eff = np.deg2rad(4)   
+alpha_eff = np.deg2rad(5)   
 
-t_step = 0.00125
+t_step = 0.0025
 no_steps = 400
 
 no_bem = 12 
