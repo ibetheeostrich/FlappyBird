@@ -288,24 +288,24 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             # )
 
 
-            f_n = rho * np.pi * c[index] * U_ref * np.cos(alpha_eff)*(
-                U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
-                c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
-            ) + rho * (
-                ub_terms
-            )
+            # f_n = rho * np.pi * c[index] * U_ref * np.cos(alpha_eff)*(
+            #     U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
+            #     c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
+            # ) + rho * (
+            #     ub_terms
+            # )
 
 
-            cl = np.append(cl, f_n)
+            # cl = np.append(cl, f_n)
 
             index_close = np.where(xi_N < 1.5*c[index])
 
             if tag == 5:
                 print(fourier[0],fourier[1],fourier[2])
 
-            # cl_gamma = np.pi * c[index] * U_ref * (fourier[0] + 0.5 * fourier[1]) #+ np.sum(Gamma_N[index_close])
+            cl_gamma = np.pi * c[index] * U_ref * (fourier[0] + 0.5 * fourier[1]) #+ np.sum(Gamma_N[index_close])
 
-            # cl = np.append(cl, cl_gamma*1.225*U_ref*np.cos(alpha_eff))
+            cl = np.append(cl, cl_gamma*1.225*U_ref*np.cos(alpha_eff))
 
 
         if t>0:
@@ -319,52 +319,52 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
 
             # Pressure Field
-            # if tag == 5:
-            #     x = np.linspace(-0.1,0.5,100)
-            #     y = np.linspace(-0.1,0.1,100)   
+            if tag == 4:
+                x = np.linspace(-0.1,0.5,100)
+                y = np.linspace(-0.1,0.1,100)   
 
-            #     X,Y = np.meshgrid(x,y)  
+                X,Y = np.meshgrid(x,y)  
 
-            #     X_straight = np.reshape(X,-1)
-            #     Y_straight = np.reshape(Y,-1)   
+                X_straight = np.reshape(X,-1)
+                Y_straight = np.reshape(Y,-1)   
 
-            #     U,V = pot.V_ind_tot_field(X_straight, Y_straight, xi_N, eta_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t) 
+                U,V = pot.V_ind_tot_field(X_straight, Y_straight, xi_N, eta_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t) 
 
-            #     U = np.reshape(U,newshape=(100,100))
-            #     V = np.reshape(V,newshape=(100,100))    
+                U = np.reshape(U,newshape=(100,100))
+                V = np.reshape(V,newshape=(100,100))    
 
-            #     cp = - (U**2 + V**2) / U_ref**2 
+                cp = - (U**2 + V**2) / U_ref**2 
 
-            #     fig, ax = plt.subplots()
-            #     fig.dpi = 300
-            #     fig.set_size_inches(10.80, 10.80)
-            #     contf = ax.contourf(X,Y,cp,levels=np.linspace(-2.0, 1.0, 100), extend='both')
-            #     fig.colorbar(contf,
-            #                orientation='horizontal',
-            #                shrink=0.5, pad = 0.1,
-            #                ticks=[-2.0, -1.0, 0.0, 1.0])
-            #     ax.plot(xi_N, eta_N, 'ro')
-            #     ax.plot([0.0, c[index]], [0, 0], 'k')
-            #     ax.axis("equal")
-            #     ax.set_xlim(-0.1,0.5)
-            #     ax.set_ylim(-0.1,0.1)
-            #     plt.savefig('pressure'+str(index)+'.png',)
-            #     plt.close(fig)
-
-            # Movie
-            if tag ==4:
                 fig, ax = plt.subplots()
                 fig.dpi = 300
-                fig.set_size_inches(19.20, 10.80)
-                ax.plot(x_N, y_N, 'ro')
-                # ax.plot(xi_N, eta_N, 'bo')
-                # ax.plot([0, c], [0, 0], 'k')
-                ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
+                fig.set_size_inches(10.80, 10.80)
+                contf = ax.contourf(X,Y,cp,levels=np.linspace(-2.0, 1.0, 100), extend='both')
+                fig.colorbar(contf,
+                           orientation='horizontal',
+                           shrink=0.5, pad = 0.1,
+                           ticks=[-2.0, -1.0, 0.0, 1.0])
+                ax.plot(xi_N, eta_N, 'ro')
+                ax.plot([0.0, c[index]], [0, 0], 'k')
                 ax.axis("equal")
-                # ax.set_xlim(-20.2,0.5)
-                # ax.set_ylim(-1.5,1.5)
-                plt.savefig('vorticity'+str(index)+'.png',)
+                ax.set_xlim(-0.1,0.5)
+                ax.set_ylim(-0.1,0.1)
+                plt.savefig('pressure'+str(index)+'.png',)
                 plt.close(fig)
+
+            # # Movie
+            # if tag ==4:
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     fig.set_size_inches(19.20, 10.80)
+            #     ax.plot(x_N, y_N, 'ro')
+            #     # ax.plot(xi_N, eta_N, 'bo')
+            #     # ax.plot([0, c], [0, 0], 'k')
+            #     ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
+            #     ax.axis("equal")
+            #     # ax.set_xlim(-20.2,0.5)
+            #     # ax.set_ylim(-1.5,1.5)
+            #     plt.savefig('vorticity'+str(index)+'.png',)
+            #     plt.close(fig)
 
 
     return tag, cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth

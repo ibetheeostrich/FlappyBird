@@ -24,7 +24,7 @@ U_ref = 8
 alpha_eff = np.deg2rad(4)   
 
 t_step = 0.00125
-no_steps = 200
+no_steps = 400
 
 no_bem = 12 
 
@@ -38,7 +38,7 @@ t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
 wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
 # Defining root kinematics that will drive morphing
-root_kin = lambda x: - 0.05 - 0.01 #+ 0.01*np.sin(2 * np.pi * frequency * x) 
+root_kin = lambda x: 1*(- 0.05 - 0.01) #+ 0.01*np.sin(2 * np.pi * frequency * x)) 
 
        
 # Initialising array for storing BEM kinematics
