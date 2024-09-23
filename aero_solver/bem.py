@@ -333,7 +333,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                 U = np.reshape(U,newshape=(100,100))
                 V = np.reshape(V,newshape=(100,100))    
 
-                cp = - (U**2 + V**2) / U_ref**2 
+                cp = 1 - (U**2 + V**2) / U_ref**2 
 
                 fig, ax = plt.subplots()
                 fig.dpi = 300
@@ -351,7 +351,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                 plt.savefig('pressure'+str(index)+'.png',)
                 plt.close(fig)
 
-            # # Movie
+            # Movie
             # if tag ==4:
             #     fig, ax = plt.subplots()
             #     fig.dpi = 300
