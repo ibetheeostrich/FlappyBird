@@ -104,18 +104,15 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                 if fourier[0] < 0:
                     lesp_c = -lesp
+                    Gamma_N = np.append(Gamma_N, -10)
 
                 else:
                     lesp_c = lesp
+                    Gamma_N = np.append(Gamma_N, 10)
 
                 stab = 0.1
                 lesp_flag = 1
                 Gamma_err = 100000
-
-                Gamma_N = np.append(Gamma_N, fourier[0]*10)
-
-                # Gamma_N = np.append(Gamma_N, 10)
-                # Gamma_N[-2] = 10
 
                 if tev_shed_flag:
                     xi_N = np.append(xi_N, xi_N[-2]*0.33 )
@@ -140,7 +137,8 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                 iter_count = 0
 
-                while abs(Gamma_err) > 0.00001 or abs(abs(fourier[0]) - lesp) > 0.00000001 :
+                # while abs(Gamma_err) > 0.00001 or abs(abs(fourier[0]) - lesp) > 0.00000001 :
+                while True:
 
                     fourier, Gamma_sum, Gamma_tot_0 = pot.fourier_gamma_calc(A_no, Gamma_N, eta_N, xi_N, no_gamma, c[index], t)
 
@@ -148,9 +146,6 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                     # Guess
                     x_i = Gamma_N[-1] # LEV
                     y_i = Gamma_N[-2] # TEV
-
-                    # inputs at guess +h and -h to estimate first derivative
-                    Gamma_N_p_LEV = Gamma_N_m_LEV = Gamma_N_p_TEV = Gamma_N_m_TEV = Gamma_N
 
                     Gamma_N_p_LEV = np.array([y_i, x_i + stab * dh])
                     A_LEV_p, Gamma_sum, Gamma_tot_p_LEV = pot.fourier_gamma_calc(A_no, Gamma_N_p_LEV, eta_N[-2:], xi_N[-2:], 2, c[index], t)
@@ -188,6 +183,9 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                         else:
 
                             iter_count += 1
+
+                        if abs(Gamma_err) < 0.0000001 and abs(abs(fourier[0]) - lesp) < 0.00000001:
+                            break 
 
                         # print(fourier)
 
@@ -299,7 +297,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             if tag == 5:
                 # print(fourier[0],fourier[1],fourier[2])
                 # print(np.pi*(2*fourier[0] + fourier[1]), fourier[0],fourier[1],fourier[2])
-                print(F)
+                print(F,iter_count)
 
 
         if t>0:
