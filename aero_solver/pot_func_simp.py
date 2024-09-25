@@ -271,14 +271,14 @@ class aero_solver_osc_flat:
 
         wx = -v_ind + self.kin.h_dot(t)
 
-        fourier[0] = - 1 / np.pi / self.U_ref_M * inte.trapezoid(wx,theta)
+        fourier[0] = - 1 / np.pi / self.U_ref * inte.trapezoid(wx,theta)
 
         for i in range(1,A_no):
 
-            fourier[i] = 2 / np.pi / self.U_ref_M * inte.trapezoid(wx*np.cos(i*theta),theta) 
+            fourier[i] = 2 / np.pi / self.U_ref * inte.trapezoid(wx*np.cos(i*theta),theta) 
             
 
-        Gamma_b = np.pi * c * self.U_ref_M * (fourier[0] + fourier[1] * 0.5)
+        Gamma_b = np.pi * c * self.U_ref * (fourier[0] + fourier[1] * 0.5)
 
         return fourier, sum(Gamma_N), Gamma_b + sum(Gamma_N)
     

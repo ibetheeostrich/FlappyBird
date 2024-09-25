@@ -53,7 +53,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         index = round(t/t_step)
 
-        lesp = 0.11
+        lesp = 0.20
 
         # TEV Shedding
         if t > 0:
@@ -199,7 +199,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                         return cl, t_d[0:no_gamma-2], x_N, y_N, Gamma_N
                     
-                print(Gamma_N[-1], fourier[0], Gamma_tot_0)
+                # print(Gamma_N[-1], fourier[0], Gamma_tot_0)
                     
                             
         # Advecting and shedding vortices for next time step
