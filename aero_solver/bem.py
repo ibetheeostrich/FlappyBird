@@ -124,13 +124,13 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                     if lesp < 0:
 
-                        xi_N = np.append(xi_N, -c[index]*0.005 )
-                        eta_N = np.append(eta_N, -c[index]*0.005)
+                        xi_N = np.append(xi_N, c[index]*0.005 )
+                        eta_N = np.append(eta_N, 0.0)
 
                     elif lesp > 0:
 
-                        xi_N = np.append(xi_N, -c[index]*0.005 )
-                        eta_N = np.append(eta_N, c[index]*0.005)
+                        xi_N = np.append(xi_N, c[index]*0.005 )
+                        eta_N = np.append(eta_N, 0.0)
 
                 x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
                 y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t))
@@ -180,7 +180,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                         tev_shed_flag = 1
 
-                        if iter_count > 100:
+                        if iter_count > 1000:
                             break
                         else:
 
@@ -324,6 +324,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
             #     U,V = pot.V_ind_tot_field(X_straight, Y_straight, xi_N, eta_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t) 
 
+
             #     U = np.reshape(U,newshape=(100,100)) + kin.pos_dot(t)
             #     V = np.reshape(V,newshape=(100,100)) - kin.h_dot(t)   
 
@@ -340,7 +341,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             #                orientation='horizontal',
             #                shrink=0.5, pad = 0.1,
             #                ticks=[0.0, 1.0])
-            #     ax.plot(xi_N, eta_N, 'ro')
+            #     ax.plot(xi_N, eta_N, 'ro', ms=1)
             #     ax.plot([0.0, c[index]], [0, 0], 'k')
             #     ax.axis("equal")
             #     ax.set_xlim(-0.1,0.5)
@@ -348,23 +349,23 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             #     plt.savefig('pressure'+str(index)+'.png',)
             #     plt.close(fig)
 
-            # Pressure Field
-            if tag == 4:
-                fig, ax = plt.subplots()
-                fig.dpi = 300
-                fig.set_size_inches(10.80, 10.80)
-                contf = ax.scatter(xi_N,eta_N,c=Gamma_N)#,levels=np.linspace(-2.0, 1.0, 100), extend='both')
-                fig.colorbar(contf,orientation='horizontal')
-                # fig.colorbar(contf,
-                #            orientation='horizontal',
-                #            shrink=0.5, pad = 0.1,
-                #            ticks=[0.0, 1.0])
-                ax.plot([0.0, c[index]], [0, 0], 'k')
-                ax.axis("equal")
-                ax.set_xlim(-0.1,0.5)
-                ax.set_ylim(-0.1,0.1)
-                plt.savefig('pressure'+str(index)+'.png',)
-                plt.close(fig)
+            # # Pressure Field
+            # if tag == 4:
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     fig.set_size_inches(10.80, 10.80)
+            #     contf = ax.scatter(xi_N,eta_N,c=Gamma_N)#,levels=np.linspace(-2.0, 1.0, 100), extend='both')
+            #     fig.colorbar(contf,orientation='horizontal')
+            #     # fig.colorbar(contf,
+            #     #            orientation='horizontal',
+            #     #            shrink=0.5, pad = 0.1,
+            #     #            ticks=[0.0, 1.0])
+            #     ax.plot([0.0, c[index]], [0, 0], 'k')
+            #     ax.axis("equal")
+            #     ax.set_xlim(-0.1,0.5)
+            #     ax.set_ylim(-0.1,0.1)
+            #     plt.savefig('pressure'+str(index)+'.png',)
+            #     plt.close(fig)
 
             # Movie
             # if tag ==4:

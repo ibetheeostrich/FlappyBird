@@ -13,7 +13,7 @@ class aero_solver_osc_flat:
         self.U_ref = U_ref*math.cos(alpha_eff)
         self.V_ref = U_ref*math.sin(alpha_eff)
 
-        self.v_core = 1.3*t_step*U_ref
+        self.v_core = 0.02*chord
         self.alpha_eff = alpha_eff
 
     def xin2body(self, x, t):
@@ -123,16 +123,16 @@ class aero_solver_osc_flat:
 
         for i in range(1,len(fourier)):
 
-            fourier_inf += fourier[i]*np.sin(i*theta)
+            fourier_inf += fourier[i]*np.sin(i*theta)*np.sin(theta)
 
         xis = (xi_n - xi)/np.sqrt(((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)
 
         etas = (eta_n)/np.sqrt(((xi_n - xi)**2 + eta_n**2)**2 + self.v_core**4)
 
         
-        u_ind = self.U_ref_M *c*inte.trapezoid(0.5/np.pi*etas*fourier_inf,theta)
+        u_ind = 0.5 * c * self.U_ref * inte.trapezoid(etas*fourier_inf,theta) / np.pi
 
-        v_ind = self.U_ref_M *c*inte.trapezoid(-0.5/np.pi*xis*fourier_inf,theta)
+        v_ind =-0.5 * c * self.U_ref * inte.trapezoid(xis*fourier_inf,theta) / np.pi
 
         return u_ind, v_ind
 
@@ -178,8 +178,13 @@ class aero_solver_osc_flat:
 
         # Calculate the squared distance and avoid division by zero by adding a small value (epsilon)
         r_squared = dx**2 + dy**2
+
         epsilon = 1e-10  # Small value to prevent division by zero
         r_squared = np.where(r_squared == 0, epsilon, r_squared)
+
+        v_core = np.mean(np.sqrt(r_squared),axis=0)
+
+        v_core = np.tile(v_core, (len(v_core), 1))
 
         # Calculate induced velocities using broadcasting
         u_ind_p =  dy*( 1 / (2 * np.pi * (r_squared**2 + self.v_core**4)**0.5)) * Gamma_N # Shape: (len(x1_N), len(x2_N))
