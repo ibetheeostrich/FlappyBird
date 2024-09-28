@@ -226,17 +226,17 @@ def V_ind_b_fast_4(camber_line, x_n, y_n, v_core,t):
     return u_ind, v_ind
 
 chords = 1 + np.zeros(400)
-t_step = 0.01
+t_step = 0.01/5
 td = np.linspace(0,400*t_step,400,endpoint=False)
 
 
 x_dot = lambda t: 5
 h_dot = lambda t: 0
-alpha_dot = lambda t: 2*np.pi*0.5*np.sin(2*np.pi*t)
+alpha_dot = lambda t: 1.5*2*np.pi*0.5*np.sin(1.5*2*np.pi*t)
 
 u = lambda t: 5*t
 h = lambda t: 0
-alpha = lambda t: 0.5 - 0.5*np.cos(2*np.pi*t)
+alpha = lambda t: 0.5 - 0.5*np.cos(1.5*2*np.pi*t)
 
 bem = camber_line(chords, 50, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
@@ -257,7 +257,7 @@ for t in td:
                            np.concatenate((field.tev, field.lev, field.ext)),
                            t)
         
-        # field.advect(bem,t_step)
+        field.advect(bem,t_step)
 
         print(bem.calc_cl())
 
