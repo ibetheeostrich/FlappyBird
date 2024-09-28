@@ -21,14 +21,14 @@ start = time.time()
 # Initialise problem
 rho = 1.225
 U_ref = 8
-alpha_eff = np.deg2rad(4)   
+alpha_eff = np.deg2rad(0)   
 
-t_step = 0.00125*0.25
-no_steps = 1500
+t_step = 0.00125
+no_steps = 400
 
 no_bem = 12 
 
-frequency = 4
+frequency = 2
 amp = 42.5
 
 # Time span

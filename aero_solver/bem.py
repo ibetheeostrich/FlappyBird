@@ -30,7 +30,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
     lesp_flag = 0
 
-    tev_shed_flag = 0
+    lev_shed_flag = 0
 
     # Initialise vortex blob parameters
     no_gamma = 0
@@ -45,7 +45,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
     # A = np.zeros(A_no)
 
     # Newton - Raphson Params
-    dh = 0.01
+    dh = 0.001
 
     # Time loop
 
@@ -53,7 +53,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
         index = round(t/t_step)
 
-        lesp = 0.20
+        lesp = 0.15
 
         # TEV Shedding
         if t > 0:
@@ -96,41 +96,41 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                     # Newton - Raphson iteration
                     Gamma_N[-1] = x_i - Gamma_tot / (0.5 * (Gamma_tot_p - Gamma_tot_m)/dh)
 
-                    if tev_shed_flag == 1 and (abs(fourier[0]) > lesp): 
-                        tev_shed_flag == 1
-                    else:
-                        tev_shed_flag = 0
+            if abs(fourier[0]) < lesp:
+               lev_shed_flag = 0
 
             # LEV Shedding
             if abs(fourier[0]) > lesp:
 
                 if fourier[0] < 0:
                     lesp_c = -lesp
-                    Gamma_N = np.append(Gamma_N, -10)
+                    Gamma_N = np.append(Gamma_N, 10)
 
                 else:
                     lesp_c = lesp
-                    Gamma_N = np.append(Gamma_N, 10)
+                    Gamma_N = np.append(Gamma_N,-10)
 
                 stab = 0.1
                 lesp_flag = 1
                 Gamma_err = 100000
 
-                if tev_shed_flag:
+                if lev_shed_flag:
                     xi_N = np.append(xi_N, xi_N[-2]*0.33 )
                     eta_N = np.append(eta_N, eta_N[-2]*0.33 )
 
-                elif not tev_shed_flag:
+                elif not lev_shed_flag:
 
                     if lesp < 0:
 
                         xi_N = np.append(xi_N, c[index]*0.005 )
-                        eta_N = np.append(eta_N, 0.0)
+                        eta_N = np.append(eta_N, c[index]*0.005 )
 
                     elif lesp > 0:
 
                         xi_N = np.append(xi_N, c[index]*0.005 )
-                        eta_N = np.append(eta_N, 0.0)
+                        eta_N = np.append(eta_N, -c[index]*0.005 )
+
+                lev_shed_flag = 1
 
                 x_N = np.append(x_N, pot.bodyin2x(xi_N[-1], t))
                 y_N = np.append(y_N, pot.bodyin2y(eta_N[-1], t))
@@ -178,8 +178,6 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
                         Gamma_err = Gamma_tot_0
 
-                        tev_shed_flag = 1
-
                         if iter_count > 1000:
                             break
                         else:
@@ -201,8 +199,157 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
                     
                 # print(Gamma_N[-1], fourier[0], Gamma_tot_0)
                     
-                            
+
+        # Calculate lift coefficient
+
+        if t > 0:
+
+            fourier_dot = (fourier - fourier_old)/t_step
+
+
+
+
+            theta = np.linspace(0,np.pi,70,endpoint=True)
+
+            xi = 0.5*c[index]*(1-np.cos(theta))
+
+            eta = np.zeros(70)
+
+            u_ind, junk = pot.V_ind_ub_field(xi, eta, xi_N, eta_N, Gamma_N, 1)
+
+            fourier_inf = fourier[0]*(1+np.cos(theta))
+
+            for i in range(1,len(fourier)):
+
+                fourier_inf += fourier[i]*np.sin(i*theta)*np.sin(theta)
+
+            fourier_inf = 2*U_ref*np.cos(alpha_eff) * fourier_inf
+
+            vort_cont = inte.trapezoid(0.5*c[index]*fourier_inf*(u_ind + kin.pos_dot(t)),theta) / (0.5 * c[index] * (U_ref*np.cos(alpha_eff))**2)            
+
+            c_n = vort_cont + 2*np.pi*(
+                (fourier[0] + 0.5*fourier[1]) + 
+                c[index]/(U_ref) * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
+            ) 
+
+
+            cl = np.append(cl, c_n)
+
+            index_close = np.where(xi_N < 1.5*c[index])
+
+
+
+            if tag == 4:
+                # print(fourier[0],fourier[1],fourier[2])
+                # print(np.pi*(2*fourier[0] + fourier[1]), fourier)
+                # print(F,iter_count)
+
+                print(c_n,fourier[0],fourier[1],kin.h_dot(t))
+
+
+        if t>0:
+            x = np.linspace(0.0001, c, 513, endpoint=True)
+            
+            # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
+            # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
+            zeroth = np.append(zeroth, fourier[0])
+
+            # print(t, t_step/c[index]*U_ref,  np.pi * c[index] * U_ref * (fourier[0] + fourier[1] * 0.5))
+
+
+            # # Pressure Field
+            if tag == 4:
+                x = np.linspace(-0.1,0.5,100)
+                y = np.linspace(-0.25,0.25,100)   
+
+                X,Y = np.meshgrid(x,y)  
+
+                X_straight = np.reshape(X,-1)
+                Y_straight = np.reshape(Y,-1)   
+
+                U,V = pot.V_ind_tot_field(X_straight, Y_straight, xi_N, eta_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t) 
+
+
+                U = np.reshape(U,newshape=(100,100)) + kin.pos_dot(t)
+                V = np.reshape(V,newshape=(100,100)) - kin.h_dot(t)   
+
+                cp =  1 - (U**2 + V**2) / ((U_ref)**2) 
+
+                # cp =  U**2
+
+
+                fig, ax = plt.subplots()
+                fig.dpi = 300
+                fig.set_size_inches(10.80, 10.80)
+                contf = ax.contourf(X,Y,cp,levels=np.linspace(-2.0, 1.0, 100), extend='both')
+                fig.colorbar(contf,
+                           orientation='horizontal',
+                           shrink=0.5, pad = 0.1,
+                           ticks=[0.0, 1.0])
+                ax.plot(xi_N, eta_N, 'ro', ms=1)
+                ax.plot([0.0, c[index]], [0, 0], 'k')
+                ax.axis("equal")
+                ax.set_xlim(-0.1,0.5)
+                ax.set_ylim(-0.1,0.1)
+                plt.savefig('pressure'+str(index)+'.png',)
+                plt.close(fig)
+
+            # Pressure Field @ vort
+            # if tag == 4:
+
+            #     U,V = pot.V_ind_tot_field(xi_N, eta_N, xi_N, eta_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t) 
+
+
+            #     U += kin.pos_dot(t)
+            #     V -= kin.h_dot(t)   
+
+            #     cp =  1 - (U**2 + V**2) / ((U_ref)**2) 
+
+            #     # cp =  U**2
+
+
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     fig.set_size_inches(10.80, 10.80)
+            #     contf = ax.scatter(xi_N,eta_N,c=cp)#,levels=np.linspace(-2.0, 1.0, 100), extend='both')
+            #     fig.colorbar(contf,orientation='horizontal')
+            #     ax.plot(xi_N, eta_N, 'ro', ms=1)
+            #     ax.plot([0.0, c[index]], [0, 0], 'k')
+            #     ax.axis("equal")
+            #     ax.set_xlim(-0.1,0.5)
+            #     ax.set_ylim(-0.1,0.1)
+            #     plt.savefig('pressure @ vort'+str(index)+'.png',)
+            #     plt.close(fig)
+
+            # # Movie
+            # if tag ==4:
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     fig.set_size_inches(19.20, 10.80)
+            #     contf = ax.scatter(x_N,y_N,c=Gamma_N)#,levels=np.linspace(-2.0, 1.0, 100), extend='both')
+            #     fig.colorbar(contf,orientation='horizontal')
+            #     # ax.plot(xi_N, eta_N, 'bo')
+            #     # ax.plot([0, c], [0, 0], 'k')
+            #     ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
+            #     ax.axis("equal")
+            #     # ax.set_xlim(-20.2,0.5)
+            #     # ax.set_ylim(-1.5,1.5)
+            #     plt.savefig('vorticity'+str(index)+'.png',)
+            #     plt.close(fig)
+
+            # Vorticity distribution
+            # if tag ==4:
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     fig.set_size_inches(19.20, 10.80)
+            #     ax.plot(disc_chord, gamma(disc_chord))
+            #     ax.set_xlim(0,c[index])
+            #     ax.set_ylim(-20,20)
+            #     plt.savefig('vorticity_dist'+str(index)+'.png',)
+            #     plt.close(fig)                            
         # Advecting and shedding vortices for next time step
+
+
         if t == 0:
             # xi_N    = np.array([c[index] + U_ref*t_step, c[index] + U_ref*t_step/3])
             xi_N    = np.array([c[index] + kin.pos_dot(t)*t_step, c[index] + kin.pos_dot(t)*t_step/3])
@@ -222,7 +369,7 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
             # u_ind, v_ind = pot.V_ind_tot_field(x_N,y_N,x_N,y_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t)
             u_ind, v_ind = pot.V_ind_tot_field(xi_N,eta_N,xi_N,eta_N, Gamma_N,fourier,no_gamma, kin.pos_dot(t),c[index],t)
 
-            xi_N      = xi_N + u_ind*t_step + kin.pos_dot(t)*t_step
+            xi_N      = xi_N  + u_ind*t_step + kin.pos_dot(t)*t_step
             eta_N     = eta_N + v_ind*t_step - kin.h_dot(t)*t_step
 
             # Shedding new TEV
@@ -253,145 +400,6 @@ def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
             lesp_flag = 0
 
-        # Calculate lift coefficient
-
-        # if t > 0:
-
-            disc_chord = np.linspace(0.0001,c[index], 500,endpoint = True)
-            disc_y = np.zeros(500)
-
-            lift_u, lift_v = pot.V_ind_ub_field(disc_chord, disc_y, xi_N, eta_N, Gamma_N, no_gamma)
-
-            disc_dphidx = lift_u*np.cos(alpha_eff) - lift_v*np.sin(alpha_eff)
-
-            trans = lambda xi: np.arccos(1 - 2*xi/c[index])
-            # gamma = lambda xi: 2* U_ref * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)) + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi))) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
-            gamma = lambda xi: 2* U_ref * np.cos(alpha_eff) * (fourier[0] * (1 + np.cos(trans(xi)))/np.sin(trans(xi)) + fourier[1] * np.sin(trans(xi)) + fourier[2] * np.sin(2*trans(xi)) + fourier[3] * np.sin(3*trans(xi))) #+ fourier[4] * np.sin(4*trans(xi)) + fourier[5] * np.sin(5*trans(xi))
-
-            ub_terms = inte.trapezoid(disc_dphidx * gamma(disc_chord),disc_chord)
-
-            fourier_dot = (fourier - fourier_old)/t_step
-
-            # f_n = rho * np.pi * c[index] * U_ref * (
-            #     U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
-            #     c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
-            # ) - rho * (
-            #     ub_terms
-            # )
-
-            f_n = rho * np.pi * c[index] * U_ref * np.cos(alpha_eff)*(
-                U_ref * np.cos(alpha_eff) * (fourier[0] + 0.5*fourier[1]) +
-                c[index] * (0.75 * fourier_dot[0] + 0.25 * fourier_dot[1] + 0.125 * fourier_dot[2])
-            ) + rho * (
-                ub_terms
-            )
-
-            # f_n = 0.5 * rho * (U_ref**2) * c[index] * np.pi*(2*fourier[0] + fourier[1]) + rho * (ub_terms)
-
-
-            cl = np.append(cl, f_n)
-
-            index_close = np.where(xi_N < 1.5*c[index])
-
-
-
-            if tag == 4:
-                print(fourier[0],fourier[1],fourier[2])
-                # print(np.pi*(2*fourier[0] + fourier[1]), fourier)
-                # print(F,iter_count)
-
-
-
-        if t>0:
-            x = np.linspace(0.0001, c, 513, endpoint=True)
-            
-            # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
-            # cl = np.append(cl, np.pi * (2 * fourier[0]+ fourier[1]))
-            zeroth = np.append(zeroth, fourier[0])
-
-            # print(t, t_step/c[index]*U_ref,  np.pi * c[index] * U_ref * (fourier[0] + fourier[1] * 0.5))
-
-
-            # # Pressure Field
-            # if tag == 4:
-            #     x = np.linspace(-0.5,0.5,100)
-            #     y = np.linspace(-0.5,0.5,100)   
-
-            #     X,Y = np.meshgrid(x,y)  
-
-            #     X_straight = np.reshape(X,-1)
-            #     Y_straight = np.reshape(Y,-1)   
-
-            #     U,V = pot.V_ind_tot_field(X_straight, Y_straight, xi_N, eta_N, Gamma_N,fourier,no_gamma, U_ref,c[index],t) 
-
-
-            #     U = np.reshape(U,newshape=(100,100)) + kin.pos_dot(t)
-            #     V = np.reshape(V,newshape=(100,100)) - kin.h_dot(t)   
-
-            #     cp =  1 - (U**2 + V**2) / (U_ref)**2 
-
-            #     # cp =  U**2
-
-
-            #     fig, ax = plt.subplots()
-            #     fig.dpi = 300
-            #     fig.set_size_inches(10.80, 10.80)
-            #     contf = ax.contourf(X,Y,cp,levels=np.linspace(-2.0, 1.0, 100), extend='both')
-            #     fig.colorbar(contf,
-            #                orientation='horizontal',
-            #                shrink=0.5, pad = 0.1,
-            #                ticks=[0.0, 1.0])
-            #     ax.plot(xi_N, eta_N, 'ro', ms=1)
-            #     ax.plot([0.0, c[index]], [0, 0], 'k')
-            #     ax.axis("equal")
-            #     ax.set_xlim(-0.1,0.5)
-            #     ax.set_ylim(-0.1,0.1)
-            #     plt.savefig('pressure'+str(index)+'.png',)
-            #     plt.close(fig)
-
-            # # Pressure Field
-            # if tag == 4:
-            #     fig, ax = plt.subplots()
-            #     fig.dpi = 300
-            #     fig.set_size_inches(10.80, 10.80)
-            #     contf = ax.scatter(xi_N,eta_N,c=Gamma_N)#,levels=np.linspace(-2.0, 1.0, 100), extend='both')
-            #     fig.colorbar(contf,orientation='horizontal')
-            #     # fig.colorbar(contf,
-            #     #            orientation='horizontal',
-            #     #            shrink=0.5, pad = 0.1,
-            #     #            ticks=[0.0, 1.0])
-            #     ax.plot([0.0, c[index]], [0, 0], 'k')
-            #     ax.axis("equal")
-            #     ax.set_xlim(-0.1,0.5)
-            #     ax.set_ylim(-0.1,0.1)
-            #     plt.savefig('pressure'+str(index)+'.png',)
-            #     plt.close(fig)
-
-            # Movie
-            # if tag ==4:
-            #     fig, ax = plt.subplots()
-            #     fig.dpi = 300
-            #     fig.set_size_inches(19.20, 10.80)
-            #     ax.plot(x_N, y_N, 'ro')
-            #     # ax.plot(xi_N, eta_N, 'bo')
-            #     # ax.plot([0, c], [0, 0], 'k')
-            #     ax.plot([0.0-kin.pos(t), c[index]-kin.pos(t)], [kin.h(t), kin.h(t)], 'k')
-            #     ax.axis("equal")
-            #     # ax.set_xlim(-20.2,0.5)
-            #     # ax.set_ylim(-1.5,1.5)
-            #     plt.savefig('vorticity'+str(index)+'.png',)
-            #     plt.close(fig)
-
-            # Vorticity distribution
-            # if tag ==4:
-            #     fig, ax = plt.subplots()
-            #     fig.dpi = 300
-            #     fig.set_size_inches(19.20, 10.80)
-            #     ax.plot(disc_chord, gamma(disc_chord))
-            #     ax.set_xlim(0,c[index])
-            #     ax.set_ylim(-20,20)
-            #     plt.savefig('vorticity_dist'+str(index)+'.png',)
-            #     plt.close(fig)
 
     return tag, cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth
     
