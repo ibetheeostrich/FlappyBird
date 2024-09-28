@@ -86,7 +86,38 @@ class camber_line:
             
             v_field.tev[-1] = v_field.tev[-1] - 2*dh * g0 / (gp-gm)
 
-        
+    def kelvinkutta_a0_a1(self, v_field, dh, t):
+
+        v_core = 0.02 * self.c(t)
+
+        u_ind, v_ind = V_ind_ub_field(self.x, 
+                                      self.y, 
+                                      v_field.tev_x[-1], 
+                                      v_field.tev_y[-1], 
+                                      v_field.tev[-1] + dh, 
+                                      v_core, 1)
+
+        dphi_deta = v_ind*np.cos(self.alpha(t)) + u_ind*np.sin(self.alpha(t))
+
+        wx = - dphi_deta
+
+        a0 = - 1 / np.pi / self.x_dot(t) * inte.trapezoid(wx,self.theta)
+        a1 = 2 / np.pi / self.x_dot(t) * inte.trapezoid(wx*np.cos(self.theta),self.theta)
+        gamma_b = np.pi * self.c(t) * self.x_dot(t) * (a0 + a1 * 0.5) 
+
+        return gamma_b + v_field.tev[-1] + dh
+
+    def kelvinlesp(self, v_field, dh, t):
+
+        g0 = 100000
+
+        while abs(g0) > 0.00001:
+
+            g0,_ = self.kelvinkutta_a0_a1(v_field, 0, t)
+            gp,_ = self.kelvinkutta_a0_a1(v_field, dh, t)
+            gm,_ = self.kelvinkutta_a0_a1(v_field, -dh, t)
+            
+            v_field.tev[-1] = v_field.tev[-1] - 2*dh * g0 / (gp-gm)        
 
     def update_pos(self,t):
 
@@ -133,6 +164,36 @@ class vorticity_field:
             self.tev,
             0.0
         )
+
+    def shed_lev(self, camber_line, a0):
+
+        self.lev_x = np.append(
+            self.tev_x,
+            camber_line.x[0]
+        )
+    
+        
+        if a0 > 0:
+            self.lev = np.append(
+                self.tev,
+                10
+            )
+
+            self.lev_y = np.append(
+                self.lev_y,
+                0.01 * camber_line.c(t)
+            )
+
+        elif a0 < 0:
+            self.lev = np.append(
+                self.tev,
+                -10
+            )
+
+            self.lev_y = np.append(
+                self.lev_y,
+                -0.01 * camber_line.c(t)
+            )
 
     def advect(self, camber_line,t_step):
 
@@ -238,6 +299,8 @@ u = lambda t: 5*t
 h = lambda t: 0
 alpha = lambda t: 0.5 - 0.5*np.cos(1.5*2*np.pi*t)
 
+lesp_crit = 0.2
+
 bem = camber_line(chords, 50, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
 field = vorticity_field(chords[0])
@@ -257,9 +320,13 @@ for t in td:
                            np.concatenate((field.tev, field.lev, field.ext)),
                            t)
         
+        # if bem.fourier[0] > lesp_crit:
+            
+        #     field.shed_lev(bem)
+        
         field.advect(bem,t_step)
 
-        print(bem.calc_cl())
+        # print(bem.calc_cl())
 
 
 
