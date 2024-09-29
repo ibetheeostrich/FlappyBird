@@ -4,6 +4,8 @@ import numpy as np
 import scipy.integrate as inte
 import matplotlib.pyplot as plt
 
+from copy import deepcopy
+
 
 class camber_line:
 
@@ -18,6 +20,7 @@ class camber_line:
         self.y = np.zeros(no_fourier*2)
 
         self.fourier = np.zeros(no_fourier)
+        self.fourier_old = np.zeros(no_fourier)
 
         self.x_dot = x_dot
         self.h_dot = h_dot
@@ -51,7 +54,7 @@ class camber_line:
         Gamma_b = np.pi * self.c(t) * self.x_dot(t) * (self.fourier[0] + self.fourier[1] * 0.5)
         # Gamma_b = self.U_ref * c * inte.trapezoid(fourier_inf,theta)
 
-        return sum(Gamma_N), Gamma_b + sum(Gamma_N)
+        return Gamma_b + sum(Gamma_N)
     
     def kelvinkutta_a0_a1(self, v_field, dh, t):
 
@@ -80,21 +83,31 @@ class camber_line:
 
         while abs(g0) > 0.00001:
 
-            g0 = self.kelvinkutta_a0_a1(v_field, 0, t)
+            g0 = self.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                                np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                                np.concatenate((field.tev, field.lev, field.ext)),
+                                t)
+            
             gp = self.kelvinkutta_a0_a1(v_field, dh, t)
             gm = self.kelvinkutta_a0_a1(v_field, -dh, t)
             
             v_field.tev[-1] = v_field.tev[-1] - 2*dh * g0 / (gp-gm)
 
-    def kelvinkutta_a0_a1(self, v_field, dh, t):
+            g0 = self.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                                np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                                np.concatenate((field.tev, field.lev, field.ext)),
+                                t)
+
+
+    def kelvinlesp_a0_a1(self, v_field, dg1, dg2, t):
 
         v_core = 0.02 * self.c(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, 
                                       self.y, 
-                                      v_field.tev_x[-1], 
-                                      v_field.tev_y[-1], 
-                                      v_field.tev[-1] + dh, 
+                                      [v_field.tev_x[-1], v_field.lev_x[-1]], 
+                                      [v_field.tev_y[-1], v_field.lev_y[-1]], 
+                                      [v_field.tev[-1] + dg2, v_field.lev[-1] + dg1], 
                                       v_core, 1)
 
         dphi_deta = v_ind*np.cos(self.alpha(t)) + u_ind*np.sin(self.alpha(t))
@@ -105,19 +118,53 @@ class camber_line:
         a1 = 2 / np.pi / self.x_dot(t) * inte.trapezoid(wx*np.cos(self.theta),self.theta)
         gamma_b = np.pi * self.c(t) * self.x_dot(t) * (a0 + a1 * 0.5) 
 
-        return gamma_b + v_field.tev[-1] + dh
+        return gamma_b + v_field.tev[-1] + v_field.lev[-1] + dg1 + dg2, a0
 
-    def kelvinlesp(self, v_field, dh, t):
+    def kelvinlesp(self, v_field, dh, lesp, t):
 
         g0 = 100000
 
-        while abs(g0) > 0.00001:
+        if self.fourier[0] < 0:
+            lesp_c = -lesp
 
-            g0,_ = self.kelvinkutta_a0_a1(v_field, 0, t)
-            gp,_ = self.kelvinkutta_a0_a1(v_field, dh, t)
-            gm,_ = self.kelvinkutta_a0_a1(v_field, -dh, t)
+        else:
+            lesp_c = lesp
+
+
+        while abs(g0) > 0.0000001 and abs(abs(self.fourier[0]) - lesp) > 0.00000001:
+
+            g0 = self.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                                np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                                np.concatenate((field.tev, field.lev, field.ext)),
+                                t)
+
+            g0_LEV_p, a0_LEV_p = self.kelvinlesp_a0_a1(v_field, dh, 0, t)          
+            g0_LEV_m, a0_LEV_m = self.kelvinlesp_a0_a1(v_field,-dh, 0, t) 
+
+            g0_TEV_p, a0_TEV_p = self.kelvinlesp_a0_a1(v_field, 0, dh, t)          
+            g0_TEV_m, a0_TEV_m = self.kelvinlesp_a0_a1(v_field, 0,-dh, t)   
+
+            target = np.array([self.fourier[0] - lesp_c, g0])
+
+            jacob = np.array([[(a0_LEV_p - a0_LEV_m) / (2*dh),         
+                               (a0_TEV_p - a0_TEV_m) / (2*dh)],
+                              [(g0_LEV_p - g0_LEV_m) / (2*dh), 
+                               (g0_TEV_p - g0_TEV_m) / (2*dh)]])
             
-            v_field.tev[-1] = v_field.tev[-1] - 2*dh * g0 / (gp-gm)        
+            try:
+
+                J_inv = np.linalg.inv(jacob)
+
+                [v_field.lev[-1], v_field.tev[-1]] = np.array([v_field.lev[-1], v_field.tev[-1]]) - J_inv@target 
+
+                g0 = self.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                                    np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                                    np.concatenate((field.tev, field.lev, field.ext)),
+                                    t)
+
+            except:
+                print('you are ugly and gay')
+                return
 
     def update_pos(self,t):
 
@@ -126,9 +173,43 @@ class camber_line:
         self.x = np.cos(self.alpha(t)) * c - self.u(t)
         self.y =-np.sin(self.alpha(t)) * c + self.h(t)
 
-    def calc_cl(self):
+    def calc_cl(self, x_N, y_N,  Gamma_N, t, t_step):
 
-        return np.pi*(2*self.fourier[0] + self.fourier[1])
+        v_core = 0.02 * self.c(t)
+        xi = 0.5 * self.c(t) * (1 - np.cos(self.theta))
+
+        u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
+
+        dphi_dxi = -v_ind*np.sin(self.alpha(t)) + u_ind*np.cos(self.alpha(t))
+
+        fourier_inf = self.fourier[0]*(1+np.cos(self.theta))
+
+        for i in range(1,len(self.fourier)):
+
+            fourier_inf += self.fourier[i]*np.sin(i*self.theta)*np.sin(self.theta)
+
+        fourier_inf *= self.x_dot(t) * self.c(t)
+
+        cnc = 2.0*np.pi / self.x_dot(t) * (self.x_dot(t) * np.cos(self.alpha(t)) + 
+                                           self.h_dot(t)*np.sin(self.alpha(t))) * (
+                                               self.fourier[0] + 0.5 * self.fourier[1]
+                                           )
+        
+        cnnc = 2.0*np.pi / self.x_dot(t) / self.c(t) * (
+            0.75  * (self.fourier[0] - self.fourier_old[0]) / t_step + 
+            0.25  * (self.fourier[1] - self.fourier_old[1]) / t_step + 
+            0.125 * (self.fourier[2] - self.fourier_old[2]) / t_step
+        )
+
+        non1 = 2/self.x_dot(t)/self.x_dot(t)/self.c(t) * inte.trapezoid(dphi_dxi*dphi_dxi,self.theta)
+
+        cn = cnc + cnnc + non1
+
+        cs = 2*np.pi*self.fourier[0]**2
+
+        print(cnc, cnnc, non1, self.alpha(t))
+
+        return cn*np.cos(self.alpha(t)) + cs*np.sin(self.alpha(t))
 
 class vorticity_field:
 
@@ -165,34 +246,34 @@ class vorticity_field:
             0.0
         )
 
-    def shed_lev(self, camber_line, a0):
+    def shed_lev(self, camber_line):
 
         self.lev_x = np.append(
-            self.tev_x,
+            self.lev_x,
             camber_line.x[0]
         )
     
         
-        if a0 > 0:
+        if camber_line.fourier[0] > 0:
             self.lev = np.append(
-                self.tev,
+                self.lev,
                 10
             )
 
             self.lev_y = np.append(
                 self.lev_y,
-                0.01 * camber_line.c(t)
+                camber_line.y[0]
             )
 
-        elif a0 < 0:
+        elif camber_line.fourier[0] < 0:
             self.lev = np.append(
-                self.tev,
+                self.lev,
                 -10
             )
 
             self.lev_y = np.append(
                 self.lev_y,
-                -0.01 * camber_line.c(t)
+                camber_line.y[0]
             )
 
     def advect(self, camber_line,t_step):
@@ -287,19 +368,21 @@ def V_ind_b_fast_4(camber_line, x_n, y_n, v_core,t):
     return u_ind, v_ind
 
 chords = 1 + np.zeros(400)
-t_step = 0.01/5
+cl = np.zeros(400)
+
+t_step = 0.04
 td = np.linspace(0,400*t_step,400,endpoint=False)
 
 
-x_dot = lambda t: 5
+x_dot = lambda t: 0.75
 h_dot = lambda t: 0
-alpha_dot = lambda t: 1.5*2*np.pi*0.5*np.sin(1.5*2*np.pi*t)
+alpha_dot = lambda t: 0.25*np.pi*np.pi/4*np.sin(0.25*np.pi*t)
 
-u = lambda t: 5*t
+u = lambda t: 0.75*t
 h = lambda t: 0
-alpha = lambda t: 0.5 - 0.5*np.cos(1.5*2*np.pi*t)
+alpha = lambda t: np.pi/4 - np.pi/4*np.cos(0.25*np.pi*t)
 
-lesp_crit = 0.2
+lesp_crit = 0.11
 
 bem = camber_line(chords, 50, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
@@ -309,6 +392,8 @@ for t in td:
 
     if t > 0:
         
+        bem.fourier_old = deepcopy(bem.fourier) 
+
         bem.update_pos(t)
 
         field.shed_tev(bem)
@@ -320,24 +405,45 @@ for t in td:
                            np.concatenate((field.tev, field.lev, field.ext)),
                            t)
         
-        # if bem.fourier[0] > lesp_crit:
+        if bem.fourier[0] > lesp_crit:          
             
-        #     field.shed_lev(bem)
-        
+            field.shed_lev(bem)
+
+            bem.kelvinlesp(field, 0.001, lesp_crit, t)
+
+            bem.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                               np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                               np.concatenate((field.tev, field.lev, field.ext)),
+                               t)
+
+#####################################################################################    
+
+        # fig, ax = plt.subplots()
+        # fig.dpi = 300
+        # ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+        #         np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+        #         ,'ro')
+        # ax.plot(bem.x,
+        #         bem.y,
+        #         'k')
+        # ax.axis("equal")
+        # plt.savefig(str(round(t/t_step)) + '.png')
+        # plt.clf()    
+
+#####################################################################################    
+
         field.advect(bem,t_step)
 
-        # print(bem.calc_cl())
-
-
+        cl[round(t/t_step)] = bem.calc_cl(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                                               np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                                               np.concatenate((field.tev, field.lev, field.ext)),
+                                               t, t_step)
 
 fig, ax = plt.subplots()
 fig.dpi = 300
-ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-        np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-        ,'ro')
-ax.plot(bem.x,
-        bem.y,
-        'k')
-ax.axis("equal")
-plt.savefig('test1' + '.png')
-plt.clf()
+ax.plot(td,cl)
+
+fig.savefig('cl' + '.png')
+fig.clf()    
+plt.close()
+
