@@ -41,39 +41,40 @@ class blade_element_kinematics:
 
         self.t_step = t_step
 
-    def h(self, t):
-
-        index = round(t / self.t_step)
-
-        a = self.r[index] * self.aa
-
-        return a - a * np.cos(2 * np.pi * self.f * (t)) - self.V_ref*t
-
-
-    def h_dot(self, t):
-
-        index = round(t / self.t_step)
-
-        a = self.r[index] * self.aa
-
-        return 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t)) - self.V_ref
-        
 
 #################################################################################
 #               QUARANTINE                                                      #
 #################################################################################
 
-    def pos(self, t):
+    # def h(self, t):
 
-        index = round(t / self.t_step)
+    #     index = round(t / self.t_step)
 
-        return self.U_ref*t - self.le[index] 
+    #     a = self.r[index] * self.aa
+
+    #     return a - a * np.cos(2 * np.pi * self.f * (t)) - self.V_ref*t
+
+
+    # def h_dot(self, t):
+
+    #     index = round(t / self.t_step)
+
+    #     a = self.r[index] * self.aa
+
+    #     return 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t)) - self.V_ref
+    
+
+    # def pos(self, t):
+
+    #     index = round(t / self.t_step)
+
+    #     return self.U_ref*t - self.le[index] 
         
-    def pos_dot(self, t):
+    # def pos_dot(self, t):
 
-        index = round(t / self.t_step)
+    #     index = round(t / self.t_step)
 
-        return self.U_ref - (self.le[index + 1] - self.le[index]) / self.t_step
+    #     return self.U_ref - (self.le[index + 1] - self.le[index]) / self.t_step
         
 #################################################################################
 

@@ -83,20 +83,20 @@ class camber_line:
 
         while abs(g0) > 0.00001:
 
-            g0 = self.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                                np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                                np.concatenate((field.tev, field.lev, field.ext)),
-                                t)
+            g0 = self.update_fourier(np.concatenate((v_field.tev_x, v_field.lev_x, v_field.ext_x)),
+                                     np.concatenate((v_field.tev_y, v_field.lev_y, v_field.ext_y)),
+                                     np.concatenate((v_field.tev,   v_field.lev,   v_field.ext)),
+                                     t)
             
             gp = self.kelvinkutta_a0_a1(v_field, dh, t)
             gm = self.kelvinkutta_a0_a1(v_field, -dh, t)
             
             v_field.tev[-1] = v_field.tev[-1] - 2*dh * g0 / (gp-gm)
 
-            g0 = self.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                                np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                                np.concatenate((field.tev, field.lev, field.ext)),
-                                t)
+            g0 = self.update_fourier(np.concatenate((v_field.tev_x, v_field.lev_x, v_field.ext_x)),
+                                     np.concatenate((v_field.tev_y, v_field.lev_y, v_field.ext_y)),
+                                     np.concatenate((v_field.tev,   v_field.lev,   v_field.ext)),
+                                     t)
 
 
     def kelvinlesp_a0_a1(self, v_field, dg1, dg2, t):
@@ -133,10 +133,10 @@ class camber_line:
 
         while abs(g0) > 0.0000001 and abs(abs(self.fourier[0]) - lesp) > 0.00000001:
 
-            g0 = self.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                                np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                                np.concatenate((field.tev, field.lev, field.ext)),
-                                t)
+            g0 = self.update_fourier(np.concatenate((v_field.tev_x, v_field.lev_x, v_field.ext_x)),
+                                     np.concatenate((v_field.tev_y, v_field.lev_y, v_field.ext_y)),
+                                     np.concatenate((v_field.tev,   v_field.lev,   v_field.ext)),
+                                     t)
 
             g0_LEV_p, a0_LEV_p = self.kelvinlesp_a0_a1(v_field, dh, 0, t)          
             g0_LEV_m, a0_LEV_m = self.kelvinlesp_a0_a1(v_field,-dh, 0, t) 
@@ -157,10 +157,10 @@ class camber_line:
 
                 [v_field.lev[-1], v_field.tev[-1]] = np.array([v_field.lev[-1], v_field.tev[-1]]) - J_inv@target 
 
-                g0 = self.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                                    np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                                    np.concatenate((field.tev, field.lev, field.ext)),
-                                    t)
+                g0 = self.update_fourier(np.concatenate((v_field.tev_x, v_field.lev_x, v_field.ext_x)),
+                                         np.concatenate((v_field.tev_y, v_field.lev_y, v_field.ext_y)),
+                                         np.concatenate((v_field.tev,   v_field.lev,   v_field.ext)),
+                                         t)
 
             except:
                 print('you are ugly and gay')
@@ -276,13 +276,13 @@ class vorticity_field:
                 camber_line.y[0]
             )
 
-    def advect(self, camber_line,t_step):
+    def advect(self, camber_line,t_step,t):
 
         v_core = 0.02 * camber_line.c(t)
 
-        x_tot = np.concatenate((field.tev_x, field.lev_x, field.ext_x))
-        y_tot = np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-        g_tot = np.concatenate((field.tev, field.lev, field.ext))
+        x_tot = np.concatenate((self.tev_x, self.lev_x, self.ext_x))
+        y_tot = np.concatenate((self.tev_y, self.lev_y, self.ext_y))
+        g_tot = np.concatenate((self.tev,   self.lev,   self.ext))
 
         u_ind, v_ind = V_ind_ub_field(
             x_tot,
@@ -302,17 +302,17 @@ class vorticity_field:
         x_tot += u_ind*t_step
         y_tot += v_ind*t_step
 
-        field.tev_x = x_tot[0:len(field.tev_x)]
-        field.tev_y = y_tot[0:len(field.tev_x)]
-        field.tev   = g_tot[0:len(field.tev_x)]
+        self.tev_x = x_tot[0:len(self.tev_x)]
+        self.tev_y = y_tot[0:len(self.tev_x)]
+        self.tev   = g_tot[0:len(self.tev_x)]
 
-        field.lev_x = x_tot[len(field.tev_x) : len(field.tev_x) + len(field.lev_x)]
-        field.lev_y = y_tot[len(field.tev_x) : len(field.tev_x) + len(field.lev_x)]
-        field.lev   = g_tot[len(field.tev_x) : len(field.tev_x) + len(field.lev_x)]
+        self.lev_x = x_tot[len(self.tev_x) : len(self.tev_x) + len(self.lev_x)]
+        self.lev_y = y_tot[len(self.tev_x) : len(self.tev_x) + len(self.lev_x)]
+        self.lev   = g_tot[len(self.tev_x) : len(self.tev_x) + len(self.lev_x)]
 
-        field.ext_x = x_tot[len(field.tev_x) + len(field.lev_x) : len(field.tev_x) + len(field.lev_x) + len(field.ext_x)]
-        field.ext_y = y_tot[len(field.tev_x) + len(field.lev_x) : len(field.tev_x) + len(field.lev_x) + len(field.ext_x)]
-        field.ext   = g_tot[len(field.tev_x) + len(field.lev_x) : len(field.tev_x) + len(field.lev_x) + len(field.ext_x)]
+        self.ext_x = x_tot[len(self.tev_x) + len(self.lev_x) : len(self.tev_x) + len(self.lev_x) + len(self.ext_x)]
+        self.ext_y = y_tot[len(self.tev_x) + len(self.lev_x) : len(self.tev_x) + len(self.lev_x) + len(self.ext_x)]
+        self.ext   = g_tot[len(self.tev_x) + len(self.lev_x) : len(self.tev_x) + len(self.lev_x) + len(self.ext_x)]
 
 def V_ind_ub_field(x1_N, y1_N, x2_N, y2_N, Gamma_N, v_core,v_core_flag):
     '''
@@ -367,84 +367,84 @@ def V_ind_b_fast_4(camber_line, x_n, y_n, v_core,t):
 
     return u_ind, v_ind
 
-chords = 1 + np.zeros(400)
-cl = np.zeros(400)
+# chords = 1 + np.zeros(400)
+# cl = np.zeros(400)
 
-t_step = 0.02
-td = np.linspace(0,400*t_step,400,endpoint=False)
+# t_step = 0.02
+# td = np.linspace(0,400*t_step,400,endpoint=False)
 
 
-x_dot = lambda t: 8
-h_dot = lambda t: 0.5 * 0.5 * np.pi * np.sin(0.5 * np.pi * t)
-alpha_dot = lambda t: 0.0 #lambda t: 0.25*np.pi*np.pi/4*np.sin(0.25*np.pi*t)
+# x_dot = lambda t: 0.75
+# h_dot = lambda t: 0.0 #0.5 * 0.5 * np.pi * np.sin(0.5 * np.pi * t)
+# alpha_dot = lambda t: 0.25*np.pi*np.pi/4*np.sin(0.25*np.pi*t)
 
-u = lambda t: 8*t
-h = lambda t: 0.5 - 0.5 * np.cos(0.5 * np.pi*t)
-alpha = lambda t: 4/180*np.pi #lambda t: np.pi/4 - np.pi/4*np.cos(0.25*np.pi*t)
+# u = lambda t: 0.75*t
+# h = lambda t: 0.0 #0.5 - 0.5 * np.cos(0.5 * np.pi*t)
+# alpha = lambda t: np.pi/4 - np.pi/4*np.cos(0.25*np.pi*t)
 
-lesp_crit = 0.05
+# lesp_crit = 0.05
 
-bem = camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
+# bem = camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
-field = vorticity_field(chords[0])
+# field = vorticity_field(chords[0])
 
-for t in td:
+# for t in td:
 
-    if t > 0:
+#     if t > 0:
         
-        bem.fourier_old = deepcopy(bem.fourier) 
+#         bem.fourier_old = deepcopy(bem.fourier) 
 
-        bem.update_pos(t)
+#         bem.update_pos(t)
 
-        field.shed_tev(bem)
+#         field.shed_tev(bem)
 
-        bem.kelvinkutta(field,0.001,t)
+#         bem.kelvinkutta(field,0.001,t)
 
-        bem.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                           np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                           np.concatenate((field.tev, field.lev, field.ext)),
-                           t)
+#         bem.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+#                            np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+#                            np.concatenate((field.tev, field.lev, field.ext)),
+#                            t)
         
-        if bem.fourier[0] > lesp_crit:          
+#         if bem.fourier[0] > lesp_crit:          
             
-            field.shed_lev(bem)
+#             field.shed_lev(bem)
 
-            bem.kelvinlesp(field, 0.001, lesp_crit, t)
+#             bem.kelvinlesp(field, 0.001, lesp_crit, t)
 
-            bem.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                               np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                               np.concatenate((field.tev, field.lev, field.ext)),
-                               t)
+#             bem.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+#                                np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+#                                np.concatenate((field.tev, field.lev, field.ext)),
+#                                t)
 
-#####################################################################################    
+# #####################################################################################    
 
-        # if round(t/t_step) % 5 == 0:
-        #     fig, ax = plt.subplots()
-        #     fig.dpi = 300
-        #     ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-        #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-        #             ,'ro')
-        #     ax.plot(bem.x,
-        #             bem.y,
-        #             'k')
-        #     ax.axis("equal")
-        #     plt.savefig(str(round(t/t_step)) + '.png')
-        #     plt.clf()    
+#         if round(t/t_step) % 5 == 0:
+#             fig, ax = plt.subplots()
+#             fig.dpi = 300
+#             ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+#                     np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+#                     ,'ro')
+#             ax.plot(bem.x,
+#                     bem.y,
+#                     'k')
+#             ax.axis("equal")
+#             plt.savefig(str(round(t/t_step)) + '.png')
+#             plt.clf()    
 
-#####################################################################################    
+# #####################################################################################    
 
-        field.advect(bem,t_step)
+#         field.advect(bem,t_step,t)
 
-        cl[round(t/t_step)] = bem.calc_cl(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                                               np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                                               np.concatenate((field.tev, field.lev, field.ext)),
-                                               t, t_step)
+#         cl[round(t/t_step)] = bem.calc_cl(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+#                                                np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+#                                                np.concatenate((field.tev, field.lev, field.ext)),
+#                                                t, t_step)
 
-fig, ax = plt.subplots()
-fig.dpi = 300
-ax.plot(td,cl)
+# fig, ax = plt.subplots()
+# fig.dpi = 300
+# ax.plot(td,cl)
 
-fig.savefig('cl1' + '.png')
-fig.clf()    
-plt.close()
+# fig.savefig('cl1' + '.png')
+# fig.clf()    
+# plt.close()
 

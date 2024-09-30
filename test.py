@@ -21,14 +21,14 @@ start = time.time()
 # Initialise problem
 rho = 1.225
 U_ref = 8
-alpha_eff = np.deg2rad(0)   
+alpha_eff = np.deg2rad(4)   
 
 t_step = 0.00125
 no_steps = 400
 
 no_bem = 12 
 
-frequency = 2
+frequency = 4
 amp = 42.5
 
 # Time span
@@ -38,7 +38,7 @@ t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
 wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
 # Defining root kinematics that will drive morphing
-root_kin = lambda x: 1*(- 0.05 - 0.01) #+ 0.01*np.sin(2 * np.pi * frequency * x)) 
+root_kin = lambda x: 1*(- 0.05 - 0.01 + 0.01*np.sin(2 * np.pi * frequency * x)) 
 
        
 # Initialising array for storing BEM kinematics
@@ -88,8 +88,8 @@ def pool_handler():
 a = pool_handler()
 
 # Results accumulation matrices 
-cl_mat = np.zeros((no_bem,no_steps-1))
-r_mat = r_pos_temp[:,:-2]
+cl_mat = np.zeros((no_bem,no_steps))
+r_mat = r_pos_temp[:,:-1]
 
 # Processing results for each blade element
 for results in a:
