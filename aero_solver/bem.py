@@ -14,7 +14,7 @@ import io
 
 PI_inv = 1 / math.pi
 
-def bem(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
+def bem_old(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
     frames = []
 
