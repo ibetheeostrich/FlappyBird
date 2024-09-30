@@ -417,7 +417,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
     h = lambda t: kin.r[round(t / t_step)] * kin.aa - kin.r[round(t / t_step)] * kin.aa * np.cos(2 * np.pi * kin.f * (t))
     alpha = lambda t: alpha_eff
 
-    lesp_crit = 0.2
+    lesp_crit = 0.5*chords[0]
 
     be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
@@ -436,35 +436,40 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
             be.kelvinkutta(field,0.001,t)
 
             be.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                               np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                               np.concatenate((field.tev, field.lev, field.ext)),
-                               t)
+                              np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                              np.concatenate((field.tev, field.lev, field.ext)),
+                              t)
 
-            if be.fourier[0] > lesp_crit:          
+            if abs(be.fourier[0]) > lesp_crit:          
 
                 field.shed_lev(be)
 
                 be.kelvinlesp(field, 0.001, lesp_crit, t)
 
                 be.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                                   np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                                   np.concatenate((field.tev, field.lev, field.ext)),
-                                   t)
+                                  np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                                  np.concatenate((field.tev, field.lev, field.ext)),
+                                  t)
 
     #####################################################################################    
 
-            if round(t/t_step) % 5 == 0 and tag == 5:
-                fig, ax = plt.subplots()
-                fig.dpi = 300
-                ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                        np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-                        ,'ro')
-                ax.plot(be.x,
-                        be.y,
-                        'k')
-                ax.axis("equal")
-                plt.savefig(str(round(t/t_step)) + '.png')
-                plt.clf()    
+            # if round(t/t_step) % 5 == 0 and tag == 10:
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+            #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+            #             ,'ro')
+            #     ax.plot(be.x,
+            #             be.y,
+            #             'k')
+            #     ax.axis("equal")
+            #     ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+            #     ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+            #     plt.savefig(str(round(t/t_step)) + '.png')
+            #     plt.clf()   
+
+                            
+            #     print(t) 
 
     #####################################################################################    
 
@@ -474,8 +479,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
                                              np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
                                              np.concatenate((field.tev, field.lev, field.ext)),
                                              t, t_step)
-            
-            print(t)
+
 
     return tag, cl, td, np.concatenate((field.tev_x, field.lev_x, field.ext_x)), np.concatenate((field.tev_y, field.lev_y, field.ext_y)), np.concatenate((field.tev, field.lev, field.ext)), 1
 

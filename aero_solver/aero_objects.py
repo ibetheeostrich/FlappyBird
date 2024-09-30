@@ -209,7 +209,7 @@ class camber_line:
 
         # print(cnc, cnnc, non1, self.alpha(t))
 
-        return cn*np.cos(self.alpha(t)) + cs*np.sin(self.alpha(t))
+        return (self.c(t)*0.5*1.225*self.x_dot(t)**2)*(cn*np.cos(self.alpha(t)) + cs*np.sin(self.alpha(t)))
 
 class vorticity_field:
 
@@ -367,84 +367,5 @@ def V_ind_b_fast_4(camber_line, x_n, y_n, v_core,t):
 
     return u_ind, v_ind
 
-# chords = 1 + np.zeros(400)
-# cl = np.zeros(400)
 
-# t_step = 0.02
-# td = np.linspace(0,400*t_step,400,endpoint=False)
-
-
-# x_dot = lambda t: 0.75
-# h_dot = lambda t: 0.0 #0.5 * 0.5 * np.pi * np.sin(0.5 * np.pi * t)
-# alpha_dot = lambda t: 0.25*np.pi*np.pi/4*np.sin(0.25*np.pi*t)
-
-# u = lambda t: 0.75*t
-# h = lambda t: 0.0 #0.5 - 0.5 * np.cos(0.5 * np.pi*t)
-# alpha = lambda t: np.pi/4 - np.pi/4*np.cos(0.25*np.pi*t)
-
-# lesp_crit = 0.05
-
-# bem = camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
-
-# field = vorticity_field(chords[0])
-
-# for t in td:
-
-#     if t > 0:
-        
-#         bem.fourier_old = deepcopy(bem.fourier) 
-
-#         bem.update_pos(t)
-
-#         field.shed_tev(bem)
-
-#         bem.kelvinkutta(field,0.001,t)
-
-#         bem.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-#                            np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-#                            np.concatenate((field.tev, field.lev, field.ext)),
-#                            t)
-        
-#         if bem.fourier[0] > lesp_crit:          
-            
-#             field.shed_lev(bem)
-
-#             bem.kelvinlesp(field, 0.001, lesp_crit, t)
-
-#             bem.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-#                                np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-#                                np.concatenate((field.tev, field.lev, field.ext)),
-#                                t)
-
-# #####################################################################################    
-
-#         if round(t/t_step) % 5 == 0:
-#             fig, ax = plt.subplots()
-#             fig.dpi = 300
-#             ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-#                     np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-#                     ,'ro')
-#             ax.plot(bem.x,
-#                     bem.y,
-#                     'k')
-#             ax.axis("equal")
-#             plt.savefig(str(round(t/t_step)) + '.png')
-#             plt.clf()    
-
-# #####################################################################################    
-
-#         field.advect(bem,t_step,t)
-
-#         cl[round(t/t_step)] = bem.calc_cl(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-#                                                np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-#                                                np.concatenate((field.tev, field.lev, field.ext)),
-#                                                t, t_step)
-
-# fig, ax = plt.subplots()
-# fig.dpi = 300
-# ax.plot(td,cl)
-
-# fig.savefig('cl1' + '.png')
-# fig.clf()    
-# plt.close()
 
