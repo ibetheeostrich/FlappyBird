@@ -410,14 +410,13 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
     td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
     x_dot = lambda t: U_ref
-    h_dot = lambda t: 2 * np.pi * kin.f * kin.r[round(t / t_step)] * kin.aa * np.sin(2 * np.pi * kin.f * (t))
-    alpha_dot = lambda t: 0.0 #lambda t: 0.25*np.pi*np.pi/4*np.sin(0.25*np.pi*t)
-
+    h_dot = lambda t: 2 * np.pi * kin.f * kin.r[round((t) / t_step)] * kin.aa * np.sin(2 * np.pi * kin.f * (t)) #if t > 0.02 else 0.0
+    alpha_dot = lambda t: 0.0 #if t > 0.02 else 50*np.pi*alpha_eff*np.sin(50*np.pi*t)
     u = lambda t: U_ref*t
-    h = lambda t: kin.r[round(t / t_step)] * kin.aa - kin.r[round(t / t_step)] * kin.aa * np.cos(2 * np.pi * kin.f * (t))
-    alpha = lambda t: alpha_eff
+    h = lambda t: kin.r[round((t) / t_step)] * kin.aa - kin.r[round((t) / t_step)] * kin.aa * np.cos(2 * np.pi * kin.f * (t)) #if t > 0.02 else 0.0
+    alpha = lambda t: alpha_eff #if t > 0.02 else alpha_eff - alpha_eff * np.cos(50*np.pi*t)
 
-    lesp_crit = 0.5*chords[0]
+    lesp_crit = 0.2
 
     be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
@@ -435,41 +434,31 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
 
             be.kelvinkutta(field,0.001,t)
 
-            be.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                              np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                              np.concatenate((field.tev, field.lev, field.ext)),
-                              t)
-
             if abs(be.fourier[0]) > lesp_crit:          
 
                 field.shed_lev(be)
 
                 be.kelvinlesp(field, 0.001, lesp_crit, t)
 
-                be.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                                  np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
-                                  np.concatenate((field.tev, field.lev, field.ext)),
-                                  t)
-
     #####################################################################################    
 
-            # if round(t/t_step) % 5 == 0 and tag == 10:
-            #     fig, ax = plt.subplots()
-            #     fig.dpi = 300
-            #     ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-            #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-            #             ,'ro')
-            #     ax.plot(be.x,
-            #             be.y,
-            #             'k')
-            #     ax.axis("equal")
-            #     ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
-            #     ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
-            #     plt.savefig(str(round(t/t_step)) + '.png')
-            #     plt.clf()   
+            if round(t/t_step) % 5 == 0 and tag == 4:
+                fig, ax = plt.subplots()
+                fig.dpi = 300
+                ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                        np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+                        ,'ro')
+                ax.plot(be.x,
+                        be.y,
+                        'k')
+                ax.axis("equal")
+                ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+                ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+                plt.savefig(str(round(t/t_step)) + '.png')
+                plt.clf()   
 
                             
-            #     print(t) 
+            print(t) 
 
     #####################################################################################    
 

@@ -176,7 +176,6 @@ class camber_line:
     def calc_cl(self, x_N, y_N,  Gamma_N, t, t_step):
 
         v_core = 0.02 * self.c(t)
-        xi = 0.5 * self.c(t) * (1 - np.cos(self.theta))
 
         u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
 
@@ -195,13 +194,13 @@ class camber_line:
                                                self.fourier[0] + 0.5 * self.fourier[1]
                                            )
         
-        cnnc = 2.0*np.pi / self.x_dot(t) / self.c(t) * (
+        cnnc = 2.0*np.pi / self.x_dot(t) * self.c(t) * (
             0.75  * (self.fourier[0] - self.fourier_old[0]) / t_step + 
             0.25  * (self.fourier[1] - self.fourier_old[1]) / t_step + 
             0.125 * (self.fourier[2] - self.fourier_old[2]) / t_step
         )
 
-        non1 = 2/self.x_dot(t)/self.x_dot(t)/self.c(t) * inte.trapezoid(dphi_dxi*dphi_dxi,self.theta)
+        non1 = 1/self.x_dot(t)/self.x_dot(t) * inte.trapezoid(dphi_dxi*fourier_inf,self.theta)
 
         cn = cnc + cnnc + non1
 
@@ -209,7 +208,7 @@ class camber_line:
 
         # print(cnc, cnnc, non1, self.alpha(t))
 
-        return (self.c(t)*0.5*1.225*self.x_dot(t)**2)*(cn*np.cos(self.alpha(t)) + cs*np.sin(self.alpha(t)))
+        return (cn*np.cos(self.alpha(t)) + cs*np.sin(self.alpha(t)))
 
 class vorticity_field:
 
@@ -352,14 +351,13 @@ def V_ind_b_fast_4(camber_line, x_n, y_n, v_core,t):
 
         fourier_inf += camber_line.fourier[i]*np.sin(i*camber_line.theta)*np.sin(camber_line.theta)
 
-    x_s  = (x_n - camber_line.x) / np.sqrt(((x_n - camber_line.x)**2 + 
-                                            (y_n - camber_line.y)**2)**2 
-                                            + v_core**4)
-
-    y_s  = (y_n - camber_line.y) / np.sqrt(((x_n - camber_line.x)**2 + 
-                                            (y_n - camber_line.y)**2)**2 + 
-                                            v_core**4)
+    inv = 1/np.sqrt(((x_n - camber_line.x)**2 + 
+                     (y_n - camber_line.y)**2)**2 + 
+                     v_core**4)
  
+
+    x_s  = (x_n - camber_line.x) * inv
+    y_s  = (y_n - camber_line.y) * inv
     
     u_ind = 0.5 * camber_line.c(t) * camber_line.x_dot(t) * inte.trapezoid(y_s*fourier_inf,camber_line.theta) / np.pi
 
