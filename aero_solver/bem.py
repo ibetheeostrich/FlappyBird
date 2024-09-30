@@ -3,7 +3,7 @@ import aero_solver.pot_func_simp as aero
 import numpy as np
 from copy import deepcopy
 import scipy.integrate as inte
-
+import aero_solver.aero_objects as ao
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -404,8 +404,81 @@ def bem_old(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
     return tag, cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth
     
 
+def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
+
+    cl = np.zeros(no_steps)
+    td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
 
+    x_dot = lambda t: 8
+    h_dot = lambda t: 0.5 * 0.5 * np.pi * np.sin(0.5 * np.pi * t)
+    alpha_dot = lambda t: 0.0 #lambda t: 0.25*np.pi*np.pi/4*np.sin(0.25*np.pi*t)
+
+    u = lambda t: 8*t
+    h = lambda t: 0.5 - 0.5 * np.cos(0.5 * np.pi*t)
+    alpha = lambda t: 4/180*np.pi #lambda t: np.pi/4 - np.pi/4*np.cos(0.25*np.pi*t)
+
+    lesp_crit = 0.05
+
+    be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
+
+    field   = ao.vorticity_field(chords[0])
+
+    for t in td:
+
+        if t > 0:
+
+            be.fourier_old = deepcopy(be.fourier) 
+
+            be.update_pos(t)
+
+            field.shed_tev(be)
+
+            be.kelvinkutta(field,0.001,t)
+
+            be.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                               np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                               np.concatenate((field.tev, field.lev, field.ext)),
+                               t)
+
+            if be.fourier[0] > lesp_crit:          
+
+                field.shed_lev(be)
+
+                be.kelvinlesp(field, 0.001, lesp_crit, t)
+
+                be.update_fourier(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                                   np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                                   np.concatenate((field.tev, field.lev, field.ext)),
+                                   t)
+
+    #####################################################################################    
+
+            # if round(t/t_step) % 5 == 0:
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+            #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+            #             ,'ro')
+            #     ax.plot(be.x,
+            #             be.y,
+            #             'k')
+            #     ax.axis("equal")
+            #     plt.savefig(str(round(t/t_step)) + '.png')
+            #     plt.clf()    
+
+    #####################################################################################    
+
+            field.advect(be,t_step)
+
+            cl[round(t/t_step)] = be.calc_cl(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                                             np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                                             np.concatenate((field.tev, field.lev, field.ext)),
+                                             t, t_step)
+            
+            print(t)
+
+    return tag, cl, td[0:-1], np.concatenate((field.tev_x, field.lev_x, field.ext_x)), np.concatenate((field.tev_y, field.lev_y, field.ext_y)), np.concatenate((field.tev, field.lev, field.ext)), 1
 
 
 

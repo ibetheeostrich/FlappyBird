@@ -207,7 +207,7 @@ class camber_line:
 
         cs = 2*np.pi*self.fourier[0]**2
 
-        print(cnc, cnnc, non1, self.alpha(t))
+        # print(cnc, cnnc, non1, self.alpha(t))
 
         return cn*np.cos(self.alpha(t)) + cs*np.sin(self.alpha(t))
 
@@ -418,18 +418,18 @@ for t in td:
 
 #####################################################################################    
 
-        if round(t/t_step) % 5 == 0:
-            fig, ax = plt.subplots()
-            fig.dpi = 300
-            ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                    np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-                    ,'ro')
-            ax.plot(bem.x,
-                    bem.y,
-                    'k')
-            ax.axis("equal")
-            plt.savefig(str(round(t/t_step)) + '.png')
-            plt.clf()    
+        # if round(t/t_step) % 5 == 0:
+        #     fig, ax = plt.subplots()
+        #     fig.dpi = 300
+        #     ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+        #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+        #             ,'ro')
+        #     ax.plot(bem.x,
+        #             bem.y,
+        #             'k')
+        #     ax.axis("equal")
+        #     plt.savefig(str(round(t/t_step)) + '.png')
+        #     plt.clf()    
 
 #####################################################################################    
 

@@ -49,17 +49,6 @@ class blade_element_kinematics:
 
         return a - a * np.cos(2 * np.pi * self.f * (t)) - self.V_ref*t
 
-        # if t < 0.05*4:
-        #     return 0
-        
-        # elif t < 0.3*4:
-
-        #     return self.U_ref*np.sin(0.25*4/(np.pi/180*25) * (t-0.5*4)) * self.t_step
-        
-        # else:
-
-        #     return self.U_ref*np.sin(0.2*45/(np.pi/180*25) * (0.3*4-0.5*4)) * self.t_step
-
 
     def h_dot(self, t):
 
@@ -69,17 +58,7 @@ class blade_element_kinematics:
 
         return 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t)) - self.V_ref
         
-        # if t < 0.05*4:
-        #     return 0
-        
-        # elif t < 0.3*4:
 
-        #     return self.U_ref*np.sin(0.25*4/(np.pi/180*25) * (t-0.5*4))
-    
-        # else:
-
-        #     return self.U_ref*np.sin(0.25*4/(np.pi/180*25) * (0.3*4-0.5*4))
-        
 #################################################################################
 #               QUARANTINE                                                      #
 #################################################################################
@@ -88,17 +67,7 @@ class blade_element_kinematics:
 
         index = round(t / self.t_step)
 
-        return self.U_ref*t - self.le[index]
-        # if t < 0.05*4:
-        #     return 0
-
-        # elif t < 0.3*4:
-
-        #     return self.U_ref*np.cos(0.25*4/(np.pi/180*25) * (t-0.5*4)) * self.t_step    
-
-        # else:
-
-        #     return self.U_ref*np.cos(0.25*4/(np.pi/180*25) * (0.3*4-0.5*4)) * self.t_step    
+        return self.U_ref*t - self.le[index] 
         
     def pos_dot(self, t):
 
@@ -106,16 +75,6 @@ class blade_element_kinematics:
 
         return self.U_ref - (self.le[index + 1] - self.le[index]) / self.t_step
         
-        # if t < 0.05*4:
-        #     return 0
-
-        # elif t < 0.3*4:
-
-        #     return self.U_ref*np.cos(0.25*4/(np.pi/180*25) * (t-0.5*4)) 
-        
-        # else:
-
-        #     return self.U_ref*np.cos(0.25*4/(np.pi/180*25) * (0.3*4-0.5*4)) 
 #################################################################################
 
 
