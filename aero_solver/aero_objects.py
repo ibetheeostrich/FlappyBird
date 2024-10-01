@@ -208,7 +208,7 @@ class camber_line:
 
         # print(cnc, cnnc, non1, self.alpha(t))
 
-        return (cn*np.cos(self.alpha(t)) + cs*np.sin(self.alpha(t)))
+        return (0.5*1.225*self.x_dot(t)**2)*(cn*np.cos(self.alpha(t)) + cs*np.sin(self.alpha(t)))*self.c(t)
 
 class vorticity_field:
 

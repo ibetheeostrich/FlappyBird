@@ -409,10 +409,10 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
     cl = np.zeros(no_steps)
     td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
-    x_dot = lambda t: U_ref
+    x_dot = lambda t: U_ref - (kin.le[round(t/t_step) + 1] - kin.le[round(t/t_step)]) / t_step
     h_dot = lambda t: 2 * np.pi * kin.f * kin.r[round((t) / t_step)] * kin.aa * np.sin(2 * np.pi * kin.f * (t)) #if t > 0.02 else 0.0
     alpha_dot = lambda t: 0.0 #if t > 0.02 else 50*np.pi*alpha_eff*np.sin(50*np.pi*t)
-    u = lambda t: U_ref*t
+    u = lambda t: U_ref*t - kin.le[round(t/t_step)] 
     h = lambda t: kin.r[round((t) / t_step)] * kin.aa - kin.r[round((t) / t_step)] * kin.aa * np.cos(2 * np.pi * kin.f * (t)) #if t > 0.02 else 0.0
     alpha = lambda t: alpha_eff #if t > 0.02 else alpha_eff - alpha_eff * np.cos(50*np.pi*t)
 
