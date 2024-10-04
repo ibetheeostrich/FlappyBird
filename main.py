@@ -20,10 +20,10 @@ start = time.time()
 
 # Initialise problem
 rho = 1.225
-U_ref = 12.0
+U_ref = 14.0
 alpha_eff = np.deg2rad(0)   
 
-scale = 2.0
+scale = 0.5
 
 t_step = 0.00125*scale
 no_steps = round(400*2/3/scale)
@@ -158,8 +158,8 @@ def main():
 
     print(time.time()-start)
 
-    np.savetxt(f"{t_step:.7f}_{U_ref:.1f}_{frequency:.1f}" + '.csv', np.transpose(np.vstack((l_int,d_int,td))),  
-              delimiter = ",")
+    # np.savetxt(f"{t_step:.7f}_{U_ref:.1f}_{frequency:.1f}" + 'test' + '.csv', np.transpose(np.vstack((l_int,d_int,td))),  
+    #           delimiter = ",")
 
 if __name__ == "__main__":
     main()

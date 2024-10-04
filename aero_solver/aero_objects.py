@@ -13,7 +13,6 @@ class camber_line:
     
         self.c = lambda t: chords[round(t/t_step)]
         self.le_pos = 0
-        self.alpha = 0
 
         self.theta = np.linspace(0,np.pi,no_fourier*2,endpoint=True)
         self.x = 0.5*chords[0]*(1-np.cos(self.theta))
@@ -190,7 +189,7 @@ class camber_line:
         fourier_inf *= self.x_dot(t) * self.c(t)
 
         cnc = 2.0*np.pi / self.x_dot(t) * (self.x_dot(t) * np.cos(self.alpha(t)) + 
-                                           self.h_dot(t)*np.sin(self.alpha(t))) * (
+                                           self.h_dot(t) * np.sin(self.alpha(t))) * (
                                                self.fourier[0] + 0.5 * self.fourier[1]
                                            )
         
@@ -200,9 +199,12 @@ class camber_line:
             0.125 * (self.fourier[2] - self.fourier_old[2]) / t_step
         )
 
-        non1 = 1/self.x_dot(t)/self.x_dot(t) * inte.trapezoid(dphi_dxi*fourier_inf,self.theta)
+        non1 = 2/self.x_dot(t)/self.x_dot(t)/self.c(t) * inte.trapezoid(dphi_dxi*fourier_inf,self.theta)
 
         cn = cnc + cnnc + non1
+
+        # if t > 0.20:
+        #     print(f"{cnc:.8f}", f"{cnnc:.8f}", f"{non1:.8f}", self.fourier[0], self.fourier[1])
 
         cs = 2*np.pi*self.fourier[0]**2
 

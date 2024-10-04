@@ -419,8 +419,6 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
     h = lambda t: kin.r[round((t) / t_step)] * kin.aa - kin.r[round((t) / t_step)] * kin.aa * np.cos(2 * np.pi * kin.f * (t)) #if t > 0.02 else 0.0
     alpha = lambda t: alpha_eff
 
-    lesp_crit = 0.15
-
     be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
     field   = ao.vorticity_field(chords[0])
@@ -428,6 +426,8 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
     for t in td:
 
         if t > 0:
+
+            lesp_crit = 0.19#np.sqrt(x_dot(t)**2 + h_dot(t)**2) * 1.225 * chords[round(t/t_step)] / 15
 
             be.fourier_old = deepcopy(be.fourier) 
 
@@ -461,7 +461,8 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
             #     plt.clf()   
 
                             
-            print(t) 
+            # print(lesp_crit) 
+            # print(x_dot(t))
 
     #####################################################################################    
 
@@ -531,7 +532,7 @@ def bem_span(tag, chords, t_step, no_steps, freq, amp):
                 plt.clf()   
 
                             
-            print(t) 
+            # print(t) 
 
     #####################################################################################    
 
