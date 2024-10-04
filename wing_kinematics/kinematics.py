@@ -42,44 +42,6 @@ class blade_element_kinematics:
         self.t_step = t_step
 
 
-#################################################################################
-#               QUARANTINE                                                      #
-#################################################################################
-
-    # def h(self, t):
-
-    #     index = round(t / self.t_step)
-
-    #     a = self.r[index] * self.aa
-
-    #     return a - a * np.cos(2 * np.pi * self.f * (t)) - self.V_ref*t
-
-
-    # def h_dot(self, t):
-
-    #     index = round(t / self.t_step)
-
-    #     a = self.r[index] * self.aa
-
-    #     return 2 * np.pi * self.f * a * np.sin(2 * np.pi * self.f * (t)) - self.V_ref
-    
-
-    # def pos(self, t):
-
-    #     index = round(t / self.t_step)
-
-    #     return self.U_ref*t - self.le[index] 
-        
-    # def pos_dot(self, t):
-
-    #     index = round(t / self.t_step)
-
-    #     return self.U_ref - (self.le[index + 1] - self.le[index]) / self.t_step
-        
-#################################################################################
-
-
-
 class wing_kinematics:
 
     def __init__(self, I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out,F_I, F_II, A_I, A_II):
@@ -108,6 +70,66 @@ class wing_kinematics:
 
         self.A_I = A_I
         self.A_II = A_II
+
+    def kin_2d_plot(self,root_pos):
+        '''
+        t = current time step
+        root_kin = kinematics of the root shoulder joint
+        '''
+
+        # Shoulder positions
+        sa = np.array([0, 0])
+
+        s1 = np.array([root_pos, 0])
+
+        s3 = np.array([
+            - (self.I**2 - self.III_in**2 - s1[0]**2) * 0.5 / s1[0],
+            np.sqrt(self.III_in**2 - ((self.I**2 - self.III_in**2 - s1[0]**2) * 0.5 / s1[0])**2)
+        ])
+
+        s2 = (s3 -s1) * self.I_in / self.I + s1
+
+
+        # Elbow positions
+        e2 = s3 * self.III / self.III_in
+
+        temp_D = np.linalg.norm(e2-s2)
+
+        temp_X = - (self.IV_in**2 - self.II_in**2 - temp_D**2) / (2*temp_D)
+
+        temp_Y = np.sqrt(self.II_in**2 - temp_X**2)
+
+        e1 = np.array([
+            (temp_X * (e2[0] - s2[0]) + temp_Y * (s2[1] - e2[1])) / temp_D + s2[0],
+            (temp_X * (e2[1] - s2[1]) + temp_Y * (e2[0] - s2[0])) / temp_D + s2[1]
+        ])
+
+        e3 = (e1 - s2) * self.II/self.II_in + s2
+
+        # Look at the flick of the wrist
+        w1 = (e2-e1) * self.IV/self.IV_in + e1
+
+        temp_D = np.linalg.norm(w1-e3)
+
+        temp_X = - (self.VI_in**2 - self.V**2 - temp_D**2) / (2*temp_D)
+
+        temp_Y = np.sqrt(self.V**2 - temp_X**2)
+
+        w2 = np.array([
+            (temp_X * (w1[0] - e3[0]) + temp_Y * (e3[1] - w1[1])) / temp_D + e3[0],
+            (temp_X * (w1[1] - e3[1]) + temp_Y * (w1[0] - e3[0])) / temp_D + e3[1]
+        ])        
+
+        # Fingertips
+        f3 = (w2 - w1) * self.VI / self.VI_in + w1
+
+        int1 = (w2 - e3) / np.linalg.norm(w2 - e3) * (self.V-self.A_I) + e3
+        f1 = (int1 - w1) / np.linalg.norm(int1 - w1) * self.F_I + w1
+
+        int1 = (w2 - e3) / np.linalg.norm(w2 - e3) * (self.V-self.A_II) + e3
+        f2 = (int1 - w1) / np.linalg.norm(int1 - w1) * self.F_II + w1
+
+        return np.array([sa, s1, s2, s3, e1, e2, e3, w1, w2, f1, f2, f3])
 
     def kin_2d_V2(self, t, root_kin):
         '''

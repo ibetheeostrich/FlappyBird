@@ -407,16 +407,19 @@ def bem_old(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
 
     cl = np.zeros(no_steps)
+    cd = np.zeros(no_steps)
+
     td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
     x_dot = lambda t: U_ref - (kin.le[round(t/t_step) + 1] - kin.le[round(t/t_step)]) / t_step
     h_dot = lambda t: 2 * np.pi * kin.f * kin.r[round((t) / t_step)] * kin.aa * np.sin(2 * np.pi * kin.f * (t)) #if t > 0.02 else 0.0
-    alpha_dot = lambda t: 0.0 #if t > 0.02 else 50*np.pi*alpha_eff*np.sin(50*np.pi*t)
+    alpha_dot = lambda t: 0.0 
+
     u = lambda t: U_ref*t - kin.le[round(t/t_step)] 
     h = lambda t: kin.r[round((t) / t_step)] * kin.aa - kin.r[round((t) / t_step)] * kin.aa * np.cos(2 * np.pi * kin.f * (t)) #if t > 0.02 else 0.0
-    alpha = lambda t: alpha_eff #if t > 0.02 else alpha_eff - alpha_eff * np.cos(50*np.pi*t)
+    alpha = lambda t: alpha_eff
 
-    lesp_crit = 0.2
+    lesp_crit = 0.15
 
     be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
@@ -442,7 +445,79 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
 
     #####################################################################################    
 
-            if round(t/t_step) % 5 == 0 and tag == 4:
+            # if round(t/t_step) % 5 == 0 and tag == 4:
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+            #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+            #             ,'ro')
+            #     ax.plot(be.x,
+            #             be.y,
+            #             'k')
+            #     ax.axis("equal")
+            #     ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+            #     ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+            #     plt.savefig(str(round(t/t_step)) + '.png')
+            #     plt.clf()   
+
+                            
+            print(t) 
+
+    #####################################################################################    
+
+            field.advect(be,t_step,t)
+
+            cl[round(t/t_step)], cd[round(t/t_step)] = be.calc_cl(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                                             np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                                             np.concatenate((field.tev, field.lev, field.ext)),
+                                             t, t_step)
+
+
+    return tag, cl, cd, td, np.concatenate((field.tev_x, field.lev_x, field.ext_x)), np.concatenate((field.tev_y, field.lev_y, field.ext_y)), np.concatenate((field.tev, field.lev, field.ext)), 1
+
+
+def bem_span(tag, chords, t_step, no_steps, freq, amp):
+
+    cl = np.zeros(no_steps)
+    cd = np.zeros(no_steps)
+
+    td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
+
+    x_dot = lambda t: 0.0000000000000000001
+    h_dot = lambda t: 0.0
+    alpha_dot = lambda t: 2 * np.pi * freq * amp * np.sin(2 * np.pi * freq * t)
+
+    u = lambda t: 0.0
+    h = lambda t: 0.0
+    alpha = lambda t: amp - amp * np.cos(2 * np.pi * freq * t)
+
+    lesp_crit = 100.15
+
+    be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
+
+    field   = ao.vorticity_field(chords[0])
+
+    for t in td:
+
+        if t > 0:
+
+            be.fourier_old = deepcopy(be.fourier)   
+
+            be.update_pos(t)
+
+            field.shed_tev(be)
+
+            be.kelvinkutta(field,0.001,t)
+
+            # if abs(be.fourier[0]) > lesp_crit:          
+
+            #     field.shed_lev(be)
+
+            #     be.kelvinlesp(field, 0.001, lesp_crit, t)
+
+    #####################################################################################    
+
+            if True:
                 fig, ax = plt.subplots()
                 fig.dpi = 300
                 ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
@@ -452,8 +527,6 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
                         be.y,
                         'k')
                 ax.axis("equal")
-                ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
-                ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
                 plt.savefig(str(round(t/t_step)) + '.png')
                 plt.clf()   
 
@@ -464,13 +537,10 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
 
             field.advect(be,t_step,t)
 
-            cl[round(t/t_step)] = be.calc_cl(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+            cl[round(t/t_step)], cd[round(t/t_step)] = be.calc_cl(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
                                              np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
                                              np.concatenate((field.tev, field.lev, field.ext)),
                                              t, t_step)
 
 
-    return tag, cl, td, np.concatenate((field.tev_x, field.lev_x, field.ext_x)), np.concatenate((field.tev_y, field.lev_y, field.ext_y)), np.concatenate((field.tev, field.lev, field.ext)), 1
-
-
-
+    return tag, cl, cd, td
