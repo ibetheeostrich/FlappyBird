@@ -26,7 +26,6 @@ alpha_eff = np.deg2rad(0)
 scale = 0.5
 
 t_step = 0.00125*scale
-no_steps = round(400*2/3/scale)
 
 no_bem = 12 
 
@@ -34,6 +33,8 @@ frequency = 3
 amp = 42.5
 
 # Time span
+no_steps = round(400*2/frequency/scale)
+
 t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
 
 def wing_plot():
@@ -55,7 +56,7 @@ def main():
     wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
     # Defining root kinematics that will drive morphing
-    root_kin = lambda x: 1*(- 0.05 - 0.01 - 0.01*np.sin(2 * np.pi * frequency * x)) 
+    root_kin = lambda x: 1*(- 0.0585- 0.0125*np.sin(2 * np.pi * frequency * x)) 
 
 
     # Initialising array for storing BEM kinematics
@@ -158,8 +159,8 @@ def main():
 
     print(time.time()-start)
 
-    # np.savetxt(f"{t_step:.7f}_{U_ref:.1f}_{frequency:.1f}" + 'test' + '.csv', np.transpose(np.vstack((l_int,d_int,td))),  
-    #           delimiter = ",")
+    np.savetxt(f"{t_step:.7f}_{U_ref:.1f}_{frequency:.1f}" + 'test' + '.csv', np.transpose(np.vstack((l_int,d_int,td))),  
+              delimiter = ",")
 
 if __name__ == "__main__":
     main()

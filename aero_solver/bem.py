@@ -427,7 +427,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
 
         if t > 0:
 
-            lesp_crit = 0.19#np.sqrt(x_dot(t)**2 + h_dot(t)**2) * 1.225 * chords[round(t/t_step)] / 15
+            lesp_crit = 0.16#np.sqrt(x_dot(t)**2 + h_dot(t)**2) * 1.225 * chords[round(t/t_step)] / 15
 
             be.fourier_old = deepcopy(be.fourier) 
 
@@ -445,7 +445,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
 
     #####################################################################################    
 
-            # if round(t/t_step) % 5 == 0 and tag == 4:
+            # if round(t/t_step) % 5 == 0 and tag == 9:
             #     fig, ax = plt.subplots()
             #     fig.dpi = 300
             #     ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
