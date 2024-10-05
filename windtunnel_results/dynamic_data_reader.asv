@@ -79,9 +79,9 @@ for i = 1:length(file_list)
         plot(time_scaled,new_lift1p,'LineWidth',1.7)
         hold on
     
-        plot(time_scaled,lift(ind(2):ind(3)), 'Color', [0,0,1,0.1])
-        plot(time_scaled,new_drag1p,'LineWidth',1.7)
-        plot(time_scaled,drag(ind(2):ind(3)), 'Color', [1,0,0,0.1])
+        plot(time(ind(2):ind(3))-time(ind(2)),lift(ind(2):ind(3)), 'Color', [0,0,1,0.1])
+        plot(time_scaled,new_lift1p,'LineWidth',1.7)
+        plot(time(ind(2):ind(3))-time(ind(2)),drag(ind(2):ind(3)), 'Color', [1,0,0,0.1])
 
     end
     
