@@ -17,30 +17,57 @@ import time
 
 import os
 
-start = time.time()
+import csv
 
+# Initialise problem based off wind tunnel data
 
-# Initialise problem
+wt_path = './windtunnel_results/DYNAMIC ALL (CLEAN1P)/'
+wt_results = os.listdir(wt_path)
+
+case = wt_results[0]
+
+params = case.split('_')
+
 rho = 1.225
-U_ref = 14.0
-alpha = 0.0
+U_ref = float(params[1][:-2])
+alpha = float(params[0][:-3])
 alpha_eff = np.deg2rad(alpha)   
 
 scale = 0.5
 
-t_step = 0.00125*scale
-
 no_bem = 12 
 
-frequency = 3
-amp = 42.5
-
-lesp = 0.16
+frequency = float(params[2][:-6])
 
 # Time span
-no_steps = round(400*2/frequency/scale)
+t_end = 1/frequency
 
-t_span = np.linspace(0.0, t_step*no_steps, no_steps, endpoint=False)
+t_step = 0.001
+
+no_steps = 400
+
+t_span = np.linspace(0.0, t_end, no_steps, endpoint=False)
+
+amp = 42.5
+
+lesp = 0.6
+
+# get data from csv
+
+wt_lift = [] 
+wt_drag = [] 
+wt_time = []
+
+with open(wt_path + case,'r') as csvfile: 
+    lines = csv.reader(csvfile, delimiter=',') 
+    for row in lines: 
+        wt_lift.append(row[0]) 
+        wt_drag.append(row[1])
+        wt_time.append(row[2])
+
+wt_lift = np.array(wt_lift[1:], dtype=np.float32)  
+wt_drag = np.array(wt_drag[1:], dtype=np.float32)  
+wt_time = np.array(wt_time[1:], dtype=np.float32)
 
 def wing_plot():
     t = 0.0
@@ -56,6 +83,8 @@ def wing_plot():
               delimiter = ",")  
 
 def main():
+    
+    start = time.time()
 
     # Initialises the geometry and allows the kinematics to be solved
     wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
@@ -154,8 +183,11 @@ def main():
 
     fig, ax = plt.subplots()
     fig.dpi = 300
-    ax.plot(td, l_int)
-    ax.plot(td, d_int)
+    ax.plot(td, l_int,'r')
+    ax.plot(td, d_int,'g')
+
+    ax.plot(wt_time,wt_lift,'b')
+    ax.plot(wt_time,wt_drag,'y')
 
     ax.set_xlabel('Time  (s)')
     ax.set_ylabel('Lift Force (n)')
