@@ -52,7 +52,7 @@ class camber_line:
         Gamma_b = pi * self.c(t) * self.x_dot(t) * (self.fourier[0] + self.fourier[1] * 0.5)
         # Gamma_b = self.U_ref * c * inte.trapezoid(fourier_inf,theta)
 
-        return Gamma_b + sum(Gamma_N)
+        return Gamma_b + sum(Gamma_N) - self.alpha(0.0)*self.x_dot(0.0)*pi*self.c(0.0)
     
     def kelvinkutta_a0_a1(self, v_field, dh, t):
 
@@ -210,7 +210,8 @@ class camber_line:
         cl = (0.5*1.225*self.x_dot(t)**2)*(cn*cos(self.alpha(t)) + cs*sin(self.alpha(t)))*self.c(t)
         cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
 
-        return cl, cd 
+        # return cl, cd 
+        return (0.5*1.225*self.x_dot(t)**2)*cn*self.c(t), (0.5*1.225*self.x_dot(t)**2)*cs*self.c(t)
 
 class vorticity_field:
 

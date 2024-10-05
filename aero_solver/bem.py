@@ -425,8 +425,8 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
     for t in td:
 
-        if t > 0:
-            
+        if t > -10:
+
             be.fourier_old = deepcopy(be.fourier) 
 
             be.update_pos(t)
