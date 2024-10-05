@@ -48,8 +48,8 @@ for i = 1:length(file_list)
 
     time = [0:0.001:(length(lift)-1)*0.001]';
 
-    new_lift = filtfilt(Hd.Numerator, 1, lift_rot);
-    new_drag = filtfilt(Hd.Numerator, 1, drag_rot);
+    new_lift = filtfilt(Hd.Numerator, 1, lift');%_rot);
+    new_drag = filtfilt(Hd.Numerator, 1, drag');%_rot);
 
     % Extract the original filename without extension
     [~, filename, ~] = fileparts(file_list(i).name);

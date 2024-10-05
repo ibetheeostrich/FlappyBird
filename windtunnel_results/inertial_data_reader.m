@@ -15,7 +15,7 @@ cd ..
 Hdd = INERTIAL_FILTER();
 
 % Loop through each file in the folder
-for i = 1:1%length(file_list)
+for i = 1:length(file_list)
     % Construct full file path
     file_path = fullfile(folder_path, file_list(i).name);
     
@@ -28,6 +28,13 @@ for i = 1:1%length(file_list)
 
     new_lift = filtfilt(Hdd.Numerator, 1, lift_inertia);
     new_drag = filtfilt(Hdd.Numerator, 1, drag_inertia);
+
+    % output to csv
+    % Combine new_lift and new_drag into a single matrix
+    combined_data = [new_drag, new_lift];
+    
+    % Write the combined data to a single CSV file
+    writematrix(combined_data, fullfile(new_folder_path, [file_list(i).name(1:end-4) '.csv']));
 
     plot(time, new_lift);
     hold on;
