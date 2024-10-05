@@ -24,20 +24,20 @@ import csv
 wt_path = './windtunnel_results/DYNAMIC ALL (CLEAN1P)/'
 wt_results = os.listdir(wt_path)
 
-case = wt_results[1]
+case = wt_results[15]
 
 params = case.split('_')
 
 rho = 1.225
-U_ref = float(params[1][:-2])
-alpha = float(params[0][:-3])
-alpha_eff = np.deg2rad(alpha)   
+U_ref       = 8.0#float(params[1][:-2])
+alpha       = 5.0#float(params[0][:-3])
+alpha_eff   = np.deg2rad(alpha)   
 
 scale = 0.5
 
 no_bem = 12 
 
-frequency = float(params[2][:-6])
+frequency = 2.0#float(params[2][:-6])
 
 print(params)
 print(U_ref,alpha,frequency)
