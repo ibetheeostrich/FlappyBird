@@ -1,4 +1,6 @@
 import numpy as np
+import scipy.integrate as inte
+
 import matplotlib.pyplot as plt
 import matplotlib
 
@@ -31,6 +33,8 @@ no_bem = 12
 
 frequency = 3
 amp = 42.5
+
+lesp = 0.16
 
 # Time span
 no_steps = round(400*2/frequency/scale)
@@ -94,7 +98,7 @@ def main():
 
         kin = bek(np.deg2rad(amp) , frequency, r_pos_temp[i,:], chords_temp[i,:], le_pos_temp[i,:], U_ref, alpha_eff, t_step)
 
-        args.append((round(tag[i]),U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin))
+        args.append((round(tag[i]),U_ref, alpha_eff, chords_temp[i,:], t_step, no_steps, kin, lesp))
 
     # Multiprocessing
     def pool_handler():
@@ -142,8 +146,8 @@ def main():
         plt.close(fig)
 
     # Integrating BEM
-    l_int = np.trapz(cl_mat*np.cos(np.deg2rad(amp)*np.cos(2*np.pi*frequency*t_span)),r_mat,axis=0)
-    d_int = np.trapz(cd_mat,r_mat,axis=0)
+    l_int = inte.trapezoid(cl_mat*np.cos(np.deg2rad(amp)*np.cos(2*np.pi*frequency*t_span)),r_mat,axis=0)
+    d_int = inte.trapezoid(cd_mat,r_mat,axis=0)
 
     print(np.trapz(l_int,td)) 
 

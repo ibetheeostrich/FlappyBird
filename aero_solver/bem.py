@@ -404,7 +404,7 @@ def bem_old(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
     return tag, cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth
     
 
-def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
+def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
     cl = np.zeros(no_steps)
     cd = np.zeros(no_steps)
@@ -426,9 +426,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin):
     for t in td:
 
         if t > 0:
-
-            lesp_crit = 0.16#np.sqrt(x_dot(t)**2 + h_dot(t)**2) * 1.225 * chords[round(t/t_step)] / 15
-
+            
             be.fourier_old = deepcopy(be.fourier) 
 
             be.update_pos(t)
