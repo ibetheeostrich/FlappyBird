@@ -5,7 +5,7 @@ GraphGood();
 
 
 
-extrac1p = true;
+extrac1p = false;
 
 
 
@@ -32,13 +32,24 @@ for i = 1:length(file_list)
     % Read the current file
     data = readtable(file_path);
 
-    lift = data.Var2;
-    drag = data.Var1;
+    drag = data.Var1';
+    lift = data.Var2';
+
+    aero_dat = [drag; lift];
+
+    % extract angle of attack from filename (first 3 characters)
+    aoa = str2double(file_list(i).name(1:3));
+
+    % rotation matrix of lift and drag
+    R = [cosd(aoa), -sind(aoa); sind(aoa), cosd(aoa)];
+    aero_rot = R * aero_dat;
+    drag_rot = aero_rot(1,:)';
+    lift_rot = aero_rot(2,:)';
 
     time = [0:0.001:(length(lift)-1)*0.001]';
 
-    new_lift = filtfilt(Hd.Numerator, 1, lift);
-    new_drag = filtfilt(Hd.Numerator, 1, drag);
+    new_lift = filtfilt(Hd.Numerator, 1, lift_rot);
+    new_drag = filtfilt(Hd.Numerator, 1, drag_rot);
 
     % Extract the original filename without extension
     [~, filename, ~] = fileparts(file_list(i).name);
