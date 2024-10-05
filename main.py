@@ -23,7 +23,8 @@ start = time.time()
 # Initialise problem
 rho = 1.225
 U_ref = 14.0
-alpha_eff = np.deg2rad(0)   
+alpha = 0.0
+alpha_eff = np.deg2rad(alpha)   
 
 scale = 0.5
 
@@ -163,7 +164,7 @@ def main():
 
     print(time.time()-start)
 
-    np.savetxt(f"{t_step:.7f}_{U_ref:.1f}_{frequency:.1f}" + 'test' + '.csv', np.transpose(np.vstack((l_int,d_int,td))),  
+    np.savetxt(f"{t_step:.7f}_{alpha:.1f}deg_{U_ref:.1f}ms_{frequency:.1f}Hz_{lesp:.2f}LESP" + '.csv', np.transpose(np.vstack((l_int,d_int,td))),  
               delimiter = ",")
 
 if __name__ == "__main__":
