@@ -24,33 +24,34 @@ import csv
 wt_path = './windtunnel_results/DYNAMIC ALL (CLEAN1P)/'
 wt_results = os.listdir(wt_path)
 
-case = wt_results[0]
+case = wt_results[15]
 
 params = case.split('_')
 
 rho = 1.225
-U_ref = float(params[1][:-2])
-alpha = float(params[0][:-3])
-alpha_eff = np.deg2rad(alpha)   
+U_ref       = 8.0#float(params[1][:-2])
+alpha       = 5.0#float(params[0][:-3])
+alpha_eff   = np.deg2rad(alpha)   
 
 scale = 0.5
 
 no_bem = 12 
 
-frequency = float(params[2][:-6])
+frequency = 2.0#float(params[2][:-6])
+
+print(params)
+print(U_ref,alpha,frequency)
 
 # Time span
-t_end = 1/frequency
-
 t_step = 0.001
 
-no_steps = 400
+no_steps = round(1/frequency/t_step)
 
-t_span = np.linspace(0.0, t_end, no_steps, endpoint=False)
+t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
 
 amp = 42.5
 
-lesp = 0.6
+lesp = 0.3
 
 # get data from csv
 
@@ -61,8 +62,8 @@ wt_time = []
 with open(wt_path + case,'r') as csvfile: 
     lines = csv.reader(csvfile, delimiter=',') 
     for row in lines: 
-        wt_lift.append(row[0]) 
-        wt_drag.append(row[1])
+        wt_lift.append(row[1]) 
+        wt_drag.append(row[0])
         wt_time.append(row[2])
 
 wt_lift = np.array(wt_lift[1:], dtype=np.float32)  
@@ -183,8 +184,8 @@ def main():
 
     fig, ax = plt.subplots()
     fig.dpi = 300
-    ax.plot(td, l_int,'r')
-    ax.plot(td, -d_int,'g')
+    ax.plot(td[:-2], l_int[2:],'r')
+    ax.plot(td[:-2], -d_int[2:],'g')
 
     ax.plot(wt_time,wt_lift,'b')
     ax.plot(wt_time,wt_drag,'y')
