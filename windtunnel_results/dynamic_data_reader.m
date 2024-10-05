@@ -1,8 +1,8 @@
 clear;
 close all;
 clc;
+GraphGood();
 
-% Prompt user to select a folder
 folder_path = 'C:\Users\Reagan\OneDrive - The University of Sydney (Students)\2024 SEM 1\FlappyBird\FlappyBird\windtunnel_results\DYNAMIC ALL (RAW)';
 new_folder_path = 'C:\Users\Reagan\OneDrive - The University of Sydney (Students)\2024 SEM 1\FlappyBird\FlappyBird\windtunnel_results\DYNAMIC ALL (CLEAN)';
 
