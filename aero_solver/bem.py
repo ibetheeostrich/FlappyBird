@@ -443,23 +443,23 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
     #####################################################################################    
 
-            # if round(t/t_step) % 5 == 0 and tag == 9:
-            #     fig, ax = plt.subplots()
-            #     fig.dpi = 300
-            #     ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-            #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-            #             ,'ro')
-            #     ax.plot(be.x,
-            #             be.y,
-            #             'k')
-            #     ax.axis("equal")
-            #     ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
-            #     ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
-            #     plt.savefig(str(round(t/t_step)) + '.png')
-            #     plt.clf()   
+            if round(t/t_step) % 5 == 0 and tag == 9:
+                fig, ax = plt.subplots()
+                fig.dpi = 300
+                ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                        np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+                        , c='b', s=1.7)
+                ax.plot(be.x,
+                        be.y,
+                        'k')
+                ax.axis("equal")
+                ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+                ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+                plt.savefig(str(round(t/t_step)) + '.png')
+                plt.clf()   
 
                             
-            # print(lesp_crit) 
+            print(be.fourier[0]) 
             # print(x_dot(t))
 
     #####################################################################################    

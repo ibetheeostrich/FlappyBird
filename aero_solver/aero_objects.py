@@ -6,6 +6,8 @@ from numpy.linalg import inv as inverse
 
 import scipy.integrate as inte
 
+err = 1e-10
+
 class camber_line:
 
     def __init__(self,chords,no_fourier,x_dot,h_dot,alpha_dot,u,h,alpha,t_step):
@@ -13,9 +15,9 @@ class camber_line:
         self.c = lambda t: chords[round(t/t_step)]
         self.le_pos = 0
 
-        self.theta = linspace(0,pi,no_fourier*2,endpoint=True)
+        self.theta = linspace(0,pi,no_fourier*3,endpoint=True)
         self.x = 0.5*chords[0]*(1-cos(self.theta))
-        self.y = zeros(no_fourier*2)
+        self.y = zeros(no_fourier*3)
 
         self.fourier = zeros(no_fourier)
         self.fourier_old = zeros(no_fourier)
@@ -30,7 +32,7 @@ class camber_line:
 
     def update_fourier(self, x_N, y_N,  Gamma_N, t):
 
-        v_core = 0.02 * self.c(t)
+        v_core = 0.05 * self.c(t)
         xi = 0.5 * self.c(t) * (1 - cos(self.theta))
 
         u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
@@ -42,21 +44,21 @@ class camber_line:
               + self.h_dot(t)*cos(self.alpha(t)) 
               - dphi_deta)
 
-        self.fourier[0] = - 1 / pi / self.x_dot(t) * inte.trapezoid(wx,self.theta)
+        self.fourier[0] = - 1 / pi / self.x_dot(t) * inte.trapezoid(wx,self.theta) 
 
         for i in range(1,len(self.fourier)):
 
-            self.fourier[i] = 2 / pi / self.x_dot(t) * inte.trapezoid(wx*cos(i*self.theta),self.theta) 
+            self.fourier[i] = 2 / pi / self.x_dot(t) * inte.trapezoid(wx*cos(i*self.theta),self.theta)
             
 
         Gamma_b = pi * self.c(t) * self.x_dot(t) * (self.fourier[0] + self.fourier[1] * 0.5)
         # Gamma_b = self.U_ref * c * inte.trapezoid(fourier_inf,theta)
 
-        return Gamma_b + sum(Gamma_N) - self.alpha(0.0)*self.x_dot(0.0)*pi*self.c(0.0)
+        return Gamma_b + sum(Gamma_N)# - self.alpha(0.0)*self.x_dot(0.0)*pi*self.c(0.0)
     
     def kelvinkutta_a0_a1(self, v_field, dh, t):
 
-        v_core = 0.02 * self.c(t)
+        v_core = 0.05 * self.c(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, 
                                       self.y, 
@@ -79,7 +81,7 @@ class camber_line:
 
         g0 = 100000
 
-        while abs(g0) > 0.00001:
+        while abs(g0) > err:
 
             g0 = self.update_fourier(concatenate((v_field.tev_x, v_field.lev_x, v_field.ext_x)),
                                      concatenate((v_field.tev_y, v_field.lev_y, v_field.ext_y)),
@@ -99,7 +101,7 @@ class camber_line:
 
     def kelvinlesp_a0_a1(self, v_field, dg1, dg2, t):
 
-        v_core = 0.02 * self.c(t)
+        v_core = 0.05 * self.c(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, 
                                       self.y, 
@@ -129,7 +131,7 @@ class camber_line:
             lesp_c = lesp
 
 
-        while abs(g0) > 0.0000001 and abs(abs(self.fourier[0]) - lesp) > 0.00000001:
+        while abs(g0) > err or abs(abs(self.fourier[0]) - lesp) > err:
 
             g0 = self.update_fourier(concatenate((v_field.tev_x, v_field.lev_x, v_field.ext_x)),
                                      concatenate((v_field.tev_y, v_field.lev_y, v_field.ext_y)),
@@ -173,7 +175,7 @@ class camber_line:
 
     def calc_cl(self, x_N, y_N,  Gamma_N, t, t_step):
 
-        v_core = 0.02 * self.c(t)
+        v_core = 0.05 * self.c(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
 
@@ -198,6 +200,7 @@ class camber_line:
             0.125 * (self.fourier[2] - self.fourier_old[2]) / t_step
         )
 
+
         non1 = 2/self.x_dot(t)/self.x_dot(t)/self.c(t) * inte.trapezoid(dphi_dxi*fourier_inf,self.theta)
 
         cn = cnc + cnnc + non1
@@ -210,8 +213,8 @@ class camber_line:
         cl = (0.5*1.225*self.x_dot(t)**2)*(cn*cos(self.alpha(t)) + cs*sin(self.alpha(t)))*self.c(t)
         cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
 
-        # return cl, cd 
-        return (0.5*1.225*self.x_dot(t)**2)*cn*self.c(t), (0.5*1.225*self.x_dot(t)**2)*cs*self.c(t)
+        return cl, cd 
+        # return (0.5*1.225*self.x_dot(t)**2)*cn*self.c(t), (0.5*1.225*self.x_dot(t)**2)*cs*self.c(t)
 
 class vorticity_field:
 
@@ -250,37 +253,63 @@ class vorticity_field:
 
     def shed_lev(self, camber_line):
 
-        self.lev_x = append(
-            self.lev_x,
-            camber_line.x[0]
-        )
-    
-        
-        if camber_line.fourier[0] > 0:
-            self.lev = append(
-                self.lev,
-                10
+        if len(self.lev) == 0:
+        # if True:
+            self.lev_x = append(
+                self.lev_x,
+                camber_line.x[0] +
+                (camber_line.x[0] - camber_line.x[1])*0.02
             )
 
             self.lev_y = append(
                 self.lev_y,
-                camber_line.y[0]
+                camber_line.y[0]+
+                (camber_line.y[0] - camber_line.y[1])*0.02
             )
 
-        elif camber_line.fourier[0] < 0:
-            self.lev = append(
-                self.lev,
-                -10
+            if camber_line.fourier[0] > 0:
+                self.lev = append(
+                    self.lev,
+                    10
+                )
+
+
+            elif camber_line.fourier[0] < 0:
+                self.lev = append(
+                    self.lev,
+                    -10
+                )
+
+        else:
+
+            self.lev_x = append(
+                self.lev_x,
+                camber_line.x[0] +
+                (self.lev_x[-1] - camber_line.x[0])/3
             )
 
             self.lev_y = append(
                 self.lev_y,
-                camber_line.y[0]
+                camber_line.y[0] +
+                (self.lev_y[-1] - camber_line.y[0])/3
+            
+            
             )
+            if camber_line.fourier[0] > 0:
+                self.lev = append(
+                    self.lev,
+                    10
+                )
+
+            elif camber_line.fourier[0] < 0:
+                self.lev = append(
+                    self.lev,
+                    -10
+                )
 
     def advect(self, camber_line,t_step,t):
 
-        v_core = 0.02 * camber_line.c(t)
+        v_core = 0.05 * camber_line.c(t)
 
         x_tot = concatenate((self.tev_x, self.lev_x, self.ext_x))
         y_tot = concatenate((self.tev_y, self.lev_y, self.ext_y))
@@ -347,6 +376,7 @@ def V_ind_ub_field(x1_N, y1_N, x2_N, y2_N, Gamma_N, v_core,v_core_flag):
 
 def V_ind_b_fast_4(camber_line, x_n, y_n, v_core,t):
 
+    v_core = 0.05*camber_line.c(t)
 
     fourier_inf = camber_line.fourier[0]*(1+cos(camber_line.theta))
 
