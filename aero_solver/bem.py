@@ -423,9 +423,13 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
     field   = ao.vorticity_field(chords[0])
 
+    lev_flag = 0
+
     for t in td:
 
-        if t > -10:
+        if t > -1:
+
+            lev_flag_prev = lev_flag
 
             be.fourier_old = deepcopy(be.fourier) 
 
@@ -441,25 +445,36 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
                 be.kelvinlesp(field, 0.001, lesp_crit, t)
 
+                lev_flag = 1
+
+            if lev_flag_prev == 1 and lev_flag == 0:
+
+                field.ext   = np.append(field.ext   ,deepcopy(field.lev)    )
+                field.ext_x = np.append(field.ext_x ,deepcopy(field.lev_x)  )
+                field.ext_y = np.append(field.ext_y ,deepcopy(field.lev_y)  )
+
+                field.lev   = np.array([])
+                field.lev_x = np.array([])
+                field.lev_y = np.array([])
     #####################################################################################    
 
             if round(t/t_step) % 5 == 0 and tag == 9:
-                fig, ax = plt.subplots()
-                fig.dpi = 300
-                ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                        np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-                        , c='b', s=1.7)
-                ax.plot(be.x,
-                        be.y,
-                        'k')
-                ax.axis("equal")
-                ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
-                ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
-                plt.savefig(str(round(t/t_step)) + '.png')
-                plt.clf()   
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+            #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+            #             , c='b', s=1.7)
+            #     ax.plot(be.x,
+            #             be.y,
+            #             'k')
+            #     ax.axis("equal")
+            #     ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+            #     ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+            #     plt.savefig(str(round(t/t_step)) + '.png')
+            #     plt.clf()   
 
                             
-            print(be.fourier[0]) 
+                print(f'{t:.2f} {be.fourier[0]:.3f}') 
             # print(x_dot(t))
 
     #####################################################################################    
