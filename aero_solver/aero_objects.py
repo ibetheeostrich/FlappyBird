@@ -6,7 +6,7 @@ from numpy.linalg import inv as inverse
 
 import scipy.integrate as inte
 
-err = 1e-10
+err = 1e-12
 
 class camber_line:
 
@@ -32,7 +32,7 @@ class camber_line:
 
     def update_fourier(self, x_N, y_N,  Gamma_N, t):
 
-        v_core = 0.05 * self.c(t)
+        v_core = 0.005 * self.c(t)
         xi = 0.5 * self.c(t) * (1 - cos(self.theta))
 
         u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
@@ -58,7 +58,7 @@ class camber_line:
     
     def kelvinkutta_a0_a1(self, v_field, dh, t):
 
-        v_core = 0.05 * self.c(t)
+        v_core = 0.005 * self.c(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, 
                                       self.y, 
@@ -101,7 +101,7 @@ class camber_line:
 
     def kelvinlesp_a0_a1(self, v_field, dg1, dg2, t):
 
-        v_core = 0.05 * self.c(t)
+        v_core = 0.005 * self.c(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, 
                                       self.y, 
@@ -175,7 +175,7 @@ class camber_line:
 
     def calc_cl(self, x_N, y_N,  Gamma_N, t, t_step):
 
-        v_core = 0.05 * self.c(t)
+        v_core = 0.005 * self.c(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
 
@@ -309,7 +309,7 @@ class vorticity_field:
 
     def advect(self, camber_line,t_step,t):
 
-        v_core = 0.05 * camber_line.c(t)
+        v_core = 0.005 * camber_line.c(t)
 
         x_tot = concatenate((self.tev_x, self.lev_x, self.ext_x))
         y_tot = concatenate((self.tev_y, self.lev_y, self.ext_y))
@@ -376,7 +376,7 @@ def V_ind_ub_field(x1_N, y1_N, x2_N, y2_N, Gamma_N, v_core,v_core_flag):
 
 def V_ind_b_fast_4(camber_line, x_n, y_n, v_core,t):
 
-    v_core = 0.05*camber_line.c(t)
+    v_core = 0.005*camber_line.c(t)
 
     fourier_inf = camber_line.fourier[0]*(1+cos(camber_line.theta))
 
