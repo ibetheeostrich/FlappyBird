@@ -23,13 +23,13 @@ cd = np.zeros(no_steps)
 
 td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
-lesp_crit = 0.25
+lesp_crit = 0.19
 
-x_dot = lambda t: 20.0
+x_dot = lambda t: 10.0
 h_dot = lambda t: 2*np.pi*np.sin(2*np.pi*t)
 alpha_dot = lambda t: 0.0
 
-u = lambda t: 20.0*t
+u = lambda t: 10.0*t
 h = lambda t: 1-np.cos(2*np.pi*t)
 alpha = lambda t: 0.0
 
@@ -85,8 +85,8 @@ for t in td:
                     be.y,
                     'k')
             ax.axis("equal")
-            # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
-            # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+            ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+            ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
             plt.savefig(str(round(t/t_step)) + '.png')
             plt.clf()   
 
