@@ -24,7 +24,7 @@ import csv
 wt_path = './windtunnel_results/DYNAMIC ALL (CLEAN1P)/'
 wt_results = os.listdir(wt_path)
 
-case = wt_results[1]
+case = wt_results[4]
 
 params = case.split('_')
 
@@ -51,7 +51,7 @@ t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
 
 amp = 42.5
 
-lesp = 10.3
+lesp = 0.24
 
 # get data from csv
 

@@ -445,6 +445,9 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
                 be.kelvinlesp(field, 0.001, lesp_crit, t)
 
+                gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
+                print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
+
                 lev_flag = 1
 
             if lev_flag_prev == 1 and lev_flag == 0:
@@ -458,7 +461,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
                 field.lev_y = np.array([])
     #####################################################################################    
 
-            if round(t/t_step) % 5 == 0 and tag == 9:
+            # if round(t/t_step) % 5 == 0 and tag == 9:
             #     fig, ax = plt.subplots()
             #     fig.dpi = 300
             #     ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
@@ -473,8 +476,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
             #     plt.savefig(str(round(t/t_step)) + '.png')
             #     plt.clf()   
 
-                            
-                print(f'{t:.2f} {be.fourier[0]:.3f}') 
+
             # print(x_dot(t))
 
     #####################################################################################    
