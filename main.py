@@ -43,7 +43,7 @@ print(params)
 print(U_ref,alpha,frequency)
 
 # Time span
-t_step = 0.001
+t_step = 0.0005
 
 no_steps = round(1/frequency/t_step)
 

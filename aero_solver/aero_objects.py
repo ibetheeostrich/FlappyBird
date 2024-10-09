@@ -30,9 +30,11 @@ class camber_line:
         self.h = h
         self.alpha = alpha
 
+        self.t_step = t_step
+
     def update_fourier(self, x_N, y_N,  Gamma_N, t):
 
-        v_core = 0.01 * self.c(t)
+        v_core= 1.3*self.t_step*self.x_dot(t)
         xi = 0.5 * self.c(t) * (1 - cos(self.theta))
 
         u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
@@ -58,7 +60,7 @@ class camber_line:
     
     def kelvinkutta_a0_a1(self, v_field, dh, t):
 
-        v_core = 0.01 * self.c(t)
+        v_core= 1.3*self.t_step*self.x_dot(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, 
                                       self.y, 
@@ -101,7 +103,7 @@ class camber_line:
 
     def kelvinlesp_a0_a1(self, v_field, dg1, dg2, t):
 
-        v_core = 0.01 * self.c(t)
+        v_core= 1.3*self.t_step*self.x_dot(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, 
                                       self.y, 
@@ -131,7 +133,7 @@ class camber_line:
             lesp_c = lesp
 
         iter = 1
-        while abs(g0) > err or abs(abs(self.fourier[0]) - lesp) > err:
+        while abs(g0) > 1e-14 or abs(abs(self.fourier[0]) - lesp) > err:
 
             g0 = self.update_fourier(concatenate((v_field.tev_x, v_field.lev_x, v_field.ext_x)),
                                      concatenate((v_field.tev_y, v_field.lev_y, v_field.ext_y)),
@@ -181,7 +183,7 @@ class camber_line:
 
     def calc_cl(self, x_N, y_N,  Gamma_N, t, t_step):
 
-        v_core = 0.01 * self.c(t)
+        v_core= 1.3*self.t_step*self.x_dot(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
 
@@ -264,13 +266,13 @@ class vorticity_field:
             self.lev_x = append(
                 self.lev_x,
                 camber_line.x[0] +
-                (camber_line.x[0] - camber_line.x[1])*0.02
+                (camber_line.x[0] - camber_line.x[1])*0.05
             )
 
             self.lev_y = append(
                 self.lev_y,
                 camber_line.y[0]+
-                (camber_line.y[0] - camber_line.y[1])*0.02
+                (camber_line.y[0] - camber_line.y[1])*0.05
             )
 
             if camber_line.fourier[0] > 0:
@@ -315,7 +317,7 @@ class vorticity_field:
 
     def advect(self, camber_line,t_step,t):
 
-        v_core = 0.01 * camber_line.c(t)
+        v_core= 1.3*t_step*camber_line.x_dot(t)
 
         x_tot = concatenate((self.tev_x, self.lev_x, self.ext_x))
         y_tot = concatenate((self.tev_y, self.lev_y, self.ext_y))
@@ -375,14 +377,14 @@ def V_ind_ub_field(x1_N, y1_N, x2_N, y2_N, Gamma_N, v_core,v_core_flag):
         u_ind =  dy*( 1 / (2 * pi * r_squared)) @ Gamma_N # Shape: (len(x1_N), len(x2_N))
         v_ind =  dx*(-1 / (2 * pi * r_squared)) @ Gamma_N     # Shape: (len(y1_N), len(y2_N))
     else:
-        u_ind =  dy*( 1 / (2 * pi * (r_squared**2 + v_core**4)**0.5)) @ Gamma_N # Shape: (len(x1_N), len(x2_N))
-        v_ind =  dx*(-1 / (2 * pi * (r_squared**2 + v_core**4)**0.5)) @ Gamma_N     # Shape: (len(y1_N), len(y2_N))
+        u_ind =  dy*( 1 / (2 * pi * sqrt(r_squared**2 + v_core**4))) @ Gamma_N # Shape: (len(x1_N), len(x2_N))
+        v_ind =  dx*(-1 / (2 * pi * sqrt(r_squared**2 + v_core**4))) @ Gamma_N     # Shape: (len(y1_N), len(y2_N))
 
     return reshape(u_ind,-1), reshape(v_ind,-1)
 
 def V_ind_b_fast_4(camber_line, x_n, y_n, v_core,t):
 
-    v_core = 0.01*camber_line.c(t)
+    v_core= 1.3*camber_line.t_step*camber_line.x_dot(t)
 
     fourier_inf = camber_line.fourier[0]*(1+cos(camber_line.theta))
 
