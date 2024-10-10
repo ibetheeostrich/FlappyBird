@@ -13,7 +13,7 @@ cd ..
 
 
 % Loop through each file in the folder
-for i = 1:10%length(file_list)
+for i = 1:1%length(file_list)
     % Construct full file path
     file_path = fullfile(folder_path, file_list(i).name);
     
