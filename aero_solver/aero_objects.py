@@ -34,7 +34,7 @@ class camber_line:
 
     def update_fourier(self, x_N, y_N,  Gamma_N, t):
 
-        v_core= 1.3*self.t_step*self.x_dot(t)
+        v_core= 1.1*self.t_step*self.x_dot(t)
         xi = 0.5 * self.c(t) * (1 - cos(self.theta))
 
         u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
@@ -56,11 +56,11 @@ class camber_line:
         Gamma_b = pi * self.c(t) * self.x_dot(t) * (self.fourier[0] + self.fourier[1] * 0.5)
         # Gamma_b = self.U_ref * c * inte.trapezoid(fourier_inf,theta)
 
-        return Gamma_b + sum(Gamma_N)# - self.alpha(0.0)*self.x_dot(0.0)*pi*self.c(0.0)
+        return Gamma_b + sum(Gamma_N) - self.alpha(0.0)*self.x_dot(0.0)*pi*self.c(0.0)
     
     def kelvinkutta_a0_a1(self, v_field, dh, t):
 
-        v_core= 1.3*self.t_step*self.x_dot(t)
+        v_core= 1.1*self.t_step*self.x_dot(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, 
                                       self.y, 
@@ -103,7 +103,7 @@ class camber_line:
 
     def kelvinlesp_a0_a1(self, v_field, dg1, dg2, t):
 
-        v_core= 1.3*self.t_step*self.x_dot(t)
+        v_core= 1.1*self.t_step*self.x_dot(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, 
                                       self.y, 
@@ -183,7 +183,7 @@ class camber_line:
 
     def calc_cl(self, x_N, y_N,  Gamma_N, t, t_step):
 
-        v_core= 1.3*self.t_step*self.x_dot(t)
+        v_core= 1.1*self.t_step*self.x_dot(t)
 
         u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
 
@@ -259,20 +259,18 @@ class vorticity_field:
             0.0
         )
 
-    def shed_lev(self, camber_line):
+    def shed_lev(self, camber_line, t):
 
         if len(self.lev) == 0:
         # if True:
             self.lev_x = append(
                 self.lev_x,
-                camber_line.x[0] +
-                (camber_line.x[0] - camber_line.x[1])*0.05
+                camber_line.x[0] - camber_line.x_dot(t - camber_line.t_step) * camber_line.t_step * 0.5
             )
 
             self.lev_y = append(
                 self.lev_y,
-                camber_line.y[0]+
-                (camber_line.y[0] - camber_line.y[1])*0.05
+                camber_line.y[0] - camber_line.h_dot(t - camber_line.t_step) * camber_line.t_step * 0.5
             )
 
             if camber_line.fourier[0] > 0:
@@ -317,7 +315,7 @@ class vorticity_field:
 
     def advect(self, camber_line,t_step,t):
 
-        v_core= 1.3*t_step*camber_line.x_dot(t)
+        v_core= 1.1*t_step*camber_line.x_dot(t)
 
         x_tot = concatenate((self.tev_x, self.lev_x, self.ext_x))
         y_tot = concatenate((self.tev_y, self.lev_y, self.ext_y))
@@ -334,7 +332,7 @@ class vorticity_field:
 
         for i in range(len(u_ind)):
 
-            u_ind_p, v_ind_p = V_ind_b_fast_4(camber_line, x_tot[i], y_tot[i], v_core,t)
+            u_ind_p, v_ind_p = V_ind_b_fast_5(camber_line, x_tot[i], y_tot[i], v_core,t)
             u_ind[i] += u_ind_p
             v_ind[i] += v_ind_p
 
@@ -384,7 +382,7 @@ def V_ind_ub_field(x1_N, y1_N, x2_N, y2_N, Gamma_N, v_core,v_core_flag):
 
 def V_ind_b_fast_4(camber_line, x_n, y_n, v_core,t):
 
-    v_core= 1.3*camber_line.t_step*camber_line.x_dot(t)
+    v_core= 0.02 * camber_line.c(t)#1.1*camber_line.t_step*camber_line.x_dot(t)
 
     fourier_inf = camber_line.fourier[0]*(1+cos(camber_line.theta))
 
@@ -406,5 +404,37 @@ def V_ind_b_fast_4(camber_line, x_n, y_n, v_core,t):
 
     return u_ind, v_ind
 
+def V_ind_b_fast_5(camber_line, x_n, y_n, v_core,t):
 
+    v_core= 0.02 * camber_line.c(t)#1.1*camber_line.t_step*camber_line.x_dot(t)
+
+    fourier_inf = camber_line.fourier[0]*(1+cos(camber_line.theta))
+
+    for i in range(1,len(camber_line.fourier)):
+
+        fourier_inf += camber_line.fourier[i]*sin(i*camber_line.theta)*sin(camber_line.theta)
+
+    fourier_inf *= camber_line.x_dot(t) * camber_line.c(t)
+
+    s = (fourier_inf[1:] - fourier_inf[0:-1]) * (camber_line.theta[1])
+
+    x = 0.5 * (camber_line.x[1:] - camber_line.x[0:-1])
+
+    y = 0.5 * (camber_line.y[1:] - camber_line.y[0:-1])
+
+
+
+    inv = 0.5/sqrt(((x_n - x)**2 + 
+                     (y_n - y)**2)**2 + 
+                     v_core**4)/pi
+ 
+
+    x_s  = (x_n - x) * inv
+    y_s  = (y_n - y) * inv
+    
+    u_ind = sum( y_s * s)
+
+    v_ind = sum(-x_s * s)
+
+    return u_ind, v_ind
 
