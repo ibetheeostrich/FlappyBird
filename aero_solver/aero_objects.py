@@ -208,12 +208,17 @@ class camber_line:
                                                self.fourier[0] + 0.5 * self.fourier[1]
                                            )
         
-        cnnc = 2.0*pi / self.x_dot(t) * self.c(t) * (
+        # cnnc = 2.0*pi * self.c(t) * (
+        #     0.75  * (self.x_dot(t) * self.fourier[0] - self.x_dot(t-t_step) * self.fourier_old[0])/t_step + 
+        #     0.25  * (self.x_dot(t) * self.fourier[1] - self.x_dot(t-t_step) * self.fourier_old[1])/t_step + 
+        #     0.125 * (self.x_dot(t) * self.fourier[2] - self.x_dot(t-t_step) * self.fourier_old[2])/t_step
+        # )
+
+        cnnc = 2.0*pi * self.c(t) * (
             0.75  * (self.fourier[0] - self.fourier_old[0])/t_step + 
             0.25  * (self.fourier[1] - self.fourier_old[1])/t_step + 
             0.125 * (self.fourier[2] - self.fourier_old[2])/t_step
         )
-
 
         non1 = inte.trapezoid(2/self.x_dot(t)/self.x_dot(t)/self.c(t) * dphi_dxi*fourier_inf,self.theta)
 
@@ -228,7 +233,7 @@ class camber_line:
         cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
 
         return cl, cd 
-        # return (self.fourier[1] - self.fourier_old[1]), self.fourier[1]
+        # return (self.fourier[1] - self.fourier_old[1])/t_step, self.fourier[1]
         # return cnnc, non1
         # return (0.5*1.225*self.x_dot(t)**2)*cn*self.c(t), (0.5*1.225*self.x_dot(t)**2)*cs*self.c(t)
 
