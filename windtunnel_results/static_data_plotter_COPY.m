@@ -52,9 +52,9 @@ for a = 1:length(unique_aoas)
         plot(phase_angle_current, lift_current, 'o-', 'LineWidth', 1.5, 'DisplayName', sprintf('%.1f m/s', unique_velocities(v)));
     end
     
-    title(sprintf('Lift vs Phase Angle for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT');
-    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
-    ylabel('Lift Mean (N)', 'FontName', 'Tw Cen MT');
+    title(sprintf('Lift vs Phase Angle for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    ylabel('Lift Mean (N)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
     legend('show', 'Location', 'best', 'FontName', 'Tw Cen MT');
     grid on; box on; grid minor;
     xlim([0, 360]);
@@ -80,9 +80,9 @@ for a = 1:length(unique_aoas)
         plot(phase_angle_current, drag_current, 'x-', 'LineWidth', 1.5, 'DisplayName', sprintf('%.1f m/s', unique_velocities(v)));
     end
     
-    title(sprintf('Drag vs Phase Angle for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT');
-    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
-    ylabel('Drag Mean (N)', 'FontName', 'Tw Cen MT');
+    title(sprintf('Drag vs Phase Angle for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    ylabel('Drag Mean (N)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
     legend('show', 'Location', 'best', 'FontName', 'Tw Cen MT');
     grid on; box on; grid minor;
     xlim([0, 360]);
@@ -133,10 +133,10 @@ for a = 1:length(unique_aoas)
     %     plot3([phase_grid(i), phase_grid(i)], [velocity_grid(i), velocity_grid(i)], [0, lift_grid(i)], 'k--');
     % end
     hold off;
-    title(sprintf('Lift Carpet Plot for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT');
-    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
-    ylabel('Velocity (m/s)', 'FontName', 'Tw Cen MT');
-    zlabel('Lift Mean (N)', 'FontName', 'Tw Cen MT');
+    title(sprintf('Lift Carpet Plot for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    ylabel('Velocity (m/s)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    zlabel('Lift Mean (N)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
     grid on; box on;
     ax = gca;
     ax.XMinorTick = 'on';
@@ -152,10 +152,10 @@ for a = 1:length(unique_aoas)
     %     plot3([phase_grid(i), phase_grid(i)], [velocity_grid(i), velocity_grid(i)], [0, drag_grid(i)], 'k--');
     % end
     hold off;
-    title(sprintf('Drag Carpet Plot for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT');
-    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
-    ylabel('Velocity (m/s)', 'FontName', 'Tw Cen MT');
-    zlabel('Drag Mean (N)', 'FontName', 'Tw Cen MT');
+    title(sprintf('Drag Carpet Plot for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    ylabel('Velocity (m/s)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    zlabel('Drag Mean (N)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
     grid on; box on;
     ax = gca;
     ax.XMinorTick = 'on';
@@ -197,9 +197,9 @@ for v = 1:length(unique_velocities)
         plot(phase_angle_current, lift_current, 'o-', 'LineWidth', 1.5, 'DisplayName', sprintf('AOA = %.1f deg', unique_aoas(a)));
     end
     
-    title(sprintf('Lift vs Phase Angle for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT');
-    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
-    ylabel('Lift Mean (N)', 'FontName', 'Tw Cen MT');
+    title(sprintf('Lift vs Phase Angle for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    ylabel('Lift Mean (N)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
     legend('show', 'Location', 'best', 'FontName', 'Tw Cen MT');
     grid on; box on; grid minor;
     xlim([0, 360]);
@@ -225,9 +225,9 @@ for v = 1:length(unique_velocities)
         plot(phase_angle_current, drag_current, 'x-', 'LineWidth', 1.5, 'DisplayName', sprintf('AOA = %.1f deg', unique_aoas(a)));
     end
     
-    title(sprintf('Drag vs Phase Angle for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT');
-    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
-    ylabel('Drag Mean (N)', 'FontName', 'Tw Cen MT');
+    title(sprintf('Drag vs Phase Angle for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    ylabel('Drag Mean (N)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
     legend('show', 'Location', 'best', 'FontName', 'Tw Cen MT');
     grid on; box on; grid minor;
     xlim([0, 360]);
@@ -237,7 +237,6 @@ for v = 1:length(unique_velocities)
     ax.XTick = 0:40:360; % Set major axis to have 40 deg increments
     hold off;
 end
-
 
 %% LIFT + DRAG VS PHASE ANGLE VS AOA (Carpet Plot)
 % close all; clc;
@@ -278,10 +277,10 @@ for v = 1:length(unique_velocities)
     %     plot3([phase_grid(i), phase_grid(i)], [aoa_grid(i), aoa_grid(i)], [0, lift_grid(i)], 'k--');
     % end
     hold off;
-    title(sprintf('Lift Carpet Plot for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT');
-    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
-    ylabel('AOA (deg)', 'FontName', 'Tw Cen MT');
-    zlabel('Lift Mean (N)', 'FontName', 'Tw Cen MT');
+    title(sprintf('Lift Carpet Plot for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    ylabel('AOA (deg)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    zlabel('Lift Mean (N)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
     grid on; box on;
     ax = gca;
     ax.XMinorTick = 'on';
@@ -298,10 +297,10 @@ for v = 1:length(unique_velocities)
     %     plot3([phase_grid(i), phase_grid(i)], [aoa_grid(i), aoa_grid(i)], [0, drag_grid(i)], 'k--');
     % end
     hold off;
-    title(sprintf('Drag Carpet Plot for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT');
-    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
-    ylabel('AOA (deg)', 'FontName', 'Tw Cen MT');
-    zlabel('Drag Mean (N)', 'FontName', 'Tw Cen MT');
+    title(sprintf('Drag Carpet Plot for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    ylabel('AOA (deg)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
+    zlabel('Drag Mean (N)', 'FontName', 'Tw Cen MT', 'Interpreter', 'latex');
     grid on; box on;
     ax = gca;
     ax.XMinorTick = 'on';
