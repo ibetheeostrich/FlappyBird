@@ -535,18 +535,18 @@ def bem_span(tag, chords, t_step, no_steps, freq, amp):
 
     #####################################################################################    
 
-            if True:
-                fig, ax = plt.subplots()
-                fig.dpi = 300
-                ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                        np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-                        ,'ro')
-                ax.plot(be.x,
-                        be.y,
-                        'k')
-                ax.axis("equal")
-                plt.savefig(str(round(t/t_step)) + '.png')
-                plt.clf()   
+            # if True:
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     ax.plot(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+            #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+            #             ,'ro')
+            #     ax.plot(be.x,
+            #             be.y,
+            #             'k')
+            #     ax.axis("equal")
+            #     plt.savefig(str(round(t/t_step)) + '.png')
+            #     plt.clf()   
 
                             
             # print(t) 
