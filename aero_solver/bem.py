@@ -431,7 +431,8 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
             lev_flag_prev = lev_flag
 
-            be.fourier_old = deepcopy(be.fourier) 
+            if t > t_step:
+                be.fourier_old = deepcopy(be.fourier) 
 
             be.update_pos(t)
 
@@ -441,7 +442,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
             if abs(be.fourier[0]) > lesp_crit:          
 
-                field.shed_lev(be,t)
+                field.shed_lev(be)
 
                 be.kelvinlesp(field, 0.0001, lesp_crit, t)
 
@@ -461,7 +462,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
                 field.lev_y = np.array([])
     #####################################################################################    
 
-            if round(t/t_step) % 5 == 0 and tag == 8:
+            if round(t/t_step) % 5 == 0 and tag == 10:
                 fig, ax = plt.subplots()
                 fig.dpi = 300
                 ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),

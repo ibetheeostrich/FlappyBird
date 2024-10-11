@@ -24,14 +24,14 @@ import csv
 wt_path = './windtunnel_results/DYNAMIC ALL (CLEAN1P)/'
 wt_results = os.listdir(wt_path)
 
-case = wt_results[10]
+case = wt_results[7]
 
 params = case.split('_')
 
 rho = 1.225
 U_ref       = float(params[1][:-2])
 alpha       = float(params[0][:-3])
-alpha_eff   = np.deg2rad(alpha)   
+alpha_eff   = np.deg2rad(alpha)    
 
 scale = 0.5
 
@@ -43,7 +43,7 @@ print(params)
 print(U_ref,alpha,frequency)
 
 # Time span
-t_step = 0.0005
+t_step = 0.001
 
 no_steps = round(1/frequency/t_step)
 
@@ -51,7 +51,7 @@ t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
 
 amp = 42.5
 
-lesp = 0.17
+lesp = 0.5
 
 # get data from csv
 
@@ -201,5 +201,5 @@ def main():
               delimiter = ",")
 
 if __name__ == "__main__":
-    # main()
-    wing_plot()
+    main()
+    # wing_plot()
