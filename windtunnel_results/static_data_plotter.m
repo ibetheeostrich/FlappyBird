@@ -94,7 +94,7 @@ for a = 1:length(unique_aoas)
 end
 
 
-%% LIFT + DRAG VS PHASE ANGLE VS VELOCITY (Carpet Plot)
+%% LIFT + DRAG VS PHASE ANGLE VS VELOCITY (surface Plot)
 % close all; clc;
 for a = 1:length(unique_aoas)
     current_aoa = unique_aoas(a);
@@ -124,7 +124,7 @@ for a = 1:length(unique_aoas)
     lift_grid = griddata(phase_angle_current_aoa, velocity_current_aoa, lift_mean_current_aoa, phase_grid, velocity_grid);
     drag_grid = griddata(phase_angle_current_aoa, velocity_current_aoa, drag_mean_current_aoa, phase_grid, velocity_grid);
     
-    % Plot lift carpet plot
+    % Plot lift surface plot
     figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
     surf(phase_grid, velocity_grid, lift_grid);
     hold on;
@@ -133,7 +133,7 @@ for a = 1:length(unique_aoas)
     %     plot3([phase_grid(i), phase_grid(i)], [velocity_grid(i), velocity_grid(i)], [0, lift_grid(i)], 'k--');
     % end
     hold off;
-    title(sprintf('Lift Carpet Plot for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT');
+    title(sprintf('Lift surface Plot for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT');
     xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
     ylabel('Velocity (m/s)', 'FontName', 'Tw Cen MT');
     zlabel('Lift Mean (N)', 'FontName', 'Tw Cen MT');
@@ -142,8 +142,9 @@ for a = 1:length(unique_aoas)
     ax.XMinorTick = 'on';
     ax.XAxis.MinorTickValues = 0:40:360;
     ax.XTick = 0:40:360; % Set major axis to have 40 deg increments
+    colorbar; % Add colorbar
 
-    % Plot drag carpet plot
+    % Plot drag surface plot
     figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
     surf(phase_grid, velocity_grid, drag_grid);
     hold on;
@@ -152,7 +153,7 @@ for a = 1:length(unique_aoas)
     %     plot3([phase_grid(i), phase_grid(i)], [velocity_grid(i), velocity_grid(i)], [0, drag_grid(i)], 'k--');
     % end
     hold off;
-    title(sprintf('Drag Carpet Plot for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT');
+    title(sprintf('Drag surface Plot for AOA = %.1f deg', current_aoa), 'FontName', 'Tw Cen MT');
     xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
     ylabel('Velocity (m/s)', 'FontName', 'Tw Cen MT');
     zlabel('Drag Mean (N)', 'FontName', 'Tw Cen MT');
@@ -161,6 +162,7 @@ for a = 1:length(unique_aoas)
     ax.XMinorTick = 'on';
     ax.XAxis.MinorTickValues = 0:40:360;
     ax.XTick = 0:40:360; % Set major axis to have 40 deg increments
+    colorbar; % Add colorbar
 end
 
 
@@ -239,7 +241,7 @@ for v = 1:length(unique_velocities)
 end
 
 
-%% LIFT + DRAG VS PHASE ANGLE VS AOA (Carpet Plot)
+%% LIFT + DRAG VS PHASE ANGLE VS AOA (surface Plot)
 % close all; clc;
 for v = 1:length(unique_velocities)
     current_velocity = unique_velocities(v);
@@ -269,7 +271,7 @@ for v = 1:length(unique_velocities)
     lift_grid = griddata(phase_angle_current_velocity, aoa_current_velocity, lift_mean_current_velocity, phase_grid, aoa_grid);
     drag_grid = griddata(phase_angle_current_velocity, aoa_current_velocity, drag_mean_current_velocity, phase_grid, aoa_grid);
     
-    % Plot lift carpet plot
+    % Plot lift surface plot
     figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
     surf(phase_grid, aoa_grid, lift_grid);
     hold on;
@@ -278,7 +280,7 @@ for v = 1:length(unique_velocities)
     %     plot3([phase_grid(i), phase_grid(i)], [aoa_grid(i), aoa_grid(i)], [0, lift_grid(i)], 'k--');
     % end
     hold off;
-    title(sprintf('Lift Carpet Plot for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT');
+    title(sprintf('Lift surface Plot for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT');
     xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
     ylabel('AOA (deg)', 'FontName', 'Tw Cen MT');
     zlabel('Lift Mean (N)', 'FontName', 'Tw Cen MT');
@@ -288,8 +290,9 @@ for v = 1:length(unique_velocities)
     ax.XAxis.MinorTickValues = 0:40:360;
     ax.XTick = 0:40:360; % Set major axis to have 40 deg increments
     ax.YTick = -5:2.5:5;
+    colorbar; % Add colorbar
 
-    % Plot drag carpet plot
+    % Plot drag surface plot
     figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
     surf(phase_grid, aoa_grid, drag_grid);
     hold on;
@@ -298,7 +301,7 @@ for v = 1:length(unique_velocities)
     %     plot3([phase_grid(i), phase_grid(i)], [aoa_grid(i), aoa_grid(i)], [0, drag_grid(i)], 'k--');
     % end
     hold off;
-    title(sprintf('Drag Carpet Plot for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT');
+    title(sprintf('Drag surface Plot for Velocity = %.1f m/s', current_velocity), 'FontName', 'Tw Cen MT');
     xlabel('Phase Angle (deg)', 'FontName', 'Tw Cen MT');
     ylabel('AOA (deg)', 'FontName', 'Tw Cen MT');
     zlabel('Drag Mean (N)', 'FontName', 'Tw Cen MT');
@@ -308,4 +311,5 @@ for v = 1:length(unique_velocities)
     ax.XAxis.MinorTickValues = 0:40:360;
     ax.XTick = 0:40:360; % Set major axis to have 40 deg increments
     ax.YTick = -5:2.5:5;
+    colorbar; % Add colorbar
 end
