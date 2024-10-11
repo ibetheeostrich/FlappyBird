@@ -441,7 +441,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
             if abs(be.fourier[0]) > lesp_crit:          
 
-                field.shed_lev(be)
+                field.shed_lev(be,t)
 
                 be.kelvinlesp(field, 0.0001, lesp_crit, t)
 

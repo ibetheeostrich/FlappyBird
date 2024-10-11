@@ -24,7 +24,7 @@ import csv
 wt_path = './windtunnel_results/DYNAMIC ALL (CLEAN1P)/'
 wt_results = os.listdir(wt_path)
 
-case = wt_results[4]
+case = wt_results[10]
 
 params = case.split('_')
 
@@ -51,7 +51,7 @@ t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
 
 amp = 42.5
 
-lesp = 0.24
+lesp = 0.17
 
 # get data from csv
 
@@ -74,13 +74,13 @@ def wing_plot():
     t = 0.0
     wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
-    root_pos = -0.05
+    root_pos = -0.07
 
     points = wing_kin.kin_2d_plot(root_pos)
 
     print(points)
 
-    np.savetxt("points.csv", points,  
+    np.savetxt("points1.csv", points,  
               delimiter = ",")  
 
 def main():
@@ -201,5 +201,5 @@ def main():
               delimiter = ",")
 
 if __name__ == "__main__":
-    main()
-    # wing_plot()
+    # main()
+    wing_plot()
