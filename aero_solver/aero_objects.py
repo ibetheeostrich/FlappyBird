@@ -110,7 +110,7 @@ class camber_line:
             gp = self.kelvinkutta_a0_a1(v_field, dh, t)
             gm = self.kelvinkutta_a0_a1(v_field, -dh, t)
             
-            v_field.tev[-1] = v_field.tev[-1] - 2*dh * g0 / (gp-gm)
+            v_field.tev[-1] = v_field.tev[-1] - dh * g0 / gp
 
             g0 = self.update_fourier(concatenate((v_field.tev_x, v_field.lev_x, v_field.ext_x)),
                                      concatenate((v_field.tev_y, v_field.lev_y, v_field.ext_y)),
