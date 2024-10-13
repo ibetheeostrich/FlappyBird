@@ -290,8 +290,8 @@ class camber_line:
 
         cs = 2*pi*self.fourier[0]**2
 
-        cl = (cn*cos(self.alpha(t)) + cs*sin(self.alpha(t)))
-        cd = (-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))
+        cl = (0.5*1.225*self.x_dot(t)**2)*(cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) *self.c(t)
+        cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
 
         return cl, cd 
         # return (self.fourier[1] - self.fourier_old[1])/t_step, self.fourier[1]

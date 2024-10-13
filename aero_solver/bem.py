@@ -434,8 +434,6 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
         if t > -1:
 
-            re_log = np.log10(v(t) * chords[round(t/t_step)] * nu_inv)
-
             lev_flag_prev = lev_flag
 
             if t > t_step:
@@ -445,7 +443,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
             field.shed_tev(be)
 
-            be.kelvinkutta(field,0.001,t)
+            be.kelvinkutta(field,0.00001,t)
 
             if abs(be.fourier[0]) > lesp_crit:          
 
@@ -456,6 +454,8 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
                 gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
                 # print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
+
+                print('gay')
 
                 lev_flag = 1
 
@@ -470,25 +470,25 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
                 field.lev_y = np.array([])
     #####################################################################################    
 
-            if round(t/t_step) % 5== 0 and tag == 7:
+            # if round(t/t_step) % 5== 0 and tag == 7:
             
-                fig, ax = plt.subplots()
-                fig.dpi = 300
-                ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                        np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-                        , c='b', s=1.7)
-                ax.plot(be.x,
-                        be.y,
-                        'k')
-                ax.axis("equal")
-                # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
-                # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
-                # plt.savefig('./results/' + str(tag) + '/' + str(round(t/t_step)) + '.png')
-                plt.savefig(str(round(t/t_step)) + '.png')
-                plt.clf()   
+            #     fig, ax = plt.subplots()
+            #     fig.dpi = 300
+            #     ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+            #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+            #             , c='b', s=1.7)
+            #     ax.plot(be.x,
+            #             be.y,
+            #             'k')
+            #     ax.axis("equal")
+            #     # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+            #     # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+            #     # plt.savefig('./results/' + str(tag) + '/' + str(round(t/t_step)) + '.png')
+            #     plt.savefig(str(round(t/t_step)) + '.png')
+            #     plt.clf()   
 
-                gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
-                print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
+            #     gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
+            #     print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
             # print(x_dot(t))
 
     #####################################################################################    
