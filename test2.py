@@ -14,7 +14,7 @@ import io
 from aero_solver.bem import bem as bem
 
 t_step = 0.05
-no_steps = 800
+no_steps = 400
 chords = 1.0+np.zeros(no_steps)#*np.linspace(0,0.25,no_steps)
 freq = 3
 amp = np.deg2rad(42.5)
@@ -26,7 +26,7 @@ cd = np.zeros(no_steps)
 
 td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
-lesp_crit = 0.195
+lesp_crit = 0.3
 
 x_dot = lambda t: 1
 h_dot = lambda t: 0.0#2*np.pi*np.sin(2*np.pi*t)
@@ -34,7 +34,7 @@ alpha_dot = lambda t: 0.0
 
 u = lambda t: 1.0*t
 h = lambda t: 0.0#1-np.cos(2*np.pi*t)
-alpha = lambda t: np.deg2rad(5)
+alpha = lambda t: np.deg2rad(45)
 
 be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
@@ -54,9 +54,9 @@ for t in td:
 
         be.update_pos(t)
 
-        field.shed_tev(be)
+        field.shed_tev(be,t)
 
-        be.kelvinkutta(field,0.001,t)
+        be.kelvinkutta(field,0.0001,t)
 
         if abs(be.fourier[0]) > lesp_crit:          
 
@@ -81,25 +81,25 @@ for t in td:
             field.lev_y = np.array([])
 #####################################################################################    
 
-        # if round(t/t_step) % 5== 0:
+        if round(t/t_step) % 5== 0:
         
-        #     fig, ax = plt.subplots()
-        #     fig.dpi = 300
-        #     ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-        #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-        #             , c='b', s=1.7)
-        #     ax.plot(be.x,
-        #             be.y,
-        #             'k')
-        #     ax.axis("equal")
-        #     # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
-        #     # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
-        #     # plt.savefig('./results/' + str(tag) + '/' + str(round(t/t_step)) + '.png')
-        #     plt.savefig(str(round(t/t_step)) + '.png')
-        #     plt.clf()   
+            fig, ax = plt.subplots()
+            fig.dpi = 300
+            ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                    np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+                    , c='b', s=1.7)
+            ax.plot(be.x,
+                    be.y,
+                    'k')
+            ax.axis("equal")
+            # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+            # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+            # plt.savefig('./results/' + str(tag) + '/' + str(round(t/t_step)) + '.png')
+            plt.savefig(str(round(t/t_step)) + '.png')
+            plt.clf()   
 
-            # gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
-            # print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
+            gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
+            print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
         # print(x_dot(t))
 
 #####################################################################################    
@@ -111,14 +111,16 @@ for t in td:
                                          np.concatenate((field.tev, field.lev, field.ext)),
                                          t, t_step)
 
-        print(cl[round(t/t_step)])
+        # print(cl[round(t/t_step)])
+        # print(be.fourier[0])
 
 
 fig, ax = plt.subplots()
 fig.dpi = 300
-ax.plot(td[2:],
-        cl[2:],
+ax.plot(td,
+        cl,
         'k')
+ax.set_ylim(-1,1)
 plt.savefig('flat1' + '.png')
 plt.clf()   
 

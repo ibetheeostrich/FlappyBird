@@ -275,7 +275,7 @@ class camber_line:
         #     0.125 * (self.x_dot(t) * self.fourier[2] - self.x_dot(t-t_step) * self.fourier_old[2])/t_step
         # )
 
-        cnnc = 2.0*pi * self.c(t) * (
+        cnnc = 2.0*pi/ self.x_dot(t)  * self.c(t) * (
             0.75  * (self.fourier[0] - self.fourier_old[0])/t_step + 
             0.25  * (self.fourier[1] - self.fourier_old[1])/t_step + 
             0.125 * (self.fourier[2] - self.fourier_old[2])/t_step
@@ -293,6 +293,9 @@ class camber_line:
         cl = (0.5*1.225*self.x_dot(t)**2)*(cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) *self.c(t)
         cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
 
+        # cl = (cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) 
+        # cd = (-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))
+
         return cl, cd 
         # return (self.fourier[1] - self.fourier_old[1])/t_step, self.fourier[1]
         # return cnnc, non1
@@ -302,36 +305,53 @@ class vorticity_field:
 
     def __init__(self,c):
 
-        self.tev = array([0.0])
+        self.tev = array([])
         self.lev = array([])
         self.ext = array([])
 
-        self.tev_x = array([c])
+        self.tev_x = array([])
         self.lev_x = array([])
         self.ext_x = array([])
 
-        self.tev_y = array([0.0])
+        self.tev_y = array([])
         self.lev_y = array([])
         self.ext_y = array([])
 
-    def shed_tev(self, camber_line):
+    def shed_tev(self, camber_line,t):
 
-        self.tev_x = append(
-            self.tev_x,
-            camber_line.x[-1] + 
-            (self.tev_x[-1] - camber_line.x[-1])/3
-        )
-        
-        self.tev_y = append(
-            self.tev_y,
-            camber_line.y[-1] + 
-            (self.tev_y[-1] - camber_line.y[-1])/3
-        )
-        
-        self.tev = append(
-            self.tev,
-            0.0
-        )
+        if len(self.tev) == 0:
+            self.tev_x = append(
+                self.tev_x,
+                camber_line.x[-1] + camber_line.x_dot(t)*0.5*camber_line.t_step
+            )
+
+            self.tev_y = append(
+                self.tev_y,
+                camber_line.y[-1] - camber_line.h_dot(t)*0.5*camber_line.t_step
+            )
+
+            self.tev = append(
+                self.tev,
+                0.0
+            )
+
+        else:
+            self.tev_x = append(
+                self.tev_x,
+                camber_line.x[-1] + 
+                (self.tev_x[-1] - camber_line.x[-1])/3
+            )
+
+            self.tev_y = append(
+                self.tev_y,
+                camber_line.y[-1] + 
+                (self.tev_y[-1] - camber_line.y[-1])/3
+            )
+
+            self.tev = append(
+                self.tev,
+                0.0
+            )
 
     def shed_lev(self, camber_line,t):
 

@@ -3,7 +3,7 @@ import aero_solver.pot_func_simp as aero
 import numpy as np
 from copy import deepcopy
 import scipy.integrate as inte
-import aero_solver.aero_objects as ao
+import aero_solver.aero_objects_2 as ao
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -441,9 +441,10 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
             be.update_pos(t)
 
-            field.shed_tev(be)
+            field.shed_tev(be,t)
 
-            be.kelvinkutta(field,0.00001,t)
+            # be.kelvinkutta(field,0.00001,t)
+            be.kelvinkutta(field,t)
 
             if abs(be.fourier[0]) > lesp_crit:          
 
@@ -455,7 +456,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
                 gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
                 # print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
 
-                print('gay')
+                # print('gay')
 
                 lev_flag = 1
 
@@ -500,7 +501,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
                                              np.concatenate((field.tev, field.lev, field.ext)),
                                              t, t_step)
 
-
+    print(tag)
     return tag, cl, cd, td, np.concatenate((field.tev_x, field.lev_x, field.ext_x)), np.concatenate((field.tev_y, field.lev_y, field.ext_y)), np.concatenate((field.tev, field.lev, field.ext)), 1
 
 
