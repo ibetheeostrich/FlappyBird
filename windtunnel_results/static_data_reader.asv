@@ -64,7 +64,7 @@ for i = 1:length(file_list)
     lift_rot = aero_rot(2,:)';
 
     % Prepare data for CSV
-    data_row = [lift_rot, drag_rot, phase_angle, velocity, aoa];
+    data_row = [lift_mean, drag_mean, phase_angle, velocity, aoa];
     
     % Append data to CSV
     writematrix(data_row, csv_filename, 'WriteMode', 'append');
@@ -84,7 +84,7 @@ for i = 1:length(file_list)
     else
         fprintf('%.1f deg\n', phase_angle);
     end
-    fprintf('Lift: %.4f N, Drag: %.4f N\n', lift_rot, drag_rot);
+    fprintf('Lift: %.4f N, Drag: %.4f N\n', lift_mean, drag_mean);
     fprintf('------------------------\n');
 end
 
