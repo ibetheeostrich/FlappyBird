@@ -29,7 +29,7 @@ cd = np.zeros(no_steps)
 
 td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
-lesp_crit = 0.05
+lesp_crit = 0.2
 
 x_dot = lambda t: 5
 h_dot = lambda t: 0.0#2*np.pi*np.sin(2*np.pi*t)
@@ -94,7 +94,7 @@ for t in td:
             plt.rc('ytick', labelsize=16)    # fontsize of the tick labels
             contf = ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
                     np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-                    , c=np.concatenate((field.tev, field.lev, field.ext)), vmin=-0.25, vmax=0.25, cmap = 'Set1', s=10)
+                    , c=np.concatenate((field.tev, field.lev, field.ext)), vmin=-0.25, vmax=0.25, cmap = 'bwr', s=10)
             fig.colorbar(contf,orientation='horizontal')
             
             ax.plot(be.x,
