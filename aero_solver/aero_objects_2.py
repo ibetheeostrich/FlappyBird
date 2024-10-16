@@ -69,9 +69,7 @@ class camber_line:
 
         Gamma_b = pi * self.c(t) * self.x_dot(t) * (self.fourier[0] + self.fourier[1] * 0.5)
         Gamma_b_prev = pi * self.c(t) * self.x_dot(t) * (self.fourier_old[0] + self.fourier_old[1] * 0.5)
-        # Gamma_b = pi * self.c(t) * self.V(t) * (self.fourier[0] + self.fourier[1] * 0.5)
 
-        # Gamma_b = self.U_ref * c * inte.trapezoid(fourier_inf,theta)
 
         return Gamma_b + sum(Gamma_N)# - self.alpha(0.0)*self.x_dot(0.0)*pi*self.c(0.0)
     
@@ -132,9 +130,9 @@ class camber_line:
     def kelvinkutta(self, v_field, t):
 
 
-        g0_int = deepcopy(self.update_fourier(concatenate((v_field.tev_x[:-1], v_field.lev_x[:-1], v_field.ext_x[:-1])),
-                                     concatenate((v_field.tev_y[:-1], v_field.lev_y[:-1], v_field.ext_y[:-1])),
-                                     concatenate((v_field.tev[:-1],   v_field.lev[:-1],   v_field.ext[:-1])),
+        g0_int = deepcopy(self.update_fourier(concatenate((v_field.tev_x[:-1], v_field.lev_x, v_field.ext_x)),
+                                     concatenate((v_field.tev_y[:-1], v_field.lev_y, v_field.ext_y)),
+                                     concatenate((v_field.tev[:-1],   v_field.lev,   v_field.ext)),
                                      t))
             
 
@@ -174,15 +172,15 @@ class camber_line:
 
     def kelvin_lesp_2(self,v_field,lesp,t):
 
-        g0_int = deepcopy(self.update_fourier(concatenate((v_field.tev_x[:-1], v_field.lev_x[:-1], v_field.ext_x[:-1])),
-                                     concatenate((v_field.tev_y[:-1], v_field.lev_y[:-1], v_field.ext_y[:-1])),
-                                     concatenate((v_field.tev[:-1],   v_field.lev[:-1],   v_field.ext[:-1])),
+        g0_int = deepcopy(self.update_fourier(concatenate((v_field.tev_x[:-1], v_field.lev_x[:-1], v_field.ext_x)),
+                                     concatenate((v_field.tev_y[:-1], v_field.lev_y[:-1], v_field.ext_y)),
+                                     concatenate((v_field.tev[:-1],   v_field.lev[:-1],   v_field.ext)),
                                      t))
             
         a0_int = deepcopy(self.fourier[0])
 
 
-        iter = root(self.kelvin_lesp_iter, array([0.01, -0.01]), (a0_int,g0_int,v_field,lesp,t), tol=1e-12)
+        iter = root(self.kelvin_lesp_iter, array([-0.01, 0.01]), (a0_int,g0_int,v_field,lesp,t), tol=1e-12)
 
         [v_field.tev[-1], v_field.lev[-1]] = iter.x
 
@@ -247,8 +245,8 @@ class camber_line:
         cl = (0.5*1.225*self.x_dot(t)**2)*(cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) *self.c(t)
         cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
 
-        cl = (cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) 
-        cd = (-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))
+        # cl = (cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) 
+        # cd = (-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))
 
         return cl, cd 
         # return (self.fourier[1] - self.fourier_old[1])/t_step, self.fourier[1]

@@ -24,29 +24,34 @@ import csv
 wt_path = './windtunnel_results/DYNAMIC ALL (CLEAN1P)/'
 wt_results = os.listdir(wt_path)
 
-case = wt_results[10]
+case = wt_results[8]
 
 params = case.split('_')
 
 rho = 1.225
 U_ref       = float(params[1][:-2])
 alpha       = float(params[0][:-3])
-alpha_eff   = np.deg2rad(5)    
+alpha_eff   = np.deg2rad(alpha)    
+frequency   = float(params[2][:-6])
+
+
+# U_ref       = 14.0
+# alpha_eff   = np.deg2rad(0.0)    
+# frequency   = 3 
 
 scale = 0.5
 
 no_bem = 12 
 
-frequency = float(params[2][:-6])
+
 
 print(params)
 print(U_ref,alpha,frequency)
 
 # Time span
-t_step = 0.0005
+no_steps = 400
 
-no_steps = round(1/frequency/t_step)
-# no_steps = 400
+t_step = 1/frequency/no_steps
 
 t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
 
@@ -92,7 +97,7 @@ def main():
     wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
     # Defining root kinematics that will drive morphing
-    root_kin = lambda x: 1*(- 0.0585 + 0.0125)#- 0.0125*np.sin(2 * np.pi * frequency * x)) 
+    root_kin = lambda x: 1*(- 0.0585 - 0.0125*np.sin(2 * np.pi * frequency * x)) 
 
 
     # Initialising array for storing BEM kinematics
@@ -181,15 +186,17 @@ def main():
     l_int = inte.trapezoid(cl_mat*np.cos(np.deg2rad(amp)*np.cos(2*np.pi*frequency*t_span)),r_mat,axis=0)
     d_int = inte.trapezoid(cd_mat,r_mat,axis=0)
 
-    print(np.trapz(l_int,td)) 
+    print(inte.trapezoid(l_int[2:],td[2:])) 
+    print(inte.trapezoid(d_int[2:],td[2:])) 
+     
 
     fig, ax = plt.subplots()
     fig.dpi = 300
     ax.plot(td[:-2], l_int[2:],'r')
-    ax.plot(td[:-2], -d_int[2:],'g')
+    # ax.plot(td[:-2], -d_int[2:],'g')
 
     ax.plot(wt_time,wt_lift,'b')
-    ax.plot(wt_time,wt_drag,'y')
+    # ax.plot(wt_time,wt_drag,'y')
 
     ax.set_xlabel('Time  (s)')
     ax.set_ylabel('Lift Force (n)')
