@@ -4,7 +4,7 @@ import scipy.integrate as inte
 import matplotlib.pyplot as plt
 import matplotlib
 
-from aero_solver.bem import bem as bem
+from aero_solver.bem import bem_2 as bem
 from wing_kinematics.kinematics import blade_element_kinematics as bek
   
 from wing_kinematics.kinematics import wing_kinematics as wk
@@ -31,7 +31,7 @@ params = case.split('_')
 rho = 1.225
 U_ref       = float(params[1][:-2])
 alpha       = float(params[0][:-3])
-alpha_eff   = np.deg2rad(alpha)    
+alpha_eff   = np.deg2rad(5)    
 
 scale = 0.5
 
@@ -43,7 +43,7 @@ print(params)
 print(U_ref,alpha,frequency)
 
 # Time span
-t_step = 0.001
+t_step = 0.0005
 
 no_steps = round(1/frequency/t_step)
 # no_steps = 400
@@ -52,7 +52,7 @@ t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
 
 amp = 42.5
 
-lesp = 0.2
+lesp = 0.3
 
 # get data from csv
 
@@ -92,7 +92,7 @@ def main():
     wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
     # Defining root kinematics that will drive morphing
-    root_kin = lambda x: 1*(- 0.0585- 0.0125*np.sin(2 * np.pi * frequency * x)) 
+    root_kin = lambda x: 1*(- 0.0585 + 0.0125)#- 0.0125*np.sin(2 * np.pi * frequency * x)) 
 
 
     # Initialising array for storing BEM kinematics

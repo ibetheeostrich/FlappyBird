@@ -3,7 +3,7 @@ import aero_solver.pot_func_simp as aero
 import numpy as np
 from copy import deepcopy
 import scipy.integrate as inte
-import aero_solver.aero_objects as ao
+import aero_solver.aero_objects_2 as ao
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -11,10 +11,13 @@ from matplotlib.animation import FFMpegWriter
 import io
 
 
-from aero_solver.bem import bem as bem
+from aero_solver.bem import bem_2 as bem
 
-t_step = 0.05
-no_steps = 400
+csfont = {'fontname':'Comic Sans MS'}
+hfont = {'fontname':'Helvetica'}
+
+t_step = 0.005
+no_steps = 800
 chords = 1.0+np.zeros(no_steps)#*np.linspace(0,0.25,no_steps)
 freq = 3
 amp = np.deg2rad(42.5)
@@ -26,27 +29,26 @@ cd = np.zeros(no_steps)
 
 td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
-lesp_crit = 0.3
+lesp_crit = 10.2
 
-x_dot = lambda t: 1
+x_dot = lambda t: 5
 h_dot = lambda t: 0.0#2*np.pi*np.sin(2*np.pi*t)
-alpha_dot = lambda t: 0.0
+alpha_dot = lambda t: 0 if t<0.24 else (2*np.pi*np.deg2rad(22.5)*np.sin(2*np.pi*(t-0.25)) if t < 0.75 else 0.0)
 
-u = lambda t: 1.0*t
+u = lambda t: 5.0*t
 h = lambda t: 0.0#1-np.cos(2*np.pi*t)
-alpha = lambda t: np.deg2rad(45)
+alpha = lambda t: 0 if t<0.24 else (np.deg2rad(22.5) - np.deg2rad(22.5)*np.cos(2*np.pi*(t-0.25)) if t < 0.75 else np.deg2rad(45))
 
 be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
 field   = ao.vorticity_field(chords[0])
 
-
-
 lev_flag = 0
 
 for t in td:
 
-    if t > -1:
+    if t > 0.0:
+        print(t)
         lev_flag_prev = lev_flag
 
         if t > t_step:
@@ -56,7 +58,9 @@ for t in td:
 
         field.shed_tev(be,t)
 
-        be.kelvinkutta(field,0.0001,t)
+        # be.kelvinkutta(field,0.0001,t)
+        be.kelvinkutta(field,t)
+
 
         if abs(be.fourier[0]) > lesp_crit:          
 
@@ -81,26 +85,28 @@ for t in td:
             field.lev_y = np.array([])
 #####################################################################################    
 
-        if round(t/t_step) % 5== 0:
+        # if round(t/t_step) % 5== 0:
         
-            fig, ax = plt.subplots()
-            fig.dpi = 300
-            ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-                    np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-                    , c='b', s=1.7)
-            ax.plot(be.x,
-                    be.y,
-                    'k')
-            ax.axis("equal")
-            # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
-            # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
-            # plt.savefig('./results/' + str(tag) + '/' + str(round(t/t_step)) + '.png')
-            plt.savefig(str(round(t/t_step)) + '.png')
-            plt.clf()   
+        #     fig, ax = plt.subplots()
+        #     fig.dpi = 300
+        #     contf = ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+        #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+        #             , c=np.concatenate((field.tev, field.lev, field.ext)), vmin=-0.25, vmax=0.25, s=1.7)
+        #     fig.colorbar(contf,orientation='horizontal')
+            
+        #     ax.plot(be.x,
+        #             be.y,
+        #             'k')
+        #     ax.axis("equal")
+        #     # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+        #     # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+        #     # plt.savefig('./results/' + str(tag) + '/' + str(round(t/t_step)) + '.png')
+        #     plt.savefig(str(round(t/t_step)) + '.png')
+        #     plt.clf()   
 
-            gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
-            print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
-        # print(x_dot(t))
+        #     gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
+        #     print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
+        # # print(x_dot(t))
 
 #####################################################################################    
 
@@ -120,7 +126,7 @@ fig.dpi = 300
 ax.plot(td,
         cl,
         'k')
-ax.set_ylim(-1,1)
+
 plt.savefig('flat1' + '.png')
 plt.clf()   
 

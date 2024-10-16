@@ -403,8 +403,7 @@ def bem_old(tag,U_ref, alpha_eff, c, t_step, no_steps, kin):
 
     return tag, cl, t_d[0:-1], x_N, y_N, Gamma_N, zeroth
     
-
-def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
+def bem_2(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
     nu = 1.562e-5
     nu_inv = 1/nu
@@ -433,7 +432,6 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
     for t in td:
 
         if t > -1:
-
             lev_flag_prev = lev_flag
 
             if t > t_step:
@@ -443,8 +441,9 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
             field.shed_tev(be,t)
 
-            # be.kelvinkutta(field,0.00001,t)
+            # be.kelvinkutta(field,0.0001,t)
             be.kelvinkutta(field,t)
+
 
             if abs(be.fourier[0]) > lesp_crit:          
 
@@ -455,8 +454,6 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
                 gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
                 # print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
-
-                # print('gay')
 
                 lev_flag = 1
 
@@ -471,7 +468,116 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
                 field.lev_y = np.array([])
     #####################################################################################    
 
-            # if round(t/t_step) % 5== 0 and tag == 7:
+            if round(t/t_step) % 5== 0 and tag == 20:
+            
+                fig, ax = plt.subplots()
+                fig.dpi = 300
+                ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                        np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+                        , c='b', s=1.7)
+                ax.plot(be.x,
+                        be.y,
+                        'k')
+                ax.axis("equal")
+                # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+                # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+                # plt.savefig('./results/' + str(tag) + '/' + str(round(t/t_step)) + '.png')
+                plt.savefig(str(round(t/t_step)) + '.png')
+                plt.clf()   
+
+                gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
+                print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
+            # print(x_dot(t))
+
+    #####################################################################################    
+
+            field.advect(be,t_step,t)
+
+            cl[round(t/t_step)], cd[round(t/t_step)] = be.calc_cl(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                                             np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
+                                             np.concatenate((field.tev, field.lev, field.ext)),
+                                             t, t_step)
+
+            # print(cl[round(t/t_step)])
+            # print(be.fourier[0])
+
+    print(tag)
+    return tag, cl, cd, td, np.concatenate((field.tev_x, field.lev_x, field.ext_x)), np.concatenate((field.tev_y, field.lev_y, field.ext_y)), np.concatenate((field.tev, field.lev, field.ext)), 1
+
+
+def bem_3(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
+
+    nu = 1.562e-5
+    nu_inv = 1/nu
+
+    cl = np.zeros(no_steps)
+    cd = np.zeros(no_steps)
+
+    td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
+
+    x_dot = lambda t: U_ref - (kin.le[round(t/t_step) + 1] - kin.le[round(t/t_step)]) / t_step
+    h_dot = lambda t: 2 * np.pi * kin.f * kin.r[round((t) / t_step)] * kin.aa * np.sin(2 * np.pi * kin.f * (t)) #if t > 0.02 else 0.0
+    alpha_dot = lambda t: 0.0 
+
+    u = lambda t: U_ref*t - kin.le[round(t/t_step)] 
+    h = lambda t: kin.r[round((t) / t_step)] * kin.aa - kin.r[round((t) / t_step)] * kin.aa * np.cos(2 * np.pi * kin.f * (t)) #if t > 0.02 else 0.0
+    alpha = lambda t: alpha_eff
+
+    v = lambda t: np.sqrt(x_dot(t)**2 + h_dot(t)**2)
+
+    be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
+
+    field   = ao.vorticity_field(chords[0])
+
+    lev_flag = 0
+
+    for t in td:
+
+            if t > -0.0:
+
+                lev_flag_prev = lev_flag
+
+                be.fourier_old = deepcopy(be.fourier) 
+
+                be.update_pos(t)
+
+                be.update_ind_vel(field,t)
+
+                be.update_downwash(t)
+
+                field.shed_tev(be,t)
+
+                be.kelvinkutta(field,t)
+
+                if abs(be.fourier[0]) > lesp_crit:          
+                
+                    field.shed_lev(be,t)
+
+                    # be.kelvinlesp(field, 0.001, lesp_crit, t)
+                    be.kelvin_lesp_2(field,lesp_crit,t)
+
+                #     gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
+                #     print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
+
+                #     lev_flag = 1
+
+                # else:
+                
+                #     gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
+                #     print(f'{t:.2f} {gb}') 
+
+                if lev_flag_prev == 1 and lev_flag == 0:
+                
+                    field.ext   = np.append(field.ext   ,deepcopy(field.lev)    )
+                    field.ext_x = np.append(field.ext_x ,deepcopy(field.lev_x)  )
+                    field.ext_y = np.append(field.ext_y ,deepcopy(field.lev_y)  )
+
+                    field.lev   = np.array([])
+                    field.lev_x = np.array([])
+                    field.lev_y = np.array([])
+    #####################################################################################    
+
+            # if round(t/t_step) % 5== 0:
             
             #     fig, ax = plt.subplots()
             #     fig.dpi = 300
@@ -488,8 +594,8 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
             #     plt.savefig(str(round(t/t_step)) + '.png')
             #     plt.clf()   
 
-            #     gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
-            #     print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
+                # gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
+                # print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
             # print(x_dot(t))
 
     #####################################################################################    
@@ -503,6 +609,7 @@ def bem(tag,U_ref, alpha_eff, chords, t_step, no_steps, kin, lesp_crit):
 
     print(tag)
     return tag, cl, cd, td, np.concatenate((field.tev_x, field.lev_x, field.ext_x)), np.concatenate((field.tev_y, field.lev_y, field.ext_y)), np.concatenate((field.tev, field.lev, field.ext)), 1
+
 
 
 def bem_span(tag, chords, t_step, no_steps, freq, amp):

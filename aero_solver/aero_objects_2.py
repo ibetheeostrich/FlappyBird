@@ -75,6 +75,37 @@ class camber_line:
 
         return Gamma_b + sum(Gamma_N)# - self.alpha(0.0)*self.x_dot(0.0)*pi*self.c(0.0)
     
+    def calc_fourier(self, x_N, y_N,  Gamma_N, t):
+
+        fourier = zeros(len(self.fourier))
+
+        v_core = 1.3*self.t_step*self.x_dot(t)
+
+        xi = 0.5 * self.c(t) * (1 - cos(self.theta))
+
+        u_ind, v_ind = V_ind_ub_field(self.x, self.y, x_N, y_N, Gamma_N, v_core, 1)
+
+        dphi_deta = v_ind*cos(self.alpha(t)) + u_ind*sin(self.alpha(t))
+
+        wx = (- self.x_dot(t)*sin(self.alpha(t)) 
+              - self.alpha_dot(t)*xi 
+              + self.h_dot(t)*cos(self.alpha(t)) 
+              - dphi_deta)
+
+        fourier[0] = inte.trapezoid(- 1 / pi / self.x_dot(t) * wx,self.theta) 
+
+
+        for i in range(1,len(self.fourier)):
+
+            fourier[i] = inte.trapezoid(2 / pi / self.x_dot(t) * wx*cos(i*self.theta),self.theta)
+
+            
+
+        Gamma_b = pi * self.c(t) * self.x_dot(t) * (self.fourier[0] + self.fourier[1] * 0.5)
+        Gamma_b_prev = pi * self.c(t) * self.x_dot(t) * (self.fourier_old[0] + self.fourier_old[1] * 0.5)
+
+        return fourier # - self.alpha(0.0)*self.x_dot(0.0)*pi*self.c(0.0)
+
     def kelvinkutta_iter(self,inp,g0_int,v_field,t):
 
         # v_core = 0.02*self.c(t)#1.3*self.t_step*self.x_dot(t)
@@ -96,7 +127,7 @@ class camber_line:
         gamma_b = pi * self.c(t) * self.x_dot(t) * (a0 + a1 * 0.5)
         gamma_b_old = pi * self.c(t) * self.x_dot(t) * (self.fourier_old[0] + self.fourier_old[1] * 0.5)
 
-        return (gamma_b + g0_int - gamma_b_old) + inp
+        return (gamma_b + g0_int) + inp
 
     def kelvinkutta(self, v_field, t):
 
@@ -139,7 +170,7 @@ class camber_line:
         gamma_b = pi * self.c(t) * self.x_dot(t) * (a0 + a1 * 0.5)
         gamma_b_old = pi * self.c(t) * self.x_dot(t) * (self.fourier_old[0] + self.fourier_old[1] * 0.5) 
 
-        return [abs(gamma_b + tev + lev + g0_int - gamma_b_old), abs((a0 + a0_int) - lesp)]
+        return [abs(gamma_b + tev + lev + g0_int), abs((a0 + a0_int) - lesp)]
 
     def kelvin_lesp_2(self,v_field,lesp,t):
 
@@ -206,7 +237,7 @@ class camber_line:
 
         non1 = inte.trapezoid(2/self.x_dot(t)/self.x_dot(t)/self.c(t) * dphi_dxi*fourier_inf,self.theta)
 
-        cn = cnc + cnnc + non1
+        cn = non1 + cnc + cnnc 
 
         # if t > 0.20:
         #     print(f"{cnc:.8f}", f"{cnnc:.8f}", f"{non1:.8f}", self.fourier[0], self.fourier[1])
@@ -216,8 +247,8 @@ class camber_line:
         cl = (0.5*1.225*self.x_dot(t)**2)*(cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) *self.c(t)
         cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
 
-        # cl = (cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) 
-        # cd = (-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))
+        cl = (cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) 
+        cd = (-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))
 
         return cl, cd 
         # return (self.fourier[1] - self.fourier_old[1])/t_step, self.fourier[1]
@@ -385,28 +416,20 @@ def V_ind_ub_field(x1_N, y1_N, x2_N, y2_N, Gamma_N, v_core,v_core_flag):
     '''
     calculates induced velocity at (x1,y1) by vortices at (x2,y2)
     '''
-    # Reshape the input arrays to enable broadcasting
-    x1_N = reshape(x1_N, (-1, 1))  # Shape: (len(x1_N), 1)
-    y1_N = reshape(y1_N, (-1, 1))  # Shape: (len(y1_N), 1)
-    Gamma_N = reshape(Gamma_N, (-1, 1))  # Shape: (len(y1_N), 1)
 
-    # Compute the difference arrays (x1_N - x2_N) and (y1_N - y2_N)
-    dx = x1_N - x2_N  # Shape: (len(x1_N), len(x2_N))
-    dy = y1_N - y2_N  # Shape: (len(y1_N), len(y2_N))
+    x1_N = reshape(x1_N, (len(x1_N),1))
+    y1_N = reshape(y1_N, (len(x1_N),1))
+    Gamma_N = reshape(Gamma_N, (len(Gamma_N),1))
 
-    # Calculate the squared distance and avoid division by zero by adding a small value (epsilon)
-    r_squared = dx**2 + dy**2
+    dx = x1_N - x2_N
+    dy = y1_N - y2_N
 
-    epsilon = 1e-10  # Small value to prevent division by zero
-    r_squared = where(r_squared == 0, epsilon, r_squared)
+    rsq = where(dx**2 + dy**2 == 0, 1, dx**2 + dy**2)
 
-    # Calculate induced velocities using broadcasting
-    if v_core_flag == 0:
-        u_ind =  dy*( 1 / (2 * pi * r_squared)) @ Gamma_N # Shape: (len(x1_N), len(x2_N))
-        v_ind =  dx*(-1 / (2 * pi * r_squared)) @ Gamma_N     # Shape: (len(y1_N), len(y2_N))
-    else:
-        u_ind =  dy*( 1 / (2 * pi * sqrt(r_squared**2 + v_core**4))) @ Gamma_N # Shape: (len(x1_N), len(x2_N))
-        v_ind =  dx*(-1 / (2 * pi * sqrt(r_squared**2 + v_core**4))) @ Gamma_N     # Shape: (len(y1_N), len(y2_N))
+    inv = 0.5/sqrt(rsq**2 + v_core**4)/pi
+
+    u_ind = dy * inv @ Gamma_N
+    v_ind =-dx * inv @ Gamma_N
 
     return reshape(u_ind,-1), reshape(v_ind,-1)
 
