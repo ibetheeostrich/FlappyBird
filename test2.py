@@ -29,7 +29,7 @@ cd = np.zeros(no_steps)
 
 td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
-lesp_crit = 10.2
+lesp_crit = 0.2
 
 x_dot = lambda t: 5
 h_dot = lambda t: 0.0#2*np.pi*np.sin(2*np.pi*t)
@@ -85,27 +85,30 @@ for t in td:
             field.lev_y = np.array([])
 #####################################################################################    
 
-        # if round(t/t_step) % 5== 0:
+        if round(t/t_step) % 5== 0:
         
-        #     fig, ax = plt.subplots()
-        #     fig.dpi = 300
-        #     contf = ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
-        #             np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-        #             , c=np.concatenate((field.tev, field.lev, field.ext)), vmin=-0.25, vmax=0.25, s=1.7)
-        #     fig.colorbar(contf,orientation='horizontal')
+            fig, ax = plt.subplots()
+            fig.dpi = 300
+            fig.set_size_inches(19.20, 10.80)
+            plt.rc('xtick', labelsize=16)    # fontsize of the tick labels
+            plt.rc('ytick', labelsize=16)    # fontsize of the tick labels
+            contf = ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
+                    np.concatenate((field.tev_y, field.lev_y, field.ext_y))
+                    , c=np.concatenate((field.tev, field.lev, field.ext)), vmin=-0.25, vmax=0.25, s=1.7)
+            fig.colorbar(contf,orientation='horizontal')
             
-        #     ax.plot(be.x,
-        #             be.y,
-        #             'k')
-        #     ax.axis("equal")
-        #     # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
-        #     # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
-        #     # plt.savefig('./results/' + str(tag) + '/' + str(round(t/t_step)) + '.png')
-        #     plt.savefig(str(round(t/t_step)) + '.png')
-        #     plt.clf()   
+            ax.plot(be.x,
+                    be.y,
+                    'k')
+            ax.axis("equal")
+            # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
+            # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
+            # plt.savefig('./results/' + str(tag) + '/' + str(round(t/t_step)) + '.png')
+            plt.savefig(str(round(t/t_step)) + '.png')
+            plt.clf()   
 
-        #     gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
-        #     print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
+            gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
+            print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
         # # print(x_dot(t))
 
 #####################################################################################    
