@@ -316,15 +316,15 @@ for v = 1:length(unique_velocities)
     colorbar; % Add colorbar
 end
 
-% % Save specified figures as PNG in 'static figs' folder
-% figures_to_save = [5, 6, 15, 16, 23, 24, 31, 32];
-% output_folder = 'static figs';
-% 
-% if ~exist(output_folder, 'dir')
-%     mkdir(output_folder);
-% end
-% 
-% for fig_num = figures_to_save
-%     figure(fig_num);
-%     saveas(gcf, fullfile(output_folder, sprintf('figure_%d.png', fig_num)));
-% end
+% Save specified figures as PNG in 'static figs' folder
+figures_to_save = [7, 8, 17, 18];
+output_folder = 'static figs';
+
+if ~exist(output_folder, 'dir')
+    mkdir(output_folder);
+end
+
+for fig_num = figures_to_save
+    figure(fig_num);
+    saveas(gcf, fullfile(output_folder, sprintf('figure_%d.png', fig_num)));
+end

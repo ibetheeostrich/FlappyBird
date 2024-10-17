@@ -20,7 +20,7 @@ if ~isfile(csv_filename)
 end
 
 % Initialize progress bar with a custom window name
-h = waitbar(0, 'Processing files...', 'Name', 'your mum');
+h = waitbar(0, 'Processing files...', 'Name', 'your ');
 
 % Loop through each file in the folder
 for i = 1:length(file_list)
@@ -29,17 +29,8 @@ for i = 1:length(file_list)
     
     % Construct full file path
     file_path = fullfile(folder_path, file_list(i).name);
-    
-    % Read the current file
-    data = readtable(file_path);
 
-    lift = -data.Var2;
-    drag = data.Var1;
-
-    lift_mean = mean(lift);
-    drag_mean = mean(drag);
-
-    % Extract conditions from filename
+        % Extract conditions from filename
     [~, filename, ~] = fileparts(file_list(i).name);
     
     % Use regular expressions to extract information
@@ -55,21 +46,7 @@ for i = 1:length(file_list)
         velocity = NaN;
         phase_angle = NaN;
     end
-
-    aero_dat = [drag_mean; lift_mean];
-    % rotation matrix of lift and drag
-    R = [cosd(-aoa), -sind(-aoa); sind(-aoa), cosd(-aoa)];
-    aero_rot = R * aero_dat;
-    drag_rot = aero_rot(1,:)';
-    lift_rot = aero_rot(2,:)';
-
-    % Prepare data for CSV
-    data_row = [lift_rot, drag_rot, phase_angle, velocity, aoa];
     
-    % Append data to CSV
-    writematrix(data_row, csv_filename, 'WriteMode', 'append');
-
-    % Print results with conditions
     % fprintf('Filename: %s\n', filename);
     fprintf('Angle of Attack: %.1f deg\n', aoa);
     fprintf('Wind Tunnel Velocity: ');
@@ -84,6 +61,29 @@ for i = 1:length(file_list)
     else
         fprintf('%.1f deg\n', phase_angle);
     end
+    
+    % Read the current file
+    data = readtable(file_path);
+
+    lift = -data.Var2;
+    drag = data.Var1;
+    lift_mean = mean(lift(1:3000));
+    drag_mean = mean(drag(1:3000));
+
+    aero_dat = [drag_mean; lift_mean];
+    R = [cosd(aoa), -sind(aoa); sind(aoa), cosd(aoa)];
+    aero_rot = R \ aero_dat;
+    drag_rot = aero_rot(1,:);
+    lift_rot = aero_rot(2,:);
+
+    % Prepare data for CSV
+    data_row = [lift_rot, drag_rot, phase_angle, velocity, aoa];
+    
+    % Append data to CSV
+    writematrix(data_row, csv_filename, 'WriteMode', 'append');
+
+    % Print results with conditions
+
     fprintf('Lift: %.4f N, Drag: %.4f N\n', lift_rot, drag_rot);
     fprintf('------------------------\n');
 end
