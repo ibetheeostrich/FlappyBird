@@ -57,7 +57,7 @@ t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
 
 amp = 42.5
 
-lesp = 0.25
+lesp = 0.325
 
 # get data from csv
 
@@ -195,7 +195,7 @@ def main():
     ax.plot(td[:-2], l_int[2:],'r')
     # ax.plot(td[:-2], -d_int[2:],'g')
 
-    ax.plot(wt_time,wt_lift,'b')
+    # ax.plot(wt_time,wt_lift,'b')
     # ax.plot(wt_time,wt_drag,'y')
 
     ax.set_xlabel('Time  (s)')
