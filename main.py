@@ -34,9 +34,10 @@ alpha       = float(params[0][:-3])
 alpha_eff   = np.deg2rad(alpha)    
 frequency   = float(params[2][:-6])
 
-alpha_eff   = np.deg2rad(0.0) 
-U_ref       = 10
-frequency   = 2.0
+alpha = 5.0
+alpha_eff   = np.deg2rad(alpha) 
+U_ref       = 8.0
+frequency   = 1.0
 
 scale = 0.5
 
@@ -218,7 +219,7 @@ def main():
     print(time.time()-start)
 
     np.savetxt(f"{t_step:.7f}_{alpha:.1f}deg_{U_ref:.1f}ms_{frequency:.1f}Hz_{lesp:.2f}LESP" + '.csv', np.transpose(np.vstack((-d_int,l_int,td))),  
-              delimiter = ",")
+              delimiter = ",", header='drag,lift,t')
 
 if __name__ == "__main__":
     main()
