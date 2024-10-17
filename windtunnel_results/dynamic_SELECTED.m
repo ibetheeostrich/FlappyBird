@@ -10,14 +10,14 @@ extrac1p = false;
 
 
 % File Directories
-folder_path = '.\DYNAMIC ALL (RAW)';
-clean_folder_path = '.\DYNAMIC ALL (CLEAN)';
+folder_path = '.\DYNAMIC (SELECTED)';
+clean_folder_path = '.\DYNAMIC (SELECTED)';
 clean_folder_path_1p = '.\DYNAMIC ALL (CLEAN1P)';
 
 % Get a list of all .txt files in the selected folder
 cd(folder_path)
 
-file_list = dir('*.txt');
+file_list = dir('*.csv');
 
 cd ..
 
@@ -51,8 +51,8 @@ for i = 1:length(file_list)
     % Read the current file
     data = readtable(file_path);
 
-    drag = data.Var1';
-    lift = data.Var2';
+    drag = data.Drag_N_';
+    lift = data.Lift_N_';
 
     aero_dat = [drag; lift];
 
@@ -101,45 +101,44 @@ for i = 1:length(file_list)
         end
 
         % Check that intercepts exist
-        if size(ind) ==0
+        if size(ind) == 0
 
             % Check the domain is actually approximately one wavelength
         elseif max(size(ind)) > 0 && (abs((time(ind(3)) - time(ind(2))) - 1/freq) < 0.25/freq)
 
-            % Extract lift and drag for one period
+            % Extract lift for one period
             new_lift1p = new_lift(ind(2):ind(3));
-            new_drag1p = new_drag(ind(2):ind(3));
             new_time1p = time(ind(2):ind(3));
 
             % Frequency scaling of time domain
             time_scaled = linspace(0,1/freq,length(new_time1p))';
 
             output_filename = fullfile(clean_folder_path_1p, [filename '.csv']);
-            filtered_data_1p = table(new_drag1p, new_lift1p, time_scaled, 'VariableNames', {'Drag (N)', 'Lift (N)' , 'Time (s)'});
+            filtered_data_1p = table(new_lift1p, time_scaled, 'VariableNames', {'Lift (N)', 'Time (s)'});
             writetable(filtered_data_1p, output_filename);
             figure(i)
             plot(time_scaled,new_lift1p,'LineWidth',1.7)
             hold on
             plot(time_scaled,lift(ind(2):ind(3)), 'Color', [0,0,1,0.1])
-            plot(time_scaled,new_drag1p,'LineWidth',1.7)
-            plot(time_scaled,drag(ind(2):ind(3)), 'Color', [1,0,0,0.1])
-            title(['Filtered Data for One Period: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg | Frequency: ', num2str(frequency), ' Hz'])
+            title(['Filtered Lift Data for One Period: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg | Frequency: ', num2str(frequency), ' Hz'])
             xlabel('Time (s)')
-            ylabel('Force (N)')
-            legend('Filtered Lift', 'Original Lift', 'Filtered Drag', 'Original Drag')
+            ylabel('Lift (N)')
+            xlim([1,3]);
+            legend('Filtered Lift', 'Original Lift')
 
         end
     else
         figure(i)
         plot(time,new_lift,'LineWidth',1.7)
         hold on
-        plot(time,lift, 'Color', [0,0,1,0.1])
+        % plot(time,lift, 'Color', [0,0,1,0.1])
         plot(time,new_drag,'LineWidth',1.7)
-        plot(time,drag, 'Color', [1,0,0,0.1])
+        % plot(time,drag, 'Color', [1,0,0,0.1])
         title(['Filtered Data: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg| Frequency: ', num2str(frequency), ' Hz'])
         xlabel('Time (s)')
         ylabel('Force (N)')
-        legend('Filtered Lift', 'Original Lift', 'Filtered Drag', 'Original Drag')
+        xlim([1,3]);
+        legend('Filtered Lift', 'Filtered Drag')
     end
 
     % Process the data (you can add your processing steps here)
@@ -154,6 +153,7 @@ for i = 1:length(file_list)
 end
 
 % Add any final operations or data compilation here if needed
+
 
 
 
