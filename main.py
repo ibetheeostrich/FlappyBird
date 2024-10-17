@@ -24,7 +24,7 @@ import csv
 wt_path = './windtunnel_results/DYNAMIC ALL (CLEAN1P)/'
 wt_results = os.listdir(wt_path)
 
-case = wt_results[8]
+case = wt_results[3]
 
 params = case.split('_')
 
@@ -34,10 +34,9 @@ alpha       = float(params[0][:-3])
 alpha_eff   = np.deg2rad(alpha)    
 frequency   = float(params[2][:-6])
 
-
-# U_ref       = 14.0
-# alpha_eff   = np.deg2rad(0.0)    
-# frequency   = 3 
+alpha_eff   = np.deg2rad(0.0) 
+U_ref       = 10
+frequency   = 2.0
 
 scale = 0.5
 
@@ -57,7 +56,7 @@ t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
 
 amp = 42.5
 
-lesp = 0.3
+lesp = 10.25
 
 # get data from csv
 
@@ -201,6 +200,19 @@ def main():
     ax.set_xlabel('Time  (s)')
     ax.set_ylabel('Lift Force (n)')
     plt.savefig('lint v t' + str(i) + '.png')
+    plt.clf()
+
+    fig, ax = plt.subplots()
+    fig.dpi = 300
+    ax.plot(td[:-2], d_int[2:],'r')
+    # ax.plot(td[:-2], -d_int[2:],'g')
+
+    # ax.plot(wt_time,wt_lift,'b')
+    # ax.plot(wt_time,wt_drag,'y')
+
+    ax.set_xlabel('Time  (s)')
+    ax.set_ylabel('Drag Force (n)')
+    plt.savefig('dint v t' + str(i) + '.png')
     plt.clf()
 
     print(time.time()-start)
