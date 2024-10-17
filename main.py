@@ -21,60 +21,59 @@ import csv
 
 # Initialise problem based off wind tunnel data
 
-wt_path = './windtunnel_results/DYNAMIC ALL (CLEAN1P)/'
-wt_results = os.listdir(wt_path)
+# wt_path = './windtunnel_results/DYNAMIC ALL (CLEAN1P)/'
+# wt_results = os.listdir(wt_path)
 
-case = wt_results[3]
+# case = wt_results[3]
 
-params = case.split('_')
+# params = case.split('_')
 
-rho = 1.225
-U_ref       = float(params[1][:-2])
-alpha       = float(params[0][:-3])
-alpha_eff   = np.deg2rad(alpha)    
-frequency   = float(params[2][:-6])
+# rho = 1.225
+# U_ref       = float(params[1][:-2])
+# alpha       = float(params[0][:-3])
+# alpha_eff   = np.deg2rad(alpha)    
+# frequency   = float(params[2][:-6])
 
-alpha = 0.0
-alpha_eff   = np.deg2rad(alpha) 
-U_ref       = 10.0
-frequency   = 2.0
+# alpha = 0.0
+# alpha_eff   = np.deg2rad(alpha) 
+# U_ref       = 10.0
+# frequency   = 2.0
 
-scale = 0.5
+
 
 no_bem = 12 
 
 
 
-print(params)
-print(U_ref,alpha,frequency)
+# # print(params)
+# print(U_ref,alpha,frequency)
 
-# Time span
-no_steps = 400
+# # Time span
+# no_steps = 400
 
-t_step = 1/frequency/no_steps
+# t_step = 1/frequency/no_steps
 
-t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
+# t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
 
 amp = 42.5
 
-lesp = 0.325
 
 # get data from csv
 
-wt_lift = [] 
-wt_drag = [] 
-wt_time = []
+# wt_lift = [] 
+# wt_drag = [] 
+# wt_time = []
 
-with open(wt_path + case,'r') as csvfile: 
-    lines = csv.reader(csvfile, delimiter=',') 
-    for row in lines: 
-        wt_lift.append(row[1]) 
-        wt_drag.append(row[0])
-        wt_time.append(row[2])
+# with open(wt_path + case,'r') as csvfile: 
+#     lines = csv.reader(csvfile, delimiter=',') 
+#     for row in lines: 
+#         wt_lift.append(row[1]) 
+#         wt_drag.append(row[0])
+#         wt_time.append(row[2])
 
-wt_lift = np.array(wt_lift[1:], dtype=np.float32)  
-wt_drag = np.array(wt_drag[1:], dtype=np.float32)  
-wt_time = np.array(wt_time[1:], dtype=np.float32)
+# wt_lift = np.array(wt_lift[1:], dtype=np.float32)  
+# wt_drag = np.array(wt_drag[1:], dtype=np.float32)  
+# wt_time = np.array(wt_time[1:], dtype=np.float32)
 
 def wing_plot():
     t = 0.0
@@ -89,7 +88,22 @@ def wing_plot():
     np.savetxt("points1.csv", points,  
               delimiter = ",")  
 
-def main():
+def main(alpha,U_ref,frequency,lesp):
+
+    # alpha = 0.0
+    alpha_eff   = np.deg2rad(alpha) 
+    # U_ref       = 10.0
+    # frequency   = 2.0
+
+
+    # Time span
+    no_steps = 400
+
+    t_step = 1/frequency/no_steps
+
+    t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
+
+    amp = 42.5
     
     start = time.time()
 
@@ -218,9 +232,42 @@ def main():
 
     print(time.time()-start)
 
-    np.savetxt(f"{t_step:.7f}_{alpha:.1f}deg_{U_ref:.1f}ms_{frequency:.1f}Hz_{lesp:.2f}LESP" + '.csv', np.transpose(np.vstack((-d_int,l_int,td))),  
-              delimiter = ",", header='drag,lift,t')
+    # np.savetxt(f"{t_step:.7f}_{alpha:.1f}deg_{U_ref:.1f}ms_{frequency:.1f}Hz_{lesp:.2f}LESP" + '.csv', np.transpose(np.vstack((-d_int,l_int,td))),  
+    #           delimiter = ",", header='drag,lift,t')
+    
+    return inte.trapezoid(l_int[2:],td[2:]), inte.trapezoid(d_int[2:],td[2:]), inte.trapezoid(np.abs(l_int[2:]),td[2:])
+
 
 if __name__ == "__main__":
-    main()
-    # wing_plot()
+
+    alpha = 5.0
+
+    Uref = [8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0]
+    freq = [1.0, 1.5, 2.0, 2.5, 3.0]
+
+    [U,F] = np.meshgrid(Uref,freq)
+
+    D = np.zeros((len(freq),len(Uref)))
+    L = np.zeros((len(freq),len(Uref)))
+    L_eff = np.zeros((len(freq),len(Uref)))
+
+    LESP = [0.2,0.3]
+
+    for lesp in LESP:
+
+        for i in range(len(Uref)):
+            for j in range(len(freq)):
+                lift, drag, l_eff = main(alpha,U[j,i],F[j,i],lesp)
+
+                L[j,i] = lift
+                D[j,i] = drag
+                L_eff[j,i] = l_eff
+
+        np.savetxt(f"{lesp:.4f}_{alpha:.1f}deg_lift" + '.csv', L,  
+                  delimiter = ",")
+
+        np.savetxt(f"{lesp:.4f}_{alpha:.1f}deg_drag" + '.csv', D,  
+                  delimiter = ",")
+
+        np.savetxt(f"{lesp:.4f}_{alpha:.1f}deg_leff" + '.csv', L_eff,  
+                  delimiter = ",")
