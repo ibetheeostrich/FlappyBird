@@ -240,7 +240,7 @@ def main(alpha,U_ref,frequency,lesp):
 
 if __name__ == "__main__":
 
-    alpha = 0.0
+    alpha = 5.0
 
     Uref = [8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0]
     freq = [1.0, 1.5, 2.0, 2.5, 3.0]
@@ -251,7 +251,7 @@ if __name__ == "__main__":
     L = np.zeros((len(freq),len(Uref)))
     L_eff = np.zeros((len(freq),len(Uref)))
 
-    LESP = [0.1,0.4,0.5]
+    LESP = [0.2,0.3]
 
     for lesp in LESP:
 
