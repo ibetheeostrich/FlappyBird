@@ -34,10 +34,10 @@ alpha       = float(params[0][:-3])
 alpha_eff   = np.deg2rad(alpha)    
 frequency   = float(params[2][:-6])
 
-alpha = 5.0
+alpha = 0.0
 alpha_eff   = np.deg2rad(alpha) 
-U_ref       = 8.0
-frequency   = 1.0
+U_ref       = 10.0
+frequency   = 2.0
 
 scale = 0.5
 
@@ -57,7 +57,7 @@ t_span = np.linspace(0.0, no_steps*t_step, no_steps, endpoint=False)
 
 amp = 42.5
 
-lesp = 10.25
+lesp = 0.25
 
 # get data from csv
 
