@@ -13,6 +13,34 @@ extrac1p = false;
 folder_path = '.\DYNAMIC (SELECTED)';
 clean_folder_path = '.\DYNAMIC (SELECTED)';
 clean_folder_path_1p = '.\DYNAMIC ALL (CLEAN1P)';
+victor_dynamic_dodgy = '.\DYNAMIC DODGY';
+
+% get list of all victors's files
+% cd(victor_dynamic_dodgy)
+
+
+cd(victor_dynamic_dodgy)
+
+victor_files = dir('*.csv');
+
+cd ..
+
+% loop through all victor's files and plot
+for i = 1:length(victor_files)
+    file_path = fullfile(victor_dynamic_dodgy, victor_files(i).name);
+    data = readtable(file_path);
+    time = data.t;
+    lift = data.lift;
+    % drag = data.drag;
+    plot(time, lift, 'LineWidth', 1.7)
+    hold on
+    % plot(time, drag, 'LineWidth', 1.7)
+    title(['Victor Dynamic Data: ', victor_files(i).name])
+    xlabel('Time (s)')
+    ylabel('Force (N)')
+    legend('Lift')
+    hold off
+end
 
 % Get a list of all .txt files in the selected folder
 cd(folder_path)
