@@ -14,6 +14,9 @@ folder_path = '.\DYNAMIC ALL (RAW)';
 clean_folder_path = '.\DYNAMIC ALL (CLEAN)';
 clean_folder_path_1p = '.\DYNAMIC ALL (CLEAN1P)';
 
+figs_folder_path = '.\DYNAMIC FIGS';
+
+
 % Get a list of all .txt files in the selected folder
 cd(folder_path)
 
@@ -123,31 +126,30 @@ for i = 1:length(file_list)
             plot(time_scaled,lift(ind(2):ind(3)), 'Color', [0,0,1,0.1])
             plot(time_scaled,new_drag1p,'LineWidth',1.7)
             plot(time_scaled,drag(ind(2):ind(3)), 'Color', [1,0,0,0.1])
-            title(['Filtered Data for One Period: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg | Frequency: ', num2str(frequency), ' Hz'])
+            title(['Dynamic Lift and Drag: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg | Frequency: ', num2str(frequency), ' Hz'])
             xlabel('Time (s)')
             ylabel('Force (N)')
-            legend('Filtered Lift', 'Original Lift', 'Filtered Drag', 'Original Drag')
+            xlim([0,5]);
+            grid minor
+            legend('Filtered Lift', 'Original Lift', 'Filtered Drag', 'Original Drag', 'Location', 'best', 'Orientation', 'horizontal', 'NumColumns', 2)
 
         end
     else
-        figure(i)
+        figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);  
         plot(time,new_lift,'LineWidth',1.7)
         hold on
         plot(time,lift, 'Color', [0,0,1,0.1])
         plot(time,new_drag,'LineWidth',1.7)
         plot(time,drag, 'Color', [1,0,0,0.1])
-        title(['Filtered Data: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg| Frequency: ', num2str(frequency), ' Hz'])
+        title(['Dynamic:', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg| Frequency: ', num2str(frequency), ' Hz'])
         xlabel('Time (s)')
         ylabel('Force (N)')
-        legend('Filtered Lift', 'Original Lift', 'Filtered Drag', 'Original Drag')
+        xlim([0,5]);
+        grid minor
+        legend('Filtered Lift', 'Original Lift', 'Filtered Drag', 'Original Drag', 'Location', 'best', 'Orientation', 'horizontal', 'NumColumns', 2)
+        
+        % saveas(gcf, fullfile(figs_folder_path, [filename '.png']));
     end
-
-    % Process the data (you can add your processing steps here)
-    % For example:
-    % processed_data = process_data(a, Hd);
-
-    % Optionally, you can save the processed data or perform further operations
-    % save_processed_data(processed_data, file_list(i).name);
 
     % Display progress
     fprintf('Processed file %d of %d: %s\n', i, length(file_list), file_list(i).name);
