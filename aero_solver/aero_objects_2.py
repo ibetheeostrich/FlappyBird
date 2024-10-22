@@ -179,8 +179,11 @@ class camber_line:
             
         a0_int = deepcopy(self.fourier[0])
 
-
-        iter = root(self.kelvin_lesp_iter, array([-0.01, 0.01]), (a0_int,g0_int,v_field,lesp,t), tol=1e-12)
+        if lesp > 0:
+            iter = root(self.kelvin_lesp_iter, array([-0.01, 0.01]), (a0_int,g0_int,v_field,lesp,t), tol=1e-12)
+        
+        else:
+            iter = root(self.kelvin_lesp_iter, array([0.01, -0.01]), (a0_int,g0_int,v_field,lesp,t), tol=1e-12)
 
         [v_field.tev[-1], v_field.lev[-1]] = iter.x
 

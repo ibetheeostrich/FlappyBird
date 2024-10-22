@@ -17,7 +17,7 @@ csfont = {'fontname':'Comic Sans MS'}
 hfont = {'fontname':'Helvetica'}
 
 t_step = 0.005
-no_steps = 800
+no_steps = 400
 chords = 1.0+np.zeros(no_steps)#*np.linspace(0,0.25,no_steps)
 freq = 3
 amp = np.deg2rad(42.5)
@@ -31,13 +31,23 @@ td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
 lesp_crit = 0.2
 
-x_dot = lambda t: 5
-h_dot = lambda t: 0.0#2*np.pi*np.sin(2*np.pi*t)
-alpha_dot = lambda t: 0 if t<0.24 else (2*np.pi*np.deg2rad(22.5)*np.sin(2*np.pi*(t-0.25)) if t < 0.75 else 0.0)
+# x_dot = lambda t: 5
+# h_dot = lambda t: 0.0#2*np.pi*np.sin(2*np.pi*t)
+# alpha_dot = lambda t: 0 if t<0.24 else (2*np.pi*np.deg2rad(22.5)*np.sin(2*np.pi*(t-0.25)) if t < 0.75 else 0.0)
+
+# u = lambda t: 5.0*t
+# h = lambda t: 0.0#1-np.cos(2*np.pi*t)
+# alpha = lambda t: 0 if t<0.24 else (np.deg2rad(22.5) - np.deg2rad(22.5)*np.cos(2*np.pi*(t-0.25)) if t < 0.75 else np.deg2rad(45))
+
+
+x_dot = lambda t: 5.0
+h_dot = lambda t: - 1.0 + np.cos(2*np.pi*t)
+alpha_dot = lambda t: 0.0# 0 if t<0.24 else (2*np.pi*np.deg2rad(22.5)*np.sin(2*np.pi*(t-0.25)) if t < 0.75 else 0.0)
 
 u = lambda t: 5.0*t
-h = lambda t: 0.0#1-np.cos(2*np.pi*t)
-alpha = lambda t: 0 if t<0.24 else (np.deg2rad(22.5) - np.deg2rad(22.5)*np.cos(2*np.pi*(t-0.25)) if t < 0.75 else np.deg2rad(45))
+h = lambda t: - 1.0 * t + 0.5 / np.pi * np.sin(2*np.pi*t)
+alpha = lambda t: 0.0 # 0 if t<0.24 else (np.deg2rad(22.5) - np.deg2rad(22.5)*np.cos(2*np.pi*(t-0.25)) if t < 0.75 else np.deg2rad(45))
+
 
 be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
 
@@ -48,7 +58,9 @@ lev_flag = 0
 for t in td:
 
     if t > 0.0:
-        print(t)
+        # print(t)
+        # print(be.fourier[0])
+              
         lev_flag_prev = lev_flag
 
         if t > t_step:
@@ -67,7 +79,12 @@ for t in td:
             field.shed_lev(be,t)
 
             # be.kelvinlesp(field, 0.001, lesp_crit, t)
-            be.kelvin_lesp_2(field,lesp_crit,t)
+        
+            if be.fourier[0] < 0:
+                be.kelvin_lesp_2(field,- lesp_crit,t)
+
+            else:
+                be.kelvin_lesp_2(field,lesp_crit,t)
 
             gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
             # print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
@@ -107,8 +124,8 @@ for t in td:
             plt.savefig(str(round(t/t_step)) + '.png')
             plt.clf()   
 
-            gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
-            print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
+        #     gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
+        #     print(f'{t:.2f} {abs(be.fourier[0]) - lesp_crit:.3f} {gb}') 
         # # print(x_dot(t))
 
 #####################################################################################    
