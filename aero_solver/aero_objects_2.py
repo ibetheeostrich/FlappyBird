@@ -240,16 +240,19 @@ class camber_line:
 
         cn = non1 + cnc + cnnc 
 
+        # added mass
+        
+
         # if t > 0.20:
         #     print(f"{cnc:.8f}", f"{cnnc:.8f}", f"{non1:.8f}", self.fourier[0], self.fourier[1])
 
         cs = 2*pi*self.fourier[0]**2
 
-        cl = (0.5*1.225*self.x_dot(t)**2)*(cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) *self.c(t)
-        cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
+        # cl = (0.5*1.225*self.x_dot(t)**2)*(cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) *self.c(t)
+        # cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
 
-        # cl = (cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) 
-        # cd = (-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))
+        cl = (cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) 
+        cd = (-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))
 
         return cl, cd 
         # return (self.fourier[1] - self.fourier_old[1])/t_step, self.fourier[1]

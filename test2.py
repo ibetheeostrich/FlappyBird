@@ -6,17 +6,22 @@ import scipy.integrate as inte
 import aero_solver.aero_objects_2 as ao
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import matplotlib.animation as animation
 from matplotlib.animation import FFMpegWriter
 import io
 
-
 from aero_solver.bem import bem_2 as bem
 
-csfont = {'fontname':'Comic Sans MS'}
-hfont = {'fontname':'Helvetica'}
+from pyfonts import load_font
+plotfont = load_font(
+   font_url="https://github.com/google/fonts/blob/0317d1b68ebfc928b0c43e4d4ced957ce9252931/ofl/oldstandardtt/OldStandard-Regular.ttf?raw=true"
+)   
 
-t_step = 0.005
+plotting = True
+
+
+t_step = 0.015/2
 no_steps = 400
 chords = 1.0+np.zeros(no_steps)#*np.linspace(0,0.25,no_steps)
 freq = 3
@@ -26,27 +31,50 @@ amp = np.deg2rad(42.5)
 tag = 9
 cl = np.zeros(no_steps)
 cd = np.zeros(no_steps)
-
+ 
 td = np.linspace(0,no_steps*t_step,no_steps,endpoint=False)
 
-lesp_crit = 0.2
+lesp_crit = 0.11
 
-# x_dot = lambda t: 5
+
+amp = np.deg2rad(5)
+freq = 1
+
+x_dot = lambda t: 1.0
+h_dot = lambda t: 0.0
+alpha_dot = lambda t: 2*np.pi*freq*amp*np.cos(2*np.pi*freq*t)
+alpha_ddot = lambda t: -2*2*np.pi*freq*np.pi*freq*amp*np.sin(2*np.pi*freq*t)
+
+u = lambda t: 1.0 * t
+h = lambda t: 0.0
+alpha = lambda t: amp*np.sin(2*np.pi*freq*t)
+
+h_ddot_temp = lambda t: -2*np.pi*2*np.pi*0.5*np.sin(amp) * np.sin(2*np.pi*freq*t)
+
+# x_dot = lambda t: 1
+# h_dot = lambda t: 0.0
+# alpha_dot = lambda t: 0.0
+
+# u = lambda t: 1.0*t
+# h = lambda t: 0.0#1-np.cos(2*np.pi*t)
+# alpha = lambda t: np.deg2rad(5) if t>0.5 else 0
+
+# x_dot = lambda t: 1
 # h_dot = lambda t: 0.0#2*np.pi*np.sin(2*np.pi*t)
-# alpha_dot = lambda t: 0 if t<0.24 else (2*np.pi*np.deg2rad(22.5)*np.sin(2*np.pi*(t-0.25)) if t < 0.75 else 0.0)
+# alpha_dot = lambda t: 0.0
 
 # u = lambda t: 5.0*t
 # h = lambda t: 0.0#1-np.cos(2*np.pi*t)
 # alpha = lambda t: 0 if t<0.24 else (np.deg2rad(22.5) - np.deg2rad(22.5)*np.cos(2*np.pi*(t-0.25)) if t < 0.75 else np.deg2rad(45))
 
 
-x_dot = lambda t: 5.0
-h_dot = lambda t: - 1.0 + np.cos(2*np.pi*t)
-alpha_dot = lambda t: 0.0# 0 if t<0.24 else (2*np.pi*np.deg2rad(22.5)*np.sin(2*np.pi*(t-0.25)) if t < 0.75 else 0.0)
+# x_dot = lambda t: 5.0
+# h_dot = lambda t: - 1.0 + np.cos(2*np.pi*t)
+# alpha_dot = lambda t: 0.0# 0 if t<0.24 else (2*np.pi*np.deg2rad(22.5)*np.sin(2*np.pi*(t-0.25)) if t < 0.75 else 0.0)
 
-u = lambda t: 5.0*t
-h = lambda t: - 1.0 * t + 0.5 / np.pi * np.sin(2*np.pi*t)
-alpha = lambda t: 0.0 # 0 if t<0.24 else (np.deg2rad(22.5) - np.deg2rad(22.5)*np.cos(2*np.pi*(t-0.25)) if t < 0.75 else np.deg2rad(45))
+# u = lambda t: 5.0*t
+# h = lambda t: - 1.0 * t + 0.5 / np.pi * np.sin(2*np.pi*t)
+# alpha = lambda t: 0.0 # 0 if t<0.24 else (np.deg2rad(22.5) - np.deg2rad(22.5)*np.cos(2*np.pi*(t-0.25)) if t < 0.75 else np.deg2rad(45))
 
 
 be  = ao.camber_line(chords, 35, x_dot,h_dot,alpha_dot,u,h,alpha,t_step)
@@ -102,26 +130,47 @@ for t in td:
             field.lev_y = np.array([])
 #####################################################################################    
 
-        if round(t/t_step) % 5== 0:
+        if round(t/t_step) % 399 == 0 and plotting:
         
             fig, ax = plt.subplots()
             fig.dpi = 300
-            fig.set_size_inches(19.20, 10.80)
-            plt.rc('xtick', labelsize=16)    # fontsize of the tick labels
-            plt.rc('ytick', labelsize=16)    # fontsize of the tick labels
+            plt.rc('xtick', labelsize=12)    # fontsize of the tick labels
+            plt.rc('ytick', labelsize=12)    # fontsize of the tick labels
+
+
+            fig.set_size_inches(8, 3)
+
+
             contf = ax.scatter(np.concatenate((field.tev_x, field.lev_x, field.ext_x)),
                     np.concatenate((field.tev_y, field.lev_y, field.ext_y))
-                    , c=np.concatenate((field.tev, field.lev, field.ext)), vmin=-0.25, vmax=0.25, cmap = 'bwr', s=10)
-            fig.colorbar(contf,orientation='horizontal')
+                    , c=(np.concatenate((field.tev, field.lev, field.ext))), vmin = -0.025, vmax = 0.025, cmap = 'bwr', s=1)
             
+            cbar = fig.colorbar(contf,orientation='vertical')
             ax.plot(be.x,
                     be.y,
                     'k')
             ax.axis("equal")
+            
+
+
+            for label in cbar.ax.xaxis.get_ticklabels():
+                label.set_fontproperties(plotfont)
+
+            for label in cbar.ax.yaxis.get_ticklabels():
+                label.set_fontproperties(plotfont)
+
+            for label in ax.get_xticklabels():
+                label.set_fontproperties(plotfont)
+            
+            for label in ax.get_yticklabels():
+                label.set_fontproperties(plotfont)
+
+
+
             # ax.set_xlim(be.x[0] - 0.1,be.x[-1] + 0.1)
             # ax.set_ylim(be.y[0] - 0.1,be.y[-1] + 0.1)
             # plt.savefig('./results/' + str(tag) + '/' + str(round(t/t_step)) + '.png')
-            plt.savefig(str(round(t/t_step)) + '.png')
+            plt.savefig('temp/' + str(round(t/t_step)) + '.svg',  pad_inches=0.0, bbox_inches='tight')
             plt.clf()   
 
         #     gb = np.pi * be.c(t) * be.x_dot(t) * (be.fourier[0] + be.fourier[1] * 0.5) + np.sum(np.concatenate((field.tev, field.lev, field.ext)))           
@@ -136,15 +185,22 @@ for t in td:
                                          np.concatenate((field.tev_y, field.lev_y, field.ext_y)),
                                          np.concatenate((field.tev, field.lev, field.ext)),
                                          t, t_step)
+        
+        cn_added = np.pi * (alpha_dot(t) + alpha_ddot(t) + h_ddot_temp(t))
+
+        cl[round(t/t_step)] = cl[round(t/t_step)] + cn_added
+        
+        print(cl[round(t/t_step)]) 
 
         # print(cl[round(t/t_step)])
         # print(be.fourier[0])
 
+print(cl)
 
 fig, ax = plt.subplots()
 fig.dpi = 300
-ax.plot(td,
-        cl,
+ax.plot(td[4:],
+        cl[4:],
         'k')
 
 plt.savefig('flat1' + '.png')

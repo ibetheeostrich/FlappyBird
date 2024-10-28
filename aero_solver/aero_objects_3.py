@@ -257,15 +257,15 @@ class camber_line:
 
         non1 = inte.trapezoid(2/self.x_dot(t)/self.x_dot(t)/self.c(t) * dphi_dxi*fourier_inf,self.theta)
 
-        cn =  cnc + cnnc + non1
+        cn =  cnc
 
         # if t > 0.20:
         #     print(f"{cnc:.8f}", f"{cnnc:.8f}", f"{non1:.8f}", self.fourier[0], self.fourier[1])
 
         cs = 2*pi*self.fourier[0]**2
 
-        cl = (0.5*1.225*self.x_dot(t)**2)*(cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) *self.c(t)
-        cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
+        # cl = (0.5*1.225*self.x_dot(t)**2)*(cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) *self.c(t)
+        # cd = (0.5*1.225*self.x_dot(t)**2)*(-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))*self.c(t)
 
         cl = (cn*cos(self.alpha(t)) + cs*sin(self.alpha(t))) 
         cd = (-cn*sin(self.alpha(t)) + cs*cos(self.alpha(t)))
