@@ -11,7 +11,7 @@ from wing_kinematics.kinematics import wing_kinematics as wk
 
 from multiprocessing import Pool
 
-from geom import *
+from geomII import *
 
 import time
 
@@ -79,13 +79,13 @@ def wing_plot():
     t = 0.0
     wing_kin = wk(I_in, I_out, II_in, II_out, III_in, III_out, IV_in, IV_out, V, VI_in, VI_out, F_I, F_II, A_I, A_II)
 
-    root_pos = -0.07
+    root_pos = -0.046
 
     points = wing_kin.kin_2d_plot(root_pos)
 
     print(points)
 
-    np.savetxt("points1.csv", points,  
+    np.savetxt("points.csv", points,  
               delimiter = ",")  
 
 def main(alpha,U_ref,frequency,lesp):
@@ -240,7 +240,9 @@ def main(alpha,U_ref,frequency,lesp):
 
 if __name__ == "__main__":
 
-    alpha = 5.0
+    # wing_plot()
+
+    alpha = 0.0
 
     Uref = [8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0]
     freq = [1.0, 1.5, 2.0, 2.5, 3.0]
@@ -263,11 +265,11 @@ if __name__ == "__main__":
                 D[j,i] = drag
                 L_eff[j,i] = l_eff
 
-        np.savetxt(f"{lesp:.4f}_{alpha:.1f}deg_lift" + '.csv', L,  
+        np.savetxt(f"{lesp:.4f}_{alpha:.1f}deg_lift" + 'long' +'.csv', L,  
                   delimiter = ",")
 
-        np.savetxt(f"{lesp:.4f}_{alpha:.1f}deg_drag" + '.csv', D,  
+        np.savetxt(f"{lesp:.4f}_{alpha:.1f}deg_drag" + 'long'+ '.csv', D,  
                   delimiter = ",")
 
-        np.savetxt(f"{lesp:.4f}_{alpha:.1f}deg_leff" + '.csv', L_eff,  
+        np.savetxt(f"{lesp:.4f}_{alpha:.1f}deg_leff" + 'long'+ '.csv', L_eff,  
                   delimiter = ",")

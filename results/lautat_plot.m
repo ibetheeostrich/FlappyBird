@@ -2,17 +2,44 @@ clear;
 close all;
 clc;
 
+list_factory = fieldnames(get(groot,'factory'));
+index_interpreter = find(contains(list_factory,'Interpreter'));
+for i = 1:length(index_interpreter)
+    default_name = strrep(list_factory{index_interpreter(i)},'factory','default');
+    set(groot, default_name,'none');
+end
+set(groot,...
+'defaulttextinterpreter','latex',...
+'defaultAxesTickLabelInterpreter','latex',...
+'defaultLegendInterpreter','latex')
 
-imp = [0.512214178	0.582401393	0.652751532	0.723215301	0.79376012	0.864363831	0.935010993;
-0.489904586	0.559029027	0.628536677	0.698324474	0.768321266	0.838476689	0.908754313;
-0.471339954	0.53903942	0.607375182	0.676189959	0.745372036	0.814840174	0.884534126;
-0.45619357	0.522235517	0.589174943	0.65680319	0.724969772	0.793563365	0.862499945;
-0.44203515	0.508317198	0.573710072	0.640003557	0.707009932	0.774589117	0.8426343464850923];
+file = '0.3000_5.0deg_lift.csv';
+name = file(1:end-4);
+
+
+imp = readmatrix(file);
 
 u = [8 9 10 11 12 13 14];
 hz = [1 1.5 2 2.5 3];
 
 [U, H] = meshgrid(u,hz);
 
-contourf(u,hz,imp)
-colorbar
+figure;
+s = contourf(U,H,imp.*H,'LineStyle','none');
+c = colorbar('southoutside');
+c.Label.String = 'Lift Impulse ($$Ns$$)';
+c.Label.Interpreter = 'latex';
+c.TickLabelInterpreter = 'latex';
+
+% fontname(gcf,"Times New Roman")
+fontsize(gcf,12,'points')
+% set(gca,'position',[0.2 0.3 0.7 0.75])
+xlabel("Velocity ($$m/s$$)",'FontSize',12)
+ylabel("Wing Beat Frequency (Hz)",'FontSize',12)
+set(gcf,'units','centimeters','position',[10,10,7.5,10])
+xlim([8,14])
+ylim([1,3])
+% view(0,90)
+ax = gca;
+% exportgraphics(ax,strcat(name,'isecimp','.pdf'),'ContentType','vector')
+

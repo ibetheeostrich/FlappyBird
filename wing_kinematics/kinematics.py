@@ -258,7 +258,7 @@ class wing_kinematics:
 
         
 
-        wing_vert = [tuple(sa), tuple(w1), tuple(f3), tuple(f2), tuple(f1), (-0.15, 0.0),tuple(sa)]
+        wing_vert = [tuple(sa), tuple(w1), tuple(f3), tuple(f2), tuple(f1), (-0.08, 0.0),tuple(sa)]
 
         wing_poly = shapely.Polygon(wing_vert)
 
