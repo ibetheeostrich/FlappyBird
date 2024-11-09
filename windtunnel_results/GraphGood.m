@@ -16,9 +16,9 @@ function [] = GraphGood()
     set(0,'defaultLineMarkerSize',msz);         % set the default line marker size to msz
     set(0,'defaultAxesLineWidth',alw);           % set the default line width to lw
     set(0,'defaultAxesFontSize',fsz);         % set the default line marker size to msz
-    % set(0,'defaulttextInterpreter','latex')
-    % set(0,'defaultAxesTickLabelInterpreter', 'latex');
-    % set(0,'defaultLegendInterpreter', 'latex');
+    set(0,'defaulttextInterpreter','latex')
+    set(0,'defaultAxesTickLabelInterpreter', 'latex');
+    set(0,'defaultLegendInterpreter', 'latex');
     set(0,'defaultFigureColor','w');
     set(0,'defaultAxesColor','w');
 
