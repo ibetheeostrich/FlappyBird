@@ -108,7 +108,7 @@ for i = 1:length(file_list)
     figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);  
     plot(time(xlims(i, 1):xlims(i, 2))-time(xlims(i,1)), new_lift(xlims(i, 1):xlims(i, 2)), 'LineWidth', 1.7);
     hold on;
-    title(['Dynamic: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg| Frequency: ', num2str(frequency), ' Hz']);
+%     title(['Dynamic: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg| Frequency: ', num2str(frequency), ' Hz']);
     xlabel('Time (s)');
     ylabel('Force (N)');
     % xlim(xlims(i, :)); % Set specific x-limits based on index

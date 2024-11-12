@@ -36,7 +36,7 @@ for a = 1:length(unique_aoas)
     velocity_current_aoa = current_aoa_data(:, 4);
     
     % Plot lift vs phase angle for each velocity
-    figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
+    figure('Units', 'centimeters', 'Position', [10, 10, 10, 8]);
     hold on;
     unique_velocities = unique(velocity_current_aoa);
     
@@ -65,7 +65,7 @@ for a = 1:length(unique_aoas)
     hold off;
     
     % Plot drag vs phase angle for each velocity
-    figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
+    figure('Units', 'centimeters', 'Position', [10, 10, 10, 8]);
     hold on;
     
     for v = 1:length(unique_velocities)
@@ -125,7 +125,7 @@ for a = 1:length(unique_aoas)
     drag_grid = griddata(phase_angle_current_aoa, velocity_current_aoa, drag_mean_current_aoa, phase_grid, velocity_grid);
     
     % Plot lift surface plot
-    figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
+    figure('Units', 'centimeters', 'Position', [10, 10, 10, 8]);
     surf(phase_grid, velocity_grid, lift_grid);
     hold on;
     % % Add dashed lines from the XY plane to the surface
@@ -148,7 +148,7 @@ for a = 1:length(unique_aoas)
     c.TickLabelInterpreter = 'latex';
 
     % Plot drag surface plot
-    figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
+    figure('Units', 'centimeters', 'Position', [10, 10, 10, 8]);
     surf(phase_grid, velocity_grid, drag_grid);
     hold on;
     % % Add dashed lines from the XY plane to the surface
@@ -189,7 +189,7 @@ for v = 1:length(unique_velocities)
     aoa_current_velocity = current_velocity_data(:, 5);
     
     % Plot lift vs phase angle for each AOA
-    figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
+    figure('Units', 'centimeters', 'Position', [10, 10, 10, 8]);
     hold on;
     unique_aoas = unique(aoa_current_velocity);
     
@@ -218,7 +218,7 @@ for v = 1:length(unique_velocities)
     hold off;
     
     % Plot drag vs phase angle for each AOA
-    figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
+    figure('Units', 'centimeters', 'Position', [10, 10, 10, 8]);
     hold on;
     
     for a = 1:length(unique_aoas)
@@ -278,7 +278,7 @@ for v = 1:length(unique_velocities)
     drag_grid = griddata(phase_angle_current_velocity, aoa_current_velocity, drag_mean_current_velocity, phase_grid, aoa_grid);
     
     % Plot lift surface plot
-    figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
+    figure('Units', 'centimeters', 'Position', [10, 10, 10, 8]);
     surf(phase_grid, aoa_grid, lift_grid);
     hold on;
     % % Add dashed lines from the XY plane to the surface
@@ -301,7 +301,7 @@ for v = 1:length(unique_velocities)
     c.TickLabelInterpreter = 'latex';
 
     % Plot drag surface plot
-    figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);
+    figure('Units', 'centimeters', 'Position', [10, 10, 10, 8]);
     surf(phase_grid, aoa_grid, drag_grid);
     hold on;
     % % Add dashed lines from the XY plane to the surface
