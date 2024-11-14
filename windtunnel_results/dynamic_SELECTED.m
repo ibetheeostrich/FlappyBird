@@ -105,7 +105,7 @@ for i = 1:length(file_list)
     fprintf('Saved filtered data to: %s\n', output_filename);
 
     % Plot the filtered data
-    figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);  
+    figure('Units', 'centimeters', 'Position', [10, 10, 12, 8]);  
     plot(time(xlims(i, 1):xlims(i, 2))-time(xlims(i,1)), new_lift(xlims(i, 1):xlims(i, 2)), 'LineWidth', 1.7);
     hold on;
 %     title(['Dynamic: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg| Frequency: ', num2str(frequency), ' Hz']);
@@ -131,7 +131,7 @@ for i = 1:length(file_list)
     % Display progress
     fprintf('Processed file %d of %d: %s\n', i, length(file_list), file_list(i).name);
 
-    saveas(gcf, fullfile(figs_folder_path, [filename '.png']));
+    saveas(gcf, fullfile(figs_folder_path, ['WTvsANAL' filename '.svg']));
 end
 
 % Add any final operations or data compilation here if needed

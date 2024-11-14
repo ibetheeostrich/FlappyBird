@@ -11,7 +11,7 @@ function Hd = FILTER
 Fs = 1000;  % Sampling Frequency
 
 N    = 100;       % Order (further reduced)
-Fc   = 15;       % Cutoff Frequency (significantly increased)
+Fc   = 12;       % Cutoff Frequency (significantly increased)
 flag = 'scale';  % Sampling Flag
 Beta = 0.2;      % Window Parameter (further reduced)
 

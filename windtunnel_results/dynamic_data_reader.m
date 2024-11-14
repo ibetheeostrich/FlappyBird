@@ -123,32 +123,32 @@ for i = 1:length(file_list)
             figure(i)
             plot(time_scaled,new_lift1p,'LineWidth',1.7)
             hold on
-            plot(time_scaled,lift(ind(2):ind(3)), 'Color', [0,0,1,0.1])
+            % plot(time_scaled,lift(ind(2):ind(3)), 'Color', [0,0,1,0.1])
             plot(time_scaled,new_drag1p,'LineWidth',1.7)
-            plot(time_scaled,drag(ind(2):ind(3)), 'Color', [1,0,0,0.1])
-            title(['Dynamic Lift and Drag: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg | Frequency: ', num2str(frequency), ' Hz'])
+            % plot(time_scaled,drag(ind(2):ind(3)), 'Color', [1,0,0,0.1])
+            title(['Dynamic: ', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg | Frequency: ', num2str(frequency), ' Hz'])
             xlabel('Time (s)')
             ylabel('Force (N)')
             xlim([0,5]);
             grid minor
-            legend('Filtered Lift', 'Original Lift', 'Filtered Drag', 'Original Drag', 'Location', 'best', 'Orientation', 'horizontal', 'NumColumns', 2)
+            legend('Filtered Lift', 'Filtered Drag', 'Location', 'best', 'Orientation', 'horizontal', 'NumColumns', 2)
 
         end
     else
-        figure('Units', 'centimeters', 'Position', [10, 10, 12, 10]);  
+        figure('Units', 'centimeters', 'Position', [10, 10, 12, 8]);  
         plot(time,new_lift,'LineWidth',1.7)
         hold on
-        plot(time,lift, 'Color', [0,0,1,0.1])
+        % plot(time,lift, 'Color', [0,0,1,0.1])
         plot(time,new_drag,'LineWidth',1.7)
-        plot(time,drag, 'Color', [1,0,0,0.1])
-        title(['Dynamic:', ' | Velocity: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg| Frequency: ', num2str(frequency), ' Hz'])
+        % plot(time,drag, 'Color', [1,0,0,0.1])
+%         title(['Vel: ', num2str(velocity), ' m/s | AOA: ', num2str(aoa), ' deg| Freq: ', num2str(frequency), ' Hz'])
         xlabel('Time (s)')
         ylabel('Force (N)')
-        xlim([0,5]);
+        xlim([0,2]);
         grid minor
-        legend('Filtered Lift', 'Original Lift', 'Filtered Drag', 'Original Drag', 'Location', 'best', 'Orientation', 'horizontal', 'NumColumns', 2)
+        legend('Lift', 'Drag', 'Location', 'best', 'Orientation', 'horizontal', 'NumColumns', 2)
         
-        % saveas(gcf, fullfile(figs_folder_path, [filename '.png']));
+        saveas(gcf, fullfile(figs_folder_path, ['dynamic' filename '.svg']));
     end
 
     % Display progress
